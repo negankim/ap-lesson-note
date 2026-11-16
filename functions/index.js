@@ -33,10 +33,21 @@ async function callClaude(model, prompt, maxTokens) {
     throw new HttpsError("unavailable", "AI 응답을 받지 못했습니다.");
   }
   const data = await res.json();
-  const text = (data.content || []).map((c) => c.text || "").join("");
-  const m = text.match(/\{[\s\S]*\}/);
-  if (!m) throw new HttpsError("internal", "AI 응답 형식이 맞지 않습니다.");
-  try { return JSON.parse(m[0]); } catch (e) { throw new HttpsError("internal", "AI 응답을 읽지 못했습니다."); }
+  const text = (data.content || []).filter((c) => c.type === "text").map((c) => c.text || "").join("");
+  if (data.stop_reason === "max_tokens") {
+    console.error("Claude answer cut off (max_tokens)", model, maxTokens, text.length);
+    throw new HttpsError("internal", "AI 응답이 너무 길어 잘렸습니다.");
+  }
+  const start = text.indexOf("{"), end = text.lastIndexOf("}");
+  if (start < 0 || end <= start) {
+    console.error("Claude answer has no JSON", data.stop_reason, text.slice(0, 500));
+    throw new HttpsError("internal", "AI 응답 형식이 맞지 않습니다.");
+  }
+  try { return JSON.parse(text.slice(start, end + 1)); }
+  catch (e) {
+    console.error("Claude answer JSON parse failed", e.message, text.slice(0, 300), "...", text.slice(-300));
+    throw new HttpsError("internal", "AI 응답을 읽지 못했습니다.");
+  }
 }
 
 async function countUse(uid, task) {
@@ -61,13 +72,13 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     const lib = libSnap.docs.map((x) => ({ id: x.id, ...x.data() }));
     return callClaude(MODEL.organize, organizePrompt({
       text, coach: String(d.coach || "").slice(0, 40), profile: d.profile || {}, history: (d.history || []).slice(0, 3), lib,
-    }), 4000);
+    }), 16000);
   }
   if (d.task === "feedback") {
     await countUse(req.auth.uid, "feedback");
     return callClaude(MODEL.feedback, feedbackPrompt({
       lesson: d.lesson || {}, verdict: String(d.verdict || ""), text: String(d.text || "").slice(0, 300),
-    }), 800);
+    }), 2000);
   }
   throw new HttpsError("invalid-argument", "알 수 없는 요청입니다.");
 });
