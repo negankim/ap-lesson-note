@@ -93,7 +93,7 @@ $("go").addEventListener("click",async()=>{
   const st=$("st");st.className="status";
   if(text.length<20){st.textContent="레슨 내용을 조금 더 적어 주세요.";st.className="status err";return}
   if(!ai){st.textContent="로그인한 뒤에 정리할 수 있습니다.";st.className="status err";return}
-  if(busy)return;busy=true;$("go").disabled=true;st.innerHTML="<div class=\"guide\" id=\"g-wait\"></div><div class=\"ld\" aria-hidden=\"true\"></div>";say($("g-wait"),"코치님 말씀을 Matrix에 맞춰 생각하는 중이에요. 20~40초만 기다려 주세요.",{now:true,who:"luke"});
+  if(busy)return;busy=true;$("go").disabled=true;st.innerHTML="<div class=\"guide\" id=\"g-wait\"></div><div class=\"ld\" aria-hidden=\"true\"></div>";say($("g-wait"),"코치님 말씀을 Matrix에 맞춰 생각하는 중이에요. 20~40초만 기다려 주세요.",{now:true,who:"rook",motion:"guide"});
   try{
     const r=(await ai({task:"organize",text,coach,profile,history:lessons.slice(0,3).map(l=>({date:l.date,title:l.result.title,node:l.result.node||null}))})).data;
     if(!r||!r.plan)throw new Error("format");
@@ -101,7 +101,7 @@ $("go").addEventListener("click",async()=>{
     (r.drills||[]).forEach(d=>{const it=d.lib_id&&lib.find(x=>x.id===d.lib_id);if(it){d.source="AP 라이브러리";d.lib_rev=it.rev||1}else if(d.source==="AP 라이브러리"){d.source="AI 보완";d.lib_id=""}});
     $("out").innerHTML=resultHTML(r,coach,draft.date,{key:"draft"})+`<div class="actions" style="margin-top:12px"><button class="btn" type="button" id="redo">다시 정리</button><button class="btn gold" type="button" id="save">내 차트에 저장</button></div>`;
     st.textContent="";
-    say($("g-lesson"),r.node?`정리했어요. 지금 위치는 ${r.node} ${NODES[r.node].ko}예요. 아래 6일 플랜을 확인하고 내 차트에 저장해 주세요.`:"정리했어요. 위치를 확정하려면 확인할 게 하나 있어요. 아래 '다음 레슨에서 확인'을 봐 주세요.",{now:true,who:"luke"});
+    say($("g-lesson"),r.node?`정리했어요. 지금 위치는 ${r.node} ${NODES[r.node].ko}예요. 아래 6일 플랜을 확인하고 내 차트에 저장해 주세요.`:"정리했어요. 위치를 확정하려면 확인할 게 하나 있어요. 아래 '다음 레슨에서 확인'을 봐 주세요.",{now:true,who:"rook",motion:r.node?"success":"guide"});
     $("out").scrollIntoView({behavior:"smooth",block:"start"});
   }catch(e){
     st.className="status err";
@@ -128,7 +128,7 @@ function setupMic(){
   let on=false;
   dict.onPartial(({text})=>{$("partial").textContent=text});
   dict.onFinal(({text})=>{const t=$("f-text");t.value=(t.value?t.value.replace(/\s*$/,"")+"\n":"")+text;$("partial").textContent=""});
-  dict.onState(({state})=>{on=state==="listening";$("mic").dataset.on=on;$("mic-l").textContent=on?"듣는 중 · 눌러서 멈춤":"레슨 듣기 시작"});
+  dict.onState(({state})=>{on=state==="listening";$("mic").dataset.on=on;$("mic-l").textContent=on?"듣는 중 · 눌러서 멈춤":"레슨 듣기 시작";document.querySelectorAll("#g-lesson .ap-mascot").forEach(m=>{m.dataset.motion=on?"still":"idle"})});
   $("mic").addEventListener("click",()=>{
     if(on){dict.stop().catch(()=>{});return}
     dict.start().catch(err=>{if(err&&err.code==="not_granted"){$("mic-row").hidden=true;toast("마이크가 허용되지 않아 입력으로 진행합니다")}});
@@ -362,16 +362,23 @@ async function loadLessons(){
     lessons=s.docs.map(d=>({id:d.id,...d.data()})).filter(l=>l.result).sort((a,b)=>((b.date||"")+(b.createdAt||"")).localeCompare((a.date||"")+(a.createdAt||"")));
   }catch(e){lessons=[]}
 }
-/* ===== 안내 캐릭터: 로건(늑대·기록)·루크(까마귀·진단)·데릴(오소리·훈련)·랭고(카멜레온·감각과 실전) ===== */
-const CH={logan:{n:"로건",img:"wolf_buddy-s"},luke:{n:"루크",img:"raven_buddy-s"},daryl:{n:"데릴",img:"badger_buddy-s"},rango:{n:"랭고",img:"rango_buddy-s"}};
+/* ===== AP 크루: 로건(늑대·기록)·루크(까마귀·진단)·데릴(벌꿀오소리·훈련)·파코(카멜레온·감각과 실전)
+   이미지: img/ap-crew*.webp (네 칸 시트), 모션: crew.css + crew-life.js. 내부 id rango는 호환용으로 유지. ===== */
+const CH={logan:{n:"로건"},rook:{n:"루크"},daryl:{n:"데릴"},rango:{n:"파코"}};
 const STILL=matchMedia("(prefers-reduced-motion: reduce)").matches;
-function say(el,text,{now=false,who}={}){
+let crewOff=null,crewT=0;
+function crewLife(){clearTimeout(crewT);crewT=setTimeout(()=>{if(crewOff)crewOff();crewOff=window.mountAPCrewLife?window.mountAPCrewLife(document):null},30)}
+function play(m,motion){if(!m)return;m.dataset.motion="still";void m.offsetWidth;m.dataset.motion=motion}
+document.addEventListener("animationend",e=>{const m=e.target;if(m.classList&&m.classList.contains("ap-mascot")&&m.dataset.motion!=="still")m.dataset.motion="idle"});
+function say(el,text,{now=false,who,motion="hello"}={}){
   if(!el)return;
-  const c=CH[who||el.dataset.who]||CH.logan;
+  const id=CH[who||el.dataset.who]?(who||el.dataset.who):"logan",c=CH[id];
   if(el.dataset.said===c.n+text)return;
   el.dataset.said=c.n+text;el.classList.remove("on");
-  el.innerHTML=`<img class="g-av" src="img/${c.img}.webp" alt="" width="48" height="48"><div class="g-bub"><span class="g-name">${c.n}</span><p aria-live="polite"></p></div>`;
-  const p=el.querySelector("p");
+  el.innerHTML=`<span class="ap-mascot g-av" data-character="${id}" data-motion="idle" aria-hidden="true"></span><div class="g-bub"><span class="g-name">${c.n}</span><p aria-live="polite"></p></div>`;
+  crewLife();
+  const p=el.querySelector("p"),av=el.querySelector(".ap-mascot");
+  if(!STILL)setTimeout(()=>play(av,motion),now?0:400);
   clearInterval(el._t);
   if(STILL){p.textContent=text;return}
   const run=()=>{let k=0;el.classList.add("on");el._t=setInterval(()=>{k+=2;p.textContent=text.slice(0,k);if(k>=text.length)clearInterval(el._t)},28)};
@@ -379,6 +386,13 @@ function say(el,text,{now=false,who}={}){
   const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();run()}},{threshold:.4});io.observe(el);
 }
 document.querySelectorAll(".guide[data-say]").forEach(g=>say(g,g.dataset.say));
+const CREW_INTRO={logan:"안녕하세요, 기록 담당 로건이에요. 오늘 받은 레슨, 제가 기억할게요.",rook:"루크예요. 문제의 원인을 찾아 지금 내 위치를 함께 짚어볼게요.",daryl:"데릴이야. 오늘 할 훈련부터 하나씩, 끝까지 함께해 보자.",rango:"파코예요. 어떤 느낌이었는지 들려줘요. 실전에 맞게 조율해 봐요."};
+document.querySelectorAll(".lp-mate[data-crew]").forEach(b=>b.addEventListener("click",()=>{
+  const id=b.dataset.crew,out=$("crew-say");
+  out.textContent="";const n=document.createElement("b");n.textContent=CH[id].n;out.append(n,document.createTextNode(" "+CREW_INTRO[id]));
+  if(!STILL)play(b.querySelector(".ap-mascot"),"hello");
+}));
+crewLife();
 
 /* ===== 메뉴 (왼쪽 서랍) ===== */
 function openMenu(){$("drawer").hidden=false;$("menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden"}

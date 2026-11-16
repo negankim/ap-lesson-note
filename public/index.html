@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="crew.css">
+<script src="crew-life.js" defer></script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="img/favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
@@ -54,10 +56,12 @@
     <div class="lp-sec">
       <p class="lp-label">레슨을 함께 보는 AP 크루</p>
       <div class="lp-team">
-        <div class="lp-mate"><img src="img/wolf_buddy.webp" alt="" width="96" height="96"><b>로건</b><em>기록 · LEGACY</em><span>받은 레슨과 코치의 말을 빠짐없이 기억합니다</span></div>
-        <div class="lp-mate"><img src="img/raven_buddy.webp" alt="" width="96" height="96"><b>루크</b><em>진단 · OUTTHINK</em><span>문제의 원인을 찾아 Matrix 위에 내 위치를 짚습니다</span></div>
-        <div class="lp-mate"><img src="img/badger_buddy.webp" alt="" width="96" height="96"><b>데릴</b><em>훈련 · GRIT</em><span>6일 배틀플랜을 끝까지 함께합니다</span></div>
-        <div class="lp-mate"><img src="img/rango_buddy.webp" alt="" width="96" height="96"><b>랭고</b><em>감각과 실전 · FEEL</em><span>연습한 느낌을 듣고, 실전에 맞게 바꿔 줍니다</span></div>
+        <button type="button" class="lp-mate" data-crew="logan" aria-label="로건 소개 듣기"><span class="ap-mascot" data-character="logan" data-motion="idle" aria-hidden="true"></span><b>로건</b><em>기록 · LEGACY</em><span>받은 레슨과 코치의 말을 빠짐없이 기억합니다</span></button>
+        <button type="button" class="lp-mate" data-crew="rook" aria-label="루크 소개 듣기"><span class="ap-mascot" data-character="rook" data-motion="idle" aria-hidden="true"></span><b>루크</b><em>진단 · OUTTHINK</em><span>문제의 원인을 찾아 Matrix 위에 내 위치를 짚습니다</span></button>
+        <button type="button" class="lp-mate" data-crew="daryl" aria-label="데릴 소개 듣기"><span class="ap-mascot" data-character="daryl" data-motion="idle" aria-hidden="true"></span><b>데릴</b><em>훈련 · GRIT</em><span>6일 배틀플랜을 끝까지 함께합니다</span></button>
+        <button type="button" class="lp-mate" data-crew="rango" aria-label="파코 소개 듣기"><span class="ap-mascot" data-character="rango" data-motion="idle" aria-hidden="true"></span><b>파코</b><em>감각과 실전 · FEEL</em><span>연습한 느낌을 듣고, 실전에 맞게 바꿔 줍니다</span></button>
+      </div>
+      <p class="lp-crew-say" id="crew-say" aria-live="polite">캐릭터를 누르면 인사합니다.</p>
       </div>
     </div>
 
