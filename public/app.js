@@ -93,7 +93,7 @@ $("go").addEventListener("click",async()=>{
   const st=$("st");st.className="status";
   if(text.length<20){st.textContent="레슨 내용을 조금 더 적어 주세요.";st.className="status err";return}
   if(!ai){st.textContent="로그인한 뒤에 정리할 수 있습니다.";st.className="status err";return}
-  if(busy)return;busy=true;$("go").disabled=true;st.innerHTML="<span class=\"ld-row\"><img class=\"ld-bulb\" src=\"img/light_bulb-s.webp\" alt=\"\" width=\"26\" height=\"47\">정리하는 중입니다. 20~40초 걸립니다.</span><div class=\"ld\" aria-hidden=\"true\"></div>";
+  if(busy)return;busy=true;$("go").disabled=true;st.innerHTML="<div class=\"guide\" id=\"g-wait\"></div><div class=\"ld\" aria-hidden=\"true\"></div>";say($("g-wait"),"코치님 말씀을 Matrix에 맞춰 보는 중이에요. 20~40초만 기다려 주세요.",{now:true});
   try{
     const r=(await ai({task:"organize",text,coach,profile,history:lessons.slice(0,3).map(l=>({date:l.date,title:l.result.title,node:l.result.node||null}))})).data;
     if(!r||!r.plan)throw new Error("format");
@@ -101,6 +101,7 @@ $("go").addEventListener("click",async()=>{
     (r.drills||[]).forEach(d=>{const it=d.lib_id&&lib.find(x=>x.id===d.lib_id);if(it){d.source="AP 라이브러리";d.lib_rev=it.rev||1}else if(d.source==="AP 라이브러리"){d.source="AI 보완";d.lib_id=""}});
     $("out").innerHTML=resultHTML(r,coach,draft.date,{key:"draft"})+`<div class="actions" style="margin-top:12px"><button class="btn" type="button" id="redo">다시 정리</button><button class="btn gold" type="button" id="save">내 차트에 저장</button></div>`;
     st.textContent="";
+    say($("g-lesson"),r.node?`정리했어요. 지금 위치는 ${r.node} ${NODES[r.node].ko}예요. 아래 6일 플랜을 확인하고 내 차트에 저장해 주세요.`:"정리했어요. 위치를 확정하려면 확인할 게 하나 있어요. 아래 '다음 레슨에서 확인'을 봐 주세요.",{now:true});
     $("out").scrollIntoView({behavior:"smooth",block:"start"});
   }catch(e){
     st.className="status err";
@@ -146,7 +147,16 @@ function renderMandala(){
 $("mgrid").addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(!b)return;pillarFilter=pillarFilter===b.dataset.p?null:b.dataset.p;renderChart()});
 
 function sameCount(l){return (l.feedback||[]).filter(f=>f.verdict==="여전하다").length}
+function chartSay(){
+  const l=lessons[0];const g=$("g-chart");if(!g)return;
+  if(!l){say(g,"아직 기록이 없어요. 첫 레슨을 들려주시면 여기에 차곡차곡 쌓아 둘게요.");return}
+  const plan=l.result.plan||[],done=l.done||[];const next=plan.find(p=>!done.includes(p.day));
+  if(sameCount(l)>=3){say(g,"같은 문제가 세 번 넘게 반복됐어요. 혼자 더 하기보다 코치님과 확인해 보는 게 좋겠어요.");return}
+  if(!next){say(g,"이번 배틀플랜을 다 마쳤어요. 잘했어요! 다음 레슨에서 달라진 점을 들려주세요.");return}
+  say(g,`이번 배틀플랜 ${done.length}/${plan.length}일 했어요. 오늘은 D${next.day} '${next.focus}' 차례예요. 해 보고 어땠는지 알려 주세요.`);
+}
 function renderActive(){
+  chartSay();
   const l=lessons[0];
   if(!l){$("active").innerHTML=`<div class="empty-st"><img src="img/golf_cart.webp" alt="" width="180" height="158"><b>아직 저장된 레슨이 없습니다</b><span>레슨 탭에서 첫 레슨을 정리해 보세요.</span><button class="btn gold" type="button" data-go-lesson>첫 레슨 정리하기</button></div>`;return}
   const r=l.result,done=l.done||[],n=(r.plan||[]).length;
@@ -350,6 +360,22 @@ async function loadLessons(){
     lessons=s.docs.map(d=>({id:d.id,...d.data()})).filter(l=>l.result).sort((a,b)=>((b.date||"")+(b.createdAt||"")).localeCompare((a.date||"")+(a.createdAt||"")));
   }catch(e){lessons=[]}
 }
+/* ===== 울프 (안내 캐릭터) ===== */
+const STILL=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function say(el,text,{now=false}={}){
+  if(!el)return;
+  if(el.dataset.said===text)return;
+  el.dataset.said=text;
+  el.innerHTML=`<img class="g-av" src="img/wolf_buddy-s.webp" alt="" width="48" height="48"><div class="g-bub"><span class="g-name">울프</span><p aria-live="polite"></p></div>`;
+  const p=el.querySelector("p");
+  clearInterval(el._t);
+  if(STILL){p.textContent=text;return}
+  const run=()=>{let k=0;el.classList.add("on");el._t=setInterval(()=>{k+=2;p.textContent=text.slice(0,k);if(k>=text.length)clearInterval(el._t)},28)};
+  if(now||!("IntersectionObserver" in window))return run();
+  const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();run()}},{threshold:.4});io.observe(el);
+}
+document.querySelectorAll(".guide[data-say]").forEach(g=>say(g,g.dataset.say));
+
 /* ===== 메뉴 (왼쪽 서랍) ===== */
 function openMenu(){$("drawer").hidden=false;$("menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden"}
 function closeMenu(){$("drawer").hidden=true;$("menu").setAttribute("aria-expanded","false");document.body.style.overflow=""}

@@ -294,3 +294,21 @@ nav.tabs button[aria-selected="true"]{color:var(--fg);font-weight:600;border-top
 .lp-how{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
 .lp-how img{width:84px;height:auto}
 .lp-foot img{width:120px}
+
+/* ===== 울프 말풍선 ===== */
+.guide{display:flex;align-items:flex-start;gap:10px;min-height:56px}
+.guide:empty{display:none}
+.g-av{width:48px;height:48px;flex:none;border-radius:50%}
+.g-bub{position:relative;background:var(--surface);border:1px solid var(--gold-line);border-radius:4px 14px 14px 14px;padding:9px 13px 10px;min-width:0;flex:1}
+.g-name{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--gold);margin-bottom:2px}
+.g-bub p{margin:0;font-size:15px;line-height:1.55;min-height:1.55em}
+.lp-hero .guide{margin-top:8px}
+.lp-cta .guide{text-align:left}
+#g-wait{margin-bottom:4px}
+@media (prefers-reduced-motion:no-preference){
+  @keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+  @keyframes nod{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+  .guide.on .g-av{animation:pop .45s cubic-bezier(.2,.7,.2,1) both,nod 1.6s ease-in-out .5s 1}
+  .guide.on .g-bub{animation:rise .4s ease .1s both}
+  #g-wait .g-av{animation:nod 1.4s ease-in-out infinite}
+}
