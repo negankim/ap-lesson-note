@@ -6,16 +6,16 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
-const { organizePrompt, feedbackPrompt } = require("./prompts");
+const { organizePrompt, feedbackPrompt, chatPrompt } = require("./prompts");
 
 admin.initializeApp();
 const db = admin.firestore();
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 
 /* 모델: 정리는 정확도 우선, 피드백은 빠르고 싸게. 바꾸면 docs/decisions.md 에 기록. */
-const MODEL = { organize: "claude-sonnet-5-5", feedback: "claude-haiku-5-5" };
+const MODEL = { organize: "claude-sonnet-5-5", feedback: "claude-haiku-5-5", chat: "claude-haiku-5-5" };
 /* 하루 사용 한도 (사람당). 파일럿 비용 관리용. */
-const DAILY_LIMIT = { organize: 20, feedback: 40 };
+const DAILY_LIMIT = { organize: 20, feedback: 40, chat: 10 };
 
 async function callClaude(model, prompt, maxTokens) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -51,6 +51,7 @@ async function callClaude(model, prompt, maxTokens) {
 }
 
 async function countUse(uid, task) {
+  let used = 0;
   const day = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10); // 한국 날짜
   const ref = db.doc(`usage/${uid}_${day}`);
   await db.runTransaction(async (t) => {
@@ -58,7 +59,9 @@ async function countUse(uid, task) {
     const n = (snap.exists && snap.data()[task]) || 0;
     if (n >= DAILY_LIMIT[task]) throw new HttpsError("resource-exhausted", "오늘 사용 한도를 넘었습니다.");
     t.set(ref, { uid, day, [task]: n + 1 }, { merge: true });
+    used = n + 1;
   });
+  return used;
 }
 
 /* 미성년자 보호: 나이 확인 전, 또는 만 14세 미만인데 보호자 확인 전이면 AI를 쓰지 않는다.
@@ -91,6 +94,37 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     return callClaude(MODEL.feedback, feedbackPrompt({
       lesson: d.lesson || {}, verdict: String(d.verdict || ""), text: String(d.text || "").slice(0, 300), minor,
     }), 2000);
+  }
+  if (d.task === "chat") {
+    const q = String(d.text || "").trim().slice(0, 400);
+    if (!q) throw new HttpsError("invalid-argument", "질문이 비어 있습니다.");
+    const used = await countUse(req.auth.uid, "chat");
+    const base = "players/" + req.auth.uid;
+    /* 근거는 브라우저가 보낸 값이 아니라 서버가 읽은 본인 기록이다 */
+    const [ls, pf, hs] = await Promise.all([
+      db.collection(base + "/lessons").get(),
+      db.doc(base).get(),
+      db.collection(base + "/chats").orderBy("at", "desc").limit(6).get(),
+    ]);
+    const lessons = ls.docs.map((x) => ({ id: x.id, ...x.data() })).filter((l) => l.result)
+      .sort((a, b) => ((b.date || "") + (b.createdAt || "")).localeCompare((a.date || "") + (a.createdAt || ""))).slice(0, 5);
+    const history = hs.docs.map((x) => x.data()).reverse();
+    const r = await callClaude(MODEL.chat, chatPrompt({
+      question: q, lessons, profile: pf.exists ? pf.data() : {}, history, minor,
+      today: new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10),
+    }), 1500);
+    const who = ["logan", "rook", "daryl", "paco"].includes(r.who) ? r.who : "logan";
+    const sources = (Array.isArray(r.sources) ? r.sources : []).map((s) => lessons[Number(String(s).replace(/\D/g, "")) - 1])
+      .filter(Boolean).slice(0, 3).map((l) => ({ id: l.id, date: l.date || "", coach: l.coach || "", title: (l.result && l.result.title) || "" }));
+    const ans = {
+      who, text: String(r.answer || "").slice(0, 1200), sources,
+      basis: sources.length && r.basis !== "AI 추정" ? "기록" : "AI 추정",
+      coach_check: !!r.coach_check,
+    };
+    const col = db.collection(base + "/chats"), now = Date.now();
+    await col.add({ role: "user", text: q, at: now });
+    await col.add({ role: "crew", ...ans, at: now + 1 });
+    return { ...ans, used, limit: DAILY_LIMIT.chat };
   }
   throw new HttpsError("invalid-argument", "알 수 없는 요청입니다.");
 });

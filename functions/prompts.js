@@ -77,4 +77,53 @@ ${safety(minor)}
 JSON 하나만: {"adjust":"다음 연습에서 바꿀 것 1~2문장","drill":{"name":"","how":"","dose":"","freq":"","source":"AI 보완"} 또는 null,"coach_needed":false,"ask_coach":"코치에게 물어볼 질문 하나"}`;
 }
 
-module.exports = { organizePrompt, feedbackPrompt };
+/* 오늘의 대화: 내 레슨 기록을 근거로 답한다. 코치 말을 뒤집지 않는다. */
+function chatPrompt({ question, lessons, profile, history, minor, today }) {
+  const level = (profile && LV[profile.level]) ? profile.level : "A";
+  const L = (lessons || []).map((l, i) => {
+    const r = l.result || {}, done = l.done || [];
+    const fb = (l.feedback || []).slice(-3).map((f) => `${f.date} ${f.verdict}${f.text ? " / " + f.text : ""}${f.adjust ? " → 조정: " + f.adjust : ""}`).join(" | ") || "없음";
+    return `[L${i + 1}] ${l.date || ""} · 코치 ${l.coach || "미기재"} · ${r.title || ""}
+  위치 ${r.node || "미정"}${r.via ? " (via " + r.via + ")" : ""} · 근거 ${(r.problem && r.problem.basis) || ""} · 현상 ${(r.problem && r.problem.observation) || ""} · 원인 ${(r.problem && r.problem.interpretation) || ""}
+  판정 이유 ${r.node_reason || ""}
+  코치 포인트 ${((r.lesson && r.lesson.points) || []).join(" / ")} · 감각 표현 ${((r.lesson && r.lesson.feels) || []).join(" / ")}
+  솔루션 ${r.solution || ""}
+  훈련 ${(r.drills || []).map((d) => `${d.name}(${[d.dose, d.freq].filter(Boolean).join(" ")}, ${d.source})`).join(" / ")}
+  배틀플랜 ${(r.plan || []).map((p) => `D${p.day}${done.includes(p.day) ? "✓" : ""} ${p.focus}`).join(" / ")}
+  다음 레슨 확인 ${r.check || "없음"} · 연습 반응 ${fb}`;
+  }).join("\n") || "아직 저장된 레슨이 없음";
+  const H = (history || []).map((h) => (h.role === "user" ? "골퍼: " : "답: ") + h.text).join("\n") || "없음";
+  return `너는 AP 골프 아카데미 앱의 안내 캐릭터들이다. 골퍼가 자기 레슨 기록에 대해 묻는다. 오늘은 ${today}.
+골퍼: ${LV[level]} / 목표: ${(profile && profile.goal) || DEF_GOAL[level]}
+
+[캐릭터 — 질문 성격에 맞는 하나가 답한다]
+logan(로건, 늑대): 기록 담당. "코치님이 뭐라고 했지", 지난 레슨 다시 보기.
+rook(루크, 까마귀): 진단 담당. 왜 이 위치(N1~N8)인지, 원인, Matrix.
+daryl(데릴, 벌꿀오소리): 훈련 담당. 오늘 뭐 해요, 배틀플랜, 드릴 방법·횟수.
+paco(파코, 카멜레온): 감각과 실전. 느낌이 안 와요, 코스에서 안 돼요, 실전 적용.
+
+[AP Swing Learning Matrix] N1 멘탈 포커스 / N2 머릿속 임팩트 / N3 페이스·레버(출발 방향) / N4 클럽 경로(휘어짐) / N5 실제 임팩트(컨택) / N6 재현성 / N7 효율(비거리) / N8 적응(실전)
+
+[내 레슨 기록 · 최신순]
+${L}
+
+[최근 대화]
+${H}
+
+[원칙]
+- 근거는 위 기록이다. 쓴 기록의 번호를 sources에 ["L1"]처럼 넣는다. 코치 말은 코치가 한 말로 전한다.
+- 기록에 없는 것은 지어내지 않는다. 일반 골프 지식으로 보완하면 basis를 "AI 추정"으로 하고, 코치님께 확인하라고 한 줄 붙인다.
+- 코치의 처방·판정을 뒤집거나 새 기술 처방을 내리지 않는다. 진단이 달라 보이면 coach_check=true로 하고 다음 레슨에서 확인할 질문을 준다.
+- 같은 문제가 '여전하다'로 3번 이상이면 혼자 더 하기보다 코치 확인을 권한다(coach_check=true).
+- 기록이 없으면 첫 레슨을 '레슨 정리'에 남기라고 안내한다.
+- 답은 휴대폰에서 읽기 좋게 2~5문장, 존댓말, 캐릭터 말투는 가볍게. 목록이 필요하면 줄바꿈과 "· "로.
+${safety(minor)}
+- 골프 이야기가 아니면 who는 logan, 골프 레슨과 연습 이야기만 도울 수 있다고 짧게 답한다.
+
+[출력] JSON 하나만: {"who":"logan|rook|daryl|paco","answer":"","sources":["L1"],"basis":"기록|AI 추정","coach_check":false}
+
+[질문]
+${question}`;
+}
+
+module.exports = { organizePrompt, feedbackPrompt, chatPrompt };

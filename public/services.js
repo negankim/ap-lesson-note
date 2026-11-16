@@ -4,7 +4,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, onSnapshot, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, onSnapshot, serverTimestamp, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 import { start } from "./app.js";
 
@@ -131,6 +131,16 @@ function makeConsent(u, role) {
   };
 }
 
+/* 오늘의 대화: 기록 읽기는 여기서, 보내기는 서버 함수(ai, task chat)가 저장까지 한다 */
+function makeChat(u) {
+  return {
+    history: async (n = 30) => {
+      const s = await getDocs(query(collection(fs, "players/" + u.uid + "/chats"), orderBy("at", "desc"), limit(n)));
+      return s.docs.map((d) => ({ id: d.id, ...d.data() })).reverse();
+    },
+  };
+}
+
 let started = false;
 onAuthStateChanged(auth, async (u) => {
   $("gate").hidden = !!u; $("app").hidden = !u;
@@ -144,5 +154,5 @@ onAuthStateChanged(auth, async (u) => {
     if (d.exists()) { role = d.data().role || "player"; await updateDoc(ref, { name: u.displayName || "", lastSeen: serverTimestamp() }); }
     else await setDoc(ref, { name: u.displayName || "", role: "player", createdAt: serverTimestamp(), lastSeen: serverTimestamp() });
   } catch (e) { console.warn("users doc", e); }
-  await start({ db, user: makeUser(u, role), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation(), consent: makeConsent(u, role), seedFn: httpsCallable(fn, "seedLibrary", { timeout: 120000 }) });
+  await start({ db, user: makeUser(u, role), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation(), consent: makeConsent(u, role), chat: makeChat(u), seedFn: httpsCallable(fn, "seedLibrary", { timeout: 120000 }) });
 });

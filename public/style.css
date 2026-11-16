@@ -18,7 +18,7 @@
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.6;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
-  padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(32px + env(safe-area-inset-bottom,0px))}
 .wrap{max-width:640px;margin:0 auto;display:grid;gap:18px}
 header.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:16px 0 12px;border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:9px;color:var(--fg)}
@@ -140,10 +140,6 @@ textarea{min-height:150px;resize:vertical;line-height:1.55}
 .hrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;font-size:13px;background:var(--raise);border-radius:8px;padding:8px 10px}
 .hrow small{display:block;color:var(--muted);font-size:12px}
 select{appearance:auto}
-nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
-nav.tabs .in{max-width:640px;margin:0 auto;display:flex}
-nav.tabs button{flex:1;appearance:none;border:0;background:none;font:inherit;font-size:14px;color:var(--muted);padding:13px 4px;cursor:pointer;border-top:2px solid transparent}
-nav.tabs button[aria-selected="true"]{color:var(--fg);font-weight:600;border-top-color:var(--gold)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;z-index:30;max-width:calc(100% - 32px)}
 @media (max-width:420px){.row2{grid-template-columns:minmax(0,1fr)}.mcell{min-height:68px}.mcell b{font-size:13px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -344,3 +340,26 @@ nav.tabs button[aria-selected="true"]{color:var(--fg);font-weight:600;border-top
 @media (max-width:420px){.lp-mate{padding:12px 8px}.lp-mate span{font-size:12px}}
 
 #g-feel{margin-bottom:2px}
+
+/* ===== 오늘의 대화 ===== */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.t-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.today .hint{margin:-6px 0 0}
+.t-day{border:1px solid var(--gold-line);border-radius:12px;padding:12px}
+.t-log{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.chat{gap:14px}
+.chat-log{display:grid;gap:14px;max-height:min(62vh,560px);overflow:auto;padding-right:2px;overscroll-behavior:contain}
+.msg.me{justify-self:end;max-width:82%;background:var(--raise);border:1px solid var(--line);border-radius:14px 4px 14px 14px;padding:9px 13px}
+.msg.me p{margin:0;font-size:15px;line-height:1.55;white-space:pre-wrap}
+.msg.crew .g-bub p{white-space:pre-wrap}
+.msg-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.msg-meta:empty{display:none}
+.chat-in{display:flex;gap:8px}
+.chat-in input{flex:1}
+.chat-in .btn{flex:none}
+#chat-sug .chip{font-size:13px}
+.mfold>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.mfold>summary::-webkit-details-marker{display:none}
+.mfold>summary::after{content:"＋";color:var(--muted)}
+.mfold[open]>summary::after{content:"－"}
+@media (prefers-reduced-motion:no-preference){.msg{animation:rise .3s ease both}}

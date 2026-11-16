@@ -23,6 +23,12 @@ service cloud.firestore {
                         .hasOnly(['guardianVerified', 'verifiedBy', 'verifiedAt']));
     }
 
+    // 오늘의 대화 기록: 서버 함수만 쓴다. 본인과 코치·관리자가 읽는다.
+    match /players/{uid}/chats/{id} {
+      allow read: if (signedIn() && request.auth.uid == uid) || isStaff();
+      allow write: if false;
+    }
+
     // 만 14세 미만 선수의 보호자 정보: 본인과 코치·관리자만 본다
     match /guardians/{uid} {
       allow read: if (signedIn() && request.auth.uid == uid) || isStaff();
@@ -32,7 +38,7 @@ service cloud.firestore {
     match /players/{uid} {
       allow read, write: if signedIn() && request.auth.uid == uid;
       allow read: if isStaff();
-      match /{sub=**} {
+      match /lessons/{id} {
         allow read, write: if signedIn() && request.auth.uid == uid;
         allow read: if isStaff();
       }
