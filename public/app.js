@@ -93,7 +93,7 @@ $("go").addEventListener("click",async()=>{
   const st=$("st");st.className="status";
   if(text.length<20){st.textContent="레슨 내용을 조금 더 적어 주세요.";st.className="status err";return}
   if(!ai){st.textContent="로그인한 뒤에 정리할 수 있습니다.";st.className="status err";return}
-  if(busy)return;busy=true;$("go").disabled=true;st.textContent="정리하는 중입니다. 20초 정도 걸립니다.";
+  if(busy)return;busy=true;$("go").disabled=true;st.innerHTML="정리하는 중입니다. 20~40초 걸립니다.<div class=\"ld\" aria-hidden=\"true\"></div>";
   try{
     const r=(await ai({task:"organize",text,coach,profile,history:lessons.slice(0,3).map(l=>({date:l.date,title:l.result.title,node:l.result.node||null}))})).data;
     if(!r||!r.plan)throw new Error("format");
@@ -186,7 +186,7 @@ $("active").addEventListener("click",async e=>{
   const l=lessons[0];const v=(document.querySelector('#fb-v .chip[aria-pressed="true"]')||{}).dataset;const st=$("fb-st");
   if(!v||!v.v){st.textContent="반응을 하나 골라 주세요.";st.className="status err";return}
   const text=$("fb-t").value.trim();
-  e.target.disabled=true;st.className="status";st.textContent="다음 연습을 맞추는 중입니다.";
+  e.target.disabled=true;st.className="status";st.innerHTML="다음 연습을 맞추는 중입니다.<div class=\"ld\" aria-hidden=\"true\"></div>";
   let adj={adjust:"",drill:null,ask_coach:""};
   try{if(ai)adj=(await ai({task:"feedback",lesson:{result:l.result,feedback:l.feedback||[]},verdict:v.v,text})).data||adj}catch(err){}
   const f={date:today(),verdict:v.v,text,adjust:adj.adjust||"",drill:adj.drill||null,ask:adj.ask_coach||"",createdAt:new Date().toISOString()};

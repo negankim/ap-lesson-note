@@ -198,3 +198,50 @@ nav.tabs button[aria-selected="true"]{color:var(--fg);font-weight:600;border-top
 .dw-foot{margin-top:auto;padding:24px 16px 0;font-size:12px;color:var(--muted)}
 .dw-grp summary:focus-visible,.dw-main:focus-visible,.dw button:focus-visible,.menu-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.dw-panel{animation:none}}
+
+/* ===== 움직임 — 정보가 들어올 때만 짧게 ===== */
+@property --p{syntax:"<percentage>";inherits:false;initial-value:0%}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes sweep{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 0 transparent)}50%{filter:drop-shadow(0 0 10px var(--gold))}}
+@media (prefers-reduced-motion:no-preference){
+  /* 첫 화면 */
+  .lp-hero > *{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+  .lp-hero > :nth-child(2){animation-delay:.12s}
+  .lp-hero > :nth-child(3){animation-delay:.3s}
+  .rv{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.2,1)}
+  .rv.in{opacity:1;transform:none}
+  /* 화면 전환 */
+  #v-lesson:not([hidden]),#v-chart:not([hidden]),#v-lib:not([hidden]){animation:fade .25s ease both}
+  /* 메뉴 항목 차례로 */
+  .dw:not([hidden]) .dw-panel > *{animation:rise .35s ease both}
+  .dw:not([hidden]) .dw-panel > :nth-child(2){animation-delay:.05s}
+  .dw:not([hidden]) .dw-panel > :nth-child(3){animation-delay:.1s}
+  .dw:not([hidden]) .dw-panel > :nth-child(4){animation-delay:.15s}
+  .dw:not([hidden]) .dw-panel > :nth-child(5){animation-delay:.2s}
+  .dw:not([hidden]) .dw-panel > :nth-child(6){animation-delay:.25s}
+  .dw:not([hidden]) .dw-bg{animation:fade .2s ease both}
+  .dw-grp[open] > button,.dw-grp[open] .dw-nodes{animation:rise .25s ease both}
+  /* 정리 결과가 하나씩 펼쳐짐 */
+  .result .rhead,.result .sec{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+  .result .sec:nth-child(2){animation-delay:.08s}
+  .result .sec:nth-child(3){animation-delay:.2s}
+  .result .sec:nth-child(4){animation-delay:.32s}
+  .result .sec:nth-child(5){animation-delay:.44s}
+  .result .sec:nth-child(6){animation-delay:.56s}
+  .result .sec:nth-child(7){animation-delay:.68s}
+  .node.on rect{animation:glow 2.4s ease-in-out .8s infinite}
+  .days .day{animation:rise .4s ease both}
+  /* 만다라트 칸이 아래부터 차오름 */
+  .mcell{transition:--p .9s cubic-bezier(.2,.7,.2,1),box-shadow .2s}
+  /* 누르는 느낌 */
+  .btn,.chip,.mcell,.lrow,.dw-main{transition:transform .12s ease,background-color .2s,border-color .2s}
+  .btn:active,.chip:active,.dw-main:active,.mcell:active{transform:scale(.97)}
+  .toast:not([hidden]){animation:rise .3s ease both}
+  .fb{animation:rise .35s ease both}
+}
+/* 정리 중 표시 */
+.ld{position:relative;height:3px;border-radius:3px;background:var(--gold-soft);overflow:hidden;margin-top:8px}
+.ld::after{content:"";position:absolute;inset:0;width:40%;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:sweep 1.3s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.ld::after{animation:none;width:100%;opacity:.5}}
