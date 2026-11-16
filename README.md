@@ -13,7 +13,12 @@
 | `firestore.rules` | 데이터 접근 규칙 (선수는 본인 기록만, 코치·관리자는 전체 열람과 라이브러리 수정) |
 | `docs/decisions.md` | 무엇을 왜 바꿨는지 기록 |
 
-## 처음 설정 (대표님이 한 번만)
+## 배포
+
+**자동입니다.** `main` 에 올라가면 GitHub Actions(`.github/workflows/deploy.yml`)가 화면·접근 규칙·서버 함수를 Firebase에 배포합니다. 진행 상황은 저장소의 **Actions** 탭에서 봅니다.
+인증은 Workload Identity(키 파일 없음): 이 저장소에서 온 요청만 `github-deploy` 계정으로 배포할 수 있습니다.
+
+## 처음 설정 기록 (2026-11-16 완료)
 
 준비물: Google 계정, Anthropic API 키, 컴퓨터에 Node.js 22 이상.
 
