@@ -372,17 +372,24 @@ select{appearance:auto}
 .coach-c{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:10px}
 .coach-c details summary{cursor:pointer}
 
-/* ===== 레거시 나무 ===== */
-.tree{width:100%;max-width:420px;display:block;margin:0 auto}
-.tree .troot{fill:none;stroke:var(--muted);stroke-width:3;stroke-linecap:round;opacity:.7}
-.tree .ttrunk{fill:var(--raise);stroke:var(--gold-line);stroke-width:1.5}
-.tree .tbr{fill:none;stroke:var(--gold-line);stroke-width:5;stroke-linecap:round}
-.tree .tlab{font-family:var(--body);font-size:10.5px;fill:var(--muted)}
+/* ===== 레거시 나무 (펜선 · 만다라 뿌리) ===== */
+.tree{width:100%;max-width:480px;display:block;margin:0 auto;color:var(--fg)}
+.tree .tbr{fill:none;stroke:currentColor;stroke-linecap:round;opacity:.85}
+.tree .tstr{fill:none;stroke:currentColor;stroke-width:1.2;opacity:.85}
+.tree .tdot{fill:currentColor;opacity:.38}
+.tree .tsw{fill:none;stroke:currentColor;stroke-width:1.2;stroke-dasharray:1 4;stroke-linecap:round;opacity:.45}
+.tree .tmd circle,.tree .tmd ellipse,.tree .tmd path{fill:var(--bg);stroke:currentColor;stroke-width:.9;opacity:.7}
+.tree .tmd .dot,.tree .tmd .core{fill:currentColor}
+.tree .tmd.hot circle,.tree .tmd.hot ellipse,.tree .tmd.hot path{stroke:var(--gold);opacity:1}
+.tree .tmd.hot .dot,.tree .tmd.hot .core{fill:var(--gold)}
+.tree .tleaf path{fill:var(--c);stroke:var(--c);stroke-width:.8}
+.tree .tleaf .rib{fill:none;stroke:var(--bg);stroke-width:.6}
+.tree .tleaf.sprout path{fill:color-mix(in srgb,var(--c) 30%,var(--bg));stroke-dasharray:2 1.5}
+.tree .tleaf.sprout .rib{stroke:var(--c);stroke-dasharray:none}
+.tree .tlab{font-family:var(--body);font-size:11px;fill:var(--fg);paint-order:stroke;stroke:var(--bg);stroke-width:3px}
 .tree .tlab.trunk{font-family:var(--display);fill:var(--gold);font-size:12px;letter-spacing:.1em}
 .tree .tside{font-family:var(--display);font-size:9px;letter-spacing:.14em;fill:var(--muted)}
-.tree .tleaf{fill:var(--c);stroke:var(--c);stroke-width:1}
-.tree .tleaf.sprout{fill:color-mix(in srgb,var(--c) 35%,transparent);stroke-dasharray:2 2}
-@media (prefers-reduced-motion:no-preference){.tree .tleaf{animation:pop .5s cubic-bezier(.2,.7,.2,1) both;transform-box:fill-box;transform-origin:center}}
+@media (prefers-reduced-motion:no-preference){.tree .tleaf{animation:pop .5s cubic-bezier(.2,.7,.2,1) both;transform-box:fill-box}}
 .tlegend{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;font-size:12px;color:var(--muted)}
 .tlegend i{display:inline-block;width:10px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
 .tlegend i.sp{border:1px dashed var(--muted)}

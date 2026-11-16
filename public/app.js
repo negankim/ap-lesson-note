@@ -331,32 +331,60 @@ function renderChart(){renderMandala();renderActive();renderLegacy();renderList(
    (다음 단계: 코치가 초대로 들어와 확인하면 정식 잎사귀 + 코치 레거시) */
 /* ===== 레거시 나무: 뿌리 N1 · 기둥 N5 · 왼쪽 가지(만들기) N4·N3·N2 · 오른쪽 가지(유지) N6·N7·N8 ===== */
 const DOMAIN={tech:["기술 레슨","#c9a24a"],mental:["멘탈 훈련","#9b7fd4"],fitting:["클럽 피팅","#4f9bd9"],physical:["피지컬 트레이닝","#5fb36b"],course:["코스 매니지먼트","#3fb5a8"]};
-const TB={ /* 가지: 시작점 → 끝점 */
-  N4:[180,300,70,250],N3:[180,262,58,182],N2:[180,226,92,112],
-  N6:[180,300,290,250],N7:[180,262,302,182],N8:[180,226,268,112],
-  N5:[180,380,180,226],N1:[180,380,180,380]};
+/* 레거시 나무: 아래 만다라 = Matrix(가운데 N1, 왼쪽 만들기 N4·N3·N2, 오른쪽 유지 N6·N7·N8)
+   가운데 만다라에서 줄기(N5)가 솟고, 가지는 왼쪽 N4·N3·N2 / 오른쪽 N6·N7·N8로 갈라져 잎(레슨 포인트)이 달린다. */
+function rnd(seed){let x=seed>>>0||1;return()=>((x=(x*1664525+1013904223)>>>0)/4294967296)}
+const TM={N4:[46,458,32],N3:[114,430,34],N2:[168,482,19],N1:[250,452,58],N8:[332,482,19],N7:[386,430,34],N6:[454,458,32]};
+function mandala(cx,cy,r,n,hot){
+  const k=8+Math.min(n,8)*2;let g=`<circle cx="${cx}" cy="${cy}" r="${r}"/><circle cx="${cx}" cy="${cy}" r="${(r*.82).toFixed(1)}"/>`;
+  for(let i=0;i<k;i++){const a=i/k*Math.PI*2,a2=(i+.5)/k*Math.PI*2;
+    const x=cx+Math.cos(a)*r*.62,y=cy+Math.sin(a)*r*.62;
+    g+=`<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${(r*.2).toFixed(1)}" ry="${(r*.09).toFixed(1)}" transform="rotate(${(a*180/Math.PI).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`;
+    g+=`<circle class="dot" cx="${(cx+Math.cos(a2)*r*.91).toFixed(1)}" cy="${(cy+Math.sin(a2)*r*.91).toFixed(1)}" r="${(r*.035+.6).toFixed(1)}"/>`;
+    g+=`<path d="M${(cx+Math.cos(a)*r*.18).toFixed(1)} ${(cy+Math.sin(a)*r*.18).toFixed(1)} L${(cx+Math.cos(a2)*r*.38).toFixed(1)} ${(cy+Math.sin(a2)*r*.38).toFixed(1)}"/>`}
+  g+=`<circle cx="${cx}" cy="${cy}" r="${(r*.4).toFixed(1)}"/><circle class="core" cx="${cx}" cy="${cy}" r="${(r*.12).toFixed(1)}"/>`;
+  return `<g class="tmd${hot?" hot":""}">${g}</g>`;
+}
 function treeSVG(points){
   const by={};points.forEach(p=>{(by[p.node]=by[p.node]||[]).push(p)});
-  let leaves="",k=0;
-  for(const [n,ps] of Object.entries(by)){
-    const [x1,y1,x2,y2]=TB[n]||TB.N5;
-    ps.forEach((p,i)=>{
-      let x,y,rot;
-      if(n==="N1"){x=150+((i%6)*12);y=392+(i%2)*8;rot=0}
-      else{const t=n==="N5"?.25+(i%6)*.12:.45+((i%6)*.11);const side=i%2?1:-1;
-        x=x1+(x2-x1)*t+(n==="N5"?side*14:side*6);y=y1+(y2-y1)*t+(n==="N5"?0:side*-8);rot=side*35+(x2<x1?-20:20)}
-      const col=(DOMAIN[p.domain]||DOMAIN.tech)[1];
-      leaves+=`<g transform="rotate(${rot} ${x.toFixed(1)} ${y.toFixed(1)})"><ellipse class="tleaf${p.confirmed?"":" sprout"}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="9" ry="5" style="--c:${col};animation-delay:${(k++)*60}ms"><title>${esc(n+" · "+(DOMAIN[p.domain]||DOMAIN.tech)[0]+" · "+(p.name||""))}</title></ellipse></g>`});
+  const R=rnd(11);let br="",dots="",tips={};
+  /* 가지 그리기 (재귀) — 큰 가지 하나가 한 노드 */
+  function grow(x,y,ang,len,w,depth,node){
+    const x2=x+Math.cos(ang)*len,y2=y+Math.sin(ang)*len,mx=(x+x2)/2+(R()-.5)*len*.25,my=(y+y2)/2+(R()-.5)*len*.25;
+    br+=`<path class="tbr" d="M${x.toFixed(1)} ${y.toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}" style="stroke-width:${w.toFixed(2)}"/>`;
+    if(depth>=2)for(let i=0;i<3;i++){const t=R();dots+=`<ellipse class="tdot" cx="${(x+(x2-x)*t+(R()-.5)*14).toFixed(1)}" cy="${(y+(y2-y)*t+(R()-.5)*14).toFixed(1)}" rx="1.3" ry="2.1" transform="rotate(${(R()*360).toFixed(0)})" transform-origin="${(x+(x2-x)*t).toFixed(1)} ${(y+(y2-y)*t).toFixed(1)}"/>`}
+    if(depth>=4){(tips[node]=tips[node]||[]).push([x2,y2,ang]);return}
+    const n=depth<1?2:2+(R()<.4?1:0);
+    for(let i=0;i<n;i++)grow(x2,y2,ang+(i-(n-1)/2)*(.42+R()*.2)+(R()-.5)*.2,len*(.68+R()*.12),w*.62,depth+1,node);
   }
-  const br=["N4","N3","N2","N6","N7","N8"].map(n=>{const [x1,y1,x2,y2]=TB[n];const cx=(x1+x2)/2,cy=Math.min(y1,y2)+(Math.abs(y1-y2))*.25;
-    return `<path class="tbr" d="M${x1} ${y1} Q${cx} ${cy} ${x2} ${y2}"/><text class="tlab" x="${x2}" y="${y2-10}" text-anchor="middle">${n} ${esc(NODES[n].ko)}${by[n]?" · "+by[n].length:""}</text>`}).join("");
-  return `<svg class="tree" viewBox="0 0 360 448" role="img" aria-label="나의 레거시 나무: 잎사귀 ${points.length}개">
-    <path class="troot" d="M180 380 C160 395 130 400 110 415 M180 380 C200 395 230 400 250 415 M180 380 C178 398 172 410 168 425 M180 380 C186 400 196 410 205 425"/>
-    <text class="tlab" x="180" y="444" text-anchor="middle">뿌리 · N1 ${esc(NODES.N1.ko)}${by.N1?" · "+by.N1.length:""}</text>
-    <path class="ttrunk" d="M168 382 L172 230 L188 230 L192 382 Z"/>
-    <text class="tlab trunk" x="180" y="330" text-anchor="middle">N5</text>
-    ${br}${leaves}
-    <text class="tside" x="40" y="24">만들기 · CREATION</text><text class="tside" x="320" y="24" text-anchor="end">유지하기 · SUSTAINING</text>
+  /* 줄기(N5): 꼬인 다발 */
+  let trunk="";for(let i=0;i<8;i++){const o=(i-3.5)*3.4,w=Math.sin(i*1.7)*9;
+    trunk+=`<path class="tstr" d="M${250+o*2.2} 404 C${250+o+w} 360 ${250-o-w} 320 ${250+o*.6} 280 S${250+o*1.4} 250 ${250+o*1.8} 236"/>`}
+  const main={N4:-2.75,N3:-2.35,N2:-1.95,N8:-1.19,N7:-.79,N6:-.39};
+  for(const [n,a] of Object.entries(main))grow(250,238,a,62,4.2,0,n);
+  /* 잎사귀(레슨 포인트): 그 노드 가지 끝에 */
+  let lv="",k=0;
+  const leaf=(x,y,ang,p)=>{const col=(DOMAIN[p.domain]||DOMAIN.tech)[1],a=ang*180/Math.PI+(R()-.5)*50;
+    return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${a.toFixed(0)})"><g class="tleaf${p.confirmed?"":" sprout"}" style="--c:${col};animation-delay:${(k++)*70}ms"><path d="M0 0 Q6 -4.5 13 0 Q6 4.5 0 0Z"/><path class="rib" d="M1.5 0 L11 0"/></g></g>`};
+  for(const [n,ps] of Object.entries(by)){
+    if(n==="N5"){ps.forEach((p,i)=>{lv+=leaf(250+(i%2?12:-12),390-i*20,i%2?-.4:-2.7,p)});continue}
+    if(n==="N1")continue;
+    const T=tips[n]||[];ps.forEach((p,i)=>{const t=T[(i*5+2)%T.length]||[250,238,-1.57];lv+=leaf(t[0],t[1],t[2],p)});
+  }
+  /* 아래 만다라 = Matrix */
+  let md="",lab="";
+  for(const [n,[cx,cy,r0]] of Object.entries(TM)){
+    const c=(by[n]||[]).length,r=n==="N1"?r0:Math.min(r0+c,r0+6);
+    md+=mandala(cx,cy,r,c,c>0);
+    lab+=`<text class="tlab" x="${cx}" y="${cy+r+13}" text-anchor="middle">${n}${n==="N1"?" 뿌리":""}${c?" · "+c:""}</text>`;
+  }
+  (by.N1||[]).forEach((p,i)=>{const a=-Math.PI/2+(i-(by.N1.length-1)/2)*.32;lv+=leaf(250+Math.cos(a)*70,452+Math.sin(a)*70,a,p)});
+  /* 하늘의 점선 소용돌이 */
+  const sw=[[40,120,1],[430,90,-1],[470,200,-1],[30,250,1]].map(([x,y,d])=>`<path class="tsw" d="M${x} ${y} c${d*20} -18 ${d*44} -6 ${d*40} 12 s${d*-26} 18 ${d*-14} 2"/>`).join("");
+  return `<svg class="tree" viewBox="0 0 500 540" role="img" aria-label="나의 레거시 나무: 잎사귀 ${points.length}개">
+    ${sw}${br}${dots}${trunk}${md}${lv}${lab}
+    <text class="tlab trunk" x="250" y="330" text-anchor="middle">N5</text>
+    <text class="tside" x="14" y="22">만들기 · CREATION</text><text class="tside" x="486" y="22" text-anchor="end">유지하기 · SUSTAINING</text>
   </svg>
   <div class="tlegend">${Object.values(DOMAIN).map(([n,c])=>`<span><i style="background:${c}"></i>${n}</span>`).join("")}<span><i class="sp"></i>코치 확인 전(새싹)</span></div>`;
 }
