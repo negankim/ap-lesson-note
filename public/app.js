@@ -157,9 +157,9 @@ function chartSay(){
 }
 function renderActive(){
   chartSay();
-  setTimeout(()=>say($("g-feel"),"연습해 보니 몸에서 어떤 느낌이었어요? 맞았는지, 그대로인지, 느낌이 안 오는지만 골라 주셔도 돼요.",{who:"rango"}),0);
+  setTimeout(()=>say($("g-feel"),"연습해 보니 몸에서 어떤 느낌이었어요? 맞았는지, 그대로인지, 느낌이 안 오는지만 골라 주셔도 돼요.",{who:"paco"}),0);
   const l=lessons[0];
-  if(!l){$("active").innerHTML=`<div class="empty-st"><img src="img/golf_cart.webp" alt="" width="180" height="158"><b>아직 저장된 레슨이 없습니다</b><span>레슨 탭에서 첫 레슨을 정리해 보세요.</span><button class="btn gold" type="button" data-go-lesson>첫 레슨 정리하기</button></div>`;return}
+  if(!l){$("active").innerHTML=`<div class="empty-st"><img src="img/motion/AP_01_Golf_Cart-animated.svg" alt="" width="180" height="158"><b>아직 저장된 레슨이 없습니다</b><span>레슨 탭에서 첫 레슨을 정리해 보세요.</span><button class="btn gold" type="button" data-go-lesson>첫 레슨 정리하기</button></div>`;return}
   const r=l.result,done=l.done||[],n=(r.plan||[]).length;
   const fails=sameCount(l);
   const fbs=(l.feedback||[]).slice().reverse().map(f=>`<div class="fb"><div class="h"><span>${esc(md(f.date))}</span><span class="pill ${f.verdict==="잘 맞았다"?"ok":f.verdict==="여전하다"?"warn":""}">${esc(f.verdict)}</span></div>${f.text?`<div>${esc(f.text)}</div>`:""}${f.adjust?`<div><b>조정</b> · ${esc(f.adjust)}</div>`:""}${f.drill&&f.drill.name?`<div class="hint">추가 훈련: ${esc(f.drill.name)} ${esc(f.drill.dose||"")} <span class="pill">AI 보완</span></div>`:""}</div>`).join("");
@@ -205,7 +205,7 @@ $("active").addEventListener("click",async e=>{
   l.feedback=[...(l.feedback||[]),f];
   try{await db.doc("players/"+uid+"/lessons/"+l.id).update({feedback:l.feedback});toast("피드백을 남겼습니다")}catch(err){toast("저장하지 못했습니다")}
   renderActive();
-  if(f.adjust)setTimeout(()=>say($("g-feel"),"다음엔 이렇게 해 봐요. "+f.adjust,{now:true,who:"rango"}),50);
+  if(f.adjust)setTimeout(()=>say($("g-feel"),"다음엔 이렇게 해 봐요. "+f.adjust,{now:true,who:"paco"}),50);
 });
 
 function renderList(){
@@ -363,8 +363,8 @@ async function loadLessons(){
   }catch(e){lessons=[]}
 }
 /* ===== AP 크루: 로건(늑대·기록)·루크(까마귀·진단)·데릴(벌꿀오소리·훈련)·파코(카멜레온·감각과 실전)
-   이미지: img/ap-crew*.webp (네 칸 시트), 모션: crew.css + crew-life.js. 내부 id rango는 호환용으로 유지. ===== */
-const CH={logan:{n:"로건"},rook:{n:"루크"},daryl:{n:"데릴"},rango:{n:"파코"}};
+   이미지: img/ap-crew*.webp (네 칸 시트), 모션: crew.css + crew-life.js.  ===== */
+const CH={logan:{n:"로건"},rook:{n:"루크"},daryl:{n:"데릴"},paco:{n:"파코"}};
 const STILL=matchMedia("(prefers-reduced-motion: reduce)").matches;
 let crewOff=null,crewT=0;
 function crewLife(){clearTimeout(crewT);crewT=setTimeout(()=>{if(crewOff)crewOff();crewOff=window.mountAPCrewLife?window.mountAPCrewLife(document):null},30)}
@@ -386,7 +386,7 @@ function say(el,text,{now=false,who,motion="hello"}={}){
   const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();run()}},{threshold:.4});io.observe(el);
 }
 document.querySelectorAll(".guide[data-say]").forEach(g=>say(g,g.dataset.say));
-const CREW_INTRO={logan:"안녕하세요, 기록 담당 로건이에요. 오늘 받은 레슨, 제가 기억할게요.",rook:"루크예요. 문제의 원인을 찾아 지금 내 위치를 함께 짚어볼게요.",daryl:"데릴이야. 오늘 할 훈련부터 하나씩, 끝까지 함께해 보자.",rango:"파코예요. 어떤 느낌이었는지 들려줘요. 실전에 맞게 조율해 봐요."};
+const CREW_INTRO={logan:"안녕하세요, 기록 담당 로건이에요. 오늘 받은 레슨, 제가 기억할게요.",rook:"루크예요. 문제의 원인을 찾아 지금 내 위치를 함께 짚어볼게요.",daryl:"데릴이야. 오늘 할 훈련부터 하나씩, 끝까지 함께해 보자.",paco:"파코예요. 어떤 느낌이었는지 들려줘요. 실전에 맞게 조율해 봐요."};
 document.querySelectorAll(".lp-mate[data-crew]").forEach(b=>b.addEventListener("click",()=>{
   const id=b.dataset.crew,out=$("crew-say");
   out.textContent="";const n=document.createElement("b");n.textContent=CH[id].n;out.append(n,document.createTextNode(" "+CREW_INTRO[id]));

@@ -3,7 +3,7 @@
 .ap-mascot[data-character="logan"]{background-position:0% 0}
 .ap-mascot[data-character="rook"]{background-position:33.333333% 0}
 .ap-mascot[data-character="daryl"]{background-position:66.666667% 0}
-.ap-mascot[data-character="rango"]{background-position:100% 0}
+.ap-mascot[data-character="paco"]{background-position:100% 0}
 .ap-mascot[data-motion="hello"]{animation:ap-hello .85s ease-in-out 2}
 .ap-mascot[data-motion="guide"]{animation:ap-guide 1s ease-in-out 2}
 .ap-mascot[data-motion="success"]{animation:ap-success .65s ease-in-out 3}
@@ -22,12 +22,12 @@
 .ap-mascot[data-character="logan"]::after{clip-path:inset(17% 35% 71% 31%)}
 .ap-mascot[data-character="rook"]::after{clip-path:inset(16% 48% 73% 29%)}
 .ap-mascot[data-character="daryl"]::after{clip-path:inset(20% 28% 70% 33%)}
-.ap-mascot[data-character="rango"]::after{clip-path:inset(18% 10% 67% 30%)}
+.ap-mascot[data-character="paco"]::after{clip-path:inset(18% 10% 67% 30%)}
 .ap-mascot[data-blink="true"]::after{opacity:1}
 .ap-mascot[data-hand="up"]{background-image:url('img/ap-crew-wave.webp')}
 @media(prefers-reduced-motion:reduce){.ap-mascot::after{display:none}.ap-mascot[data-hand="up"]{background-image:url('img/ap-crew.webp')}}
 
 /* Chameleon keeps its eyes open: use gaze frame instead of blink. */
-.ap-mascot[data-character="rango"]::after{background-image:url('img/ap-crew-gaze.webp');clip-path:inset(18% 10% 67% 30%)}
-.ap-mascot[data-character="rango"][data-blink="true"]::after{opacity:0}
-.ap-mascot[data-character="rango"][data-gaze="left"]::after{opacity:1}
+.ap-mascot[data-character="paco"]::after{background-image:url('img/ap-crew-gaze.webp');clip-path:inset(18% 10% 67% 30%)}
+.ap-mascot[data-character="paco"][data-blink="true"]::after{opacity:0}
+.ap-mascot[data-character="paco"][data-gaze="left"]::after{opacity:1}

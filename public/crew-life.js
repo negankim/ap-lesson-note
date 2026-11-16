@@ -7,7 +7,7 @@ window.mountAPCrewLife = function(root=document){
  const allowed=el=>!mq.matches&&!document.hidden&&el.isConnected&&el.dataset.motion!=='still';
  nodes.forEach(el=>{
   let waving=false;
-  function blink(){if(allowed(el)){if(el.dataset.character==='rango'){el.dataset.gaze='left';later(()=>delete el.dataset.gaze,650+Math.random()*500)}else{el.dataset.blink='true';later(()=>delete el.dataset.blink,140)}}later(blink,3000+Math.random()*3000)}
+  function blink(){if(allowed(el)){if(el.dataset.character==='paco'){el.dataset.gaze='left';later(()=>delete el.dataset.gaze,650+Math.random()*500)}else{el.dataset.blink='true';later(()=>delete el.dataset.blink,140)}}later(blink,3000+Math.random()*3000)}
   function wave(){if(!allowed(el)||waving)return;waving=true;[0,220,440,660].forEach((ms,i)=>later(()=>{if(allowed(el)&&i%2===0)el.dataset.hand='up';else delete el.dataset.hand},ms));later(()=>{delete el.dataset.hand;waving=false},700)}
   function idleHand(){if(allowed(el))wave();later(idleHand,7000+Math.random()*5000)}
   const button=el.closest('button');if(button){button.addEventListener('click',wave);removers.push(()=>button.removeEventListener('click',wave))}
