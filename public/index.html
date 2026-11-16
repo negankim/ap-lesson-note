@@ -138,7 +138,7 @@
 
     <div class="panel">
       <div class="row2">
-        <label for="f-coach">레슨한 코치<input id="f-coach" maxlength="30" list="coach-list" autocomplete="off" placeholder="예: 김세호 프로"><datalist id="coach-list"></datalist></label>
+        <label for="f-coach">레슨한 코치·전문가<input id="f-coach" maxlength="30" list="coach-list" autocomplete="off" placeholder="예: 김세호 프로"><datalist id="coach-list"></datalist></label>
         <label for="f-date">날짜<input id="f-date" type="date"></label>
       </div>
       <div class="mic" id="mic-row" hidden>
@@ -169,8 +169,8 @@
     <div id="active"></div>
 
     <div class="panel" id="legacy">
-      <div class="t-head"><span class="eyebrow"><b>C</b>내 코치 · 레슨 레거시</span><span class="hint" id="legacy-n"></span></div>
-      <p class="hint" style="margin:0">코치님이 해 준 새 레슨 포인트가 Matrix 위에 새싹(🌱)으로 쌓입니다. 코치님이 확인하면 이름이 붙은 정식 잎사귀가 됩니다.</p>
+      <div class="t-head"><span class="eyebrow"><b>C</b>나의 레거시 나무</span><span class="hint" id="legacy-n"></span></div>
+      <p class="hint" style="margin:0">Matrix가 뿌리·기둥·가지가 되고, 코치님들이 준 레슨 포인트가 잎사귀로 달려 나만의 나무가 자랍니다. 코치님이 확인하기 전에는 새싹으로 보입니다.</p>
       <div id="legacy-map"></div>
       <div id="legacy-list" style="display:grid;gap:10px"></div>
     </div>
@@ -240,7 +240,7 @@
       <summary><img class="dw-img" src="img/motion/AP_15_Flag_Mountain-static.svg" alt="" width="34" height="34">내 차트</summary>
       <button type="button" data-go="chart" data-sec="g-pos">내 위치 · Matrix</button>
       <button type="button" data-go="chart" data-sec="active">이번 배틀플랜</button>
-      <button type="button" data-go="chart" data-sec="legacy">내 코치 · 레슨 레거시</button>
+      <button type="button" data-go="chart" data-sec="legacy">나의 레거시 나무</button>
       <button type="button" data-go="chart" data-sec="list">레슨 기록</button>
       <button type="button" data-go="chart" data-sec="mfold">목표와 8개 영역</button>
     </details>

@@ -76,8 +76,8 @@ function resultHTML(r,coach,date,opts={}){
   const nps=(r.new_points||[]).filter(p=>NODES[p.node]);
   const leaves={};nps.forEach(p=>leaves[p.node]=(leaves[p.node]||0)+1);
   const npHTML=nps.length?`<div class="sec newpt"><h4><i>🌱</i>NEW 레슨 포인트</h4>
-    <p class="hint" style="margin:0">${esc(coach||"코치")}님이 이번 레슨에서 새로 준 포인트예요. Matrix에 새싹으로 남고, 코치님이 확인하면 정식 잎사귀가 됩니다.</p>
-    ${nps.map(p=>`<div class="drill"><div class="t"><b>${esc(p.name)}</b><span class="pill gold">${p.node} ${esc(NODES[p.node].ko)}</span></div><div class="feel">“${esc(p.point)}”</div>${p.how||p.dose?`<small>${esc([p.how,p.dose].filter(Boolean).join(" · "))}</small>`:""}<div><span class="pill">🌱 코치 확인 전</span></div></div>`).join("")}</div>`:"";
+    <p class="hint" style="margin:0">${esc(coach||"코치")}님이 이번 레슨에서 새로 준 포인트예요. 나의 레거시 나무에 새싹으로 달리고, 코치님이 확인하면 정식 잎사귀가 됩니다.</p>
+    ${nps.map(p=>`<div class="drill"><div class="t"><b>${esc(p.name)}</b><span class="pill gold">${p.node} ${esc(NODES[p.node].ko)} · ${esc((DOMAIN[p.domain]||DOMAIN.tech)[0])}</span></div><div class="feel">“${esc(p.point)}”</div>${p.how||p.dose?`<small>${esc([p.how,p.dose].filter(Boolean).join(" · "))}</small>`:""}<div><span class="pill">🌱 코치 확인 전</span></div></div>`).join("")}</div>`:"";
   return `<div class="result">
     <div class="rhead"><span class="eyebrow">${esc(md(date))} · ${esc(PNAME[r.pillar]||"")}</span><h2>${esc(r.title||"레슨 정리")}</h2>
       <div class="meta">${coach?`<span class="pill gold">출처 · ${esc(coach)}</span>`:`<span class="pill">코치 미기재</span>`}${node?`<span class="pill gold">${node} ${esc(NODES[node].ko)}</span>`:`<span class="pill warn">위치 미정</span>`}${r.confidence?`<span class="pill ${conf}">판정 ${esc(r.confidence)}</span>`:""}${r.mental?`<span class="pill warn">압박 시 심해짐 · N1</span>`:""}</div></div>
@@ -329,6 +329,37 @@ function renderChart(){renderMandala();renderActive();renderLegacy();renderList(
 /* ===== 내 코치 · 레슨 레거시 =====
    선수가 적은 코치 이름으로 코치 목록을 만든다. 새 레슨 포인트는 그 코치 아래 새싹으로 쌓인다.
    (다음 단계: 코치가 초대로 들어와 확인하면 정식 잎사귀 + 코치 레거시) */
+/* ===== 레거시 나무: 뿌리 N1 · 기둥 N5 · 왼쪽 가지(만들기) N4·N3·N2 · 오른쪽 가지(유지) N6·N7·N8 ===== */
+const DOMAIN={tech:["기술 레슨","#c9a24a"],mental:["멘탈 훈련","#9b7fd4"],fitting:["클럽 피팅","#4f9bd9"],physical:["피지컬 트레이닝","#5fb36b"],course:["코스 매니지먼트","#3fb5a8"]};
+const TB={ /* 가지: 시작점 → 끝점 */
+  N4:[180,300,70,250],N3:[180,262,58,182],N2:[180,226,92,112],
+  N6:[180,300,290,250],N7:[180,262,302,182],N8:[180,226,268,112],
+  N5:[180,380,180,226],N1:[180,380,180,380]};
+function treeSVG(points){
+  const by={};points.forEach(p=>{(by[p.node]=by[p.node]||[]).push(p)});
+  let leaves="",k=0;
+  for(const [n,ps] of Object.entries(by)){
+    const [x1,y1,x2,y2]=TB[n]||TB.N5;
+    ps.forEach((p,i)=>{
+      let x,y,rot;
+      if(n==="N1"){x=150+((i%6)*12);y=392+(i%2)*8;rot=0}
+      else{const t=n==="N5"?.25+(i%6)*.12:.45+((i%6)*.11);const side=i%2?1:-1;
+        x=x1+(x2-x1)*t+(n==="N5"?side*14:side*6);y=y1+(y2-y1)*t+(n==="N5"?0:side*-8);rot=side*35+(x2<x1?-20:20)}
+      const col=(DOMAIN[p.domain]||DOMAIN.tech)[1];
+      leaves+=`<g transform="rotate(${rot} ${x.toFixed(1)} ${y.toFixed(1)})"><ellipse class="tleaf${p.confirmed?"":" sprout"}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="9" ry="5" style="--c:${col};animation-delay:${(k++)*60}ms"><title>${esc(n+" · "+(DOMAIN[p.domain]||DOMAIN.tech)[0]+" · "+(p.name||""))}</title></ellipse></g>`});
+  }
+  const br=["N4","N3","N2","N6","N7","N8"].map(n=>{const [x1,y1,x2,y2]=TB[n];const cx=(x1+x2)/2,cy=Math.min(y1,y2)+(Math.abs(y1-y2))*.25;
+    return `<path class="tbr" d="M${x1} ${y1} Q${cx} ${cy} ${x2} ${y2}"/><text class="tlab" x="${x2}" y="${y2-10}" text-anchor="middle">${n} ${esc(NODES[n].ko)}${by[n]?" · "+by[n].length:""}</text>`}).join("");
+  return `<svg class="tree" viewBox="0 0 360 448" role="img" aria-label="나의 레거시 나무: 잎사귀 ${points.length}개">
+    <path class="troot" d="M180 380 C160 395 130 400 110 415 M180 380 C200 395 230 400 250 415 M180 380 C178 398 172 410 168 425 M180 380 C186 400 196 410 205 425"/>
+    <text class="tlab" x="180" y="444" text-anchor="middle">뿌리 · N1 ${esc(NODES.N1.ko)}${by.N1?" · "+by.N1.length:""}</text>
+    <path class="ttrunk" d="M168 382 L172 230 L188 230 L192 382 Z"/>
+    <text class="tlab trunk" x="180" y="330" text-anchor="middle">N5</text>
+    ${br}${leaves}
+    <text class="tside" x="40" y="24">만들기 · CREATION</text><text class="tside" x="320" y="24" text-anchor="end">유지하기 · SUSTAINING</text>
+  </svg>
+  <div class="tlegend">${Object.values(DOMAIN).map(([n,c])=>`<span><i style="background:${c}"></i>${n}</span>`).join("")}<span><i class="sp"></i>코치 확인 전(새싹)</span></div>`;
+}
 const normName=s=>String(s||"").replace(/\s+/g,"").toLowerCase();
 async function loadCoaches(){
   try{const s=await db.collection("players/"+uid+"/coaches").get();myCoaches=s.docs.map(d=>({id:d.id,...d.data()}))}catch(_){myCoaches=[]}
@@ -349,15 +380,15 @@ function coachGroups(){
 }
 function renderLegacy(){
   if(!$("legacy"))return;
-  const gs=coachGroups(),all={};gs.forEach(c=>c.points.forEach(p=>all[p.node]=(all[p.node]||0)+1));
-  const tot=Object.values(all).reduce((a,b)=>a+b,0);
-  $("legacy-n").textContent=tot?`새싹 ${tot}개 · 코치 ${gs.length}명`:"";
-  $("legacy-map").innerHTML=tot?`<div class="sec map" style="border:0;padding:0">${mapSVG(null,null,false,all)}</div>`:"";
+  const gs=coachGroups(),pts=gs.flatMap(c=>c.points);
+  const tot=pts.length;
+  $("legacy-n").textContent=tot?`잎사귀 ${tot}개 · 코치 ${gs.length}명`:"";
+  $("legacy-map").innerHTML=treeSVG(pts);
   $("legacy-list").innerHTML=gs.length?gs.map((c,i)=>{
     const by={};c.points.forEach(p=>by[p.node]=(by[p.node]||0)+1);
     return `<div class="coach-c"><div class="t-head"><b>${esc(c.name)}</b><span class="hint">레슨 ${c.lessons}번 · 최근 ${esc(md(c.last))}</span></div>
-      <div class="chips">${Object.keys(by).sort().map(n=>`<span class="pill gold">${n} 🌱${by[n]}</span>`).join("")||`<span class="hint">아직 새 포인트가 없어요</span>`}</div>
-      ${c.points.length?`<details><summary class="hint">포인트 ${c.points.length}개 보기</summary>${c.points.map(p=>`<div class="feel" style="margin-top:6px"><b>${p.node}</b> ${esc(p.name)} · “${esc(p.point)}”</div>`).join("")}</details>
+      <div class="chips">${Object.keys(by).sort().map(n=>`<span class="pill gold">${n} 🍃${by[n]}</span>`).join("")||`<span class="hint">아직 새 포인트가 없어요</span>`}</div>
+      ${c.points.length?`<details><summary class="hint">포인트 ${c.points.length}개 보기</summary>${c.points.map(p=>`<div class="feel" style="margin-top:6px"><b>${p.node}</b> <span class="pill">${esc((DOMAIN[p.domain]||DOMAIN.tech)[0])}</span> ${esc(p.name)} · “${esc(p.point)}”</div>`).join("")}</details>
       <div class="actions"><button class="btn sm" type="button" data-coach-copy="${i}">코치님께 보여 드릴 요약 복사</button></div>`:""}</div>`}).join("")
     :`<div class="empty">레슨을 정리할 때 코치 이름을 적으면 코치별로 쌓여요.</div>`;
 }
