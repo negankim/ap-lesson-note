@@ -76,6 +76,44 @@
   </div>
 </section>
 <div id="app" hidden>
+  <!-- 나이 확인 · 보호자 동의 (처음 한 번) -->
+  <div class="cs" id="consent" hidden role="dialog" aria-modal="true" aria-labelledby="cs-h">
+    <div class="cs-box wrap">
+      <div class="guide" id="g-cs"></div>
+      <h1 id="cs-h">시작하기 전에 한 가지만 확인할게요</h1>
+      <form id="cs-form" class="panel" novalidate>
+        <fieldset class="cs-age"><legend>나이를 골라 주세요 <small>(만 나이)</small></legend>
+          <label><input type="radio" name="age" value="child"> 만 14세 미만</label>
+          <label><input type="radio" name="age" value="teen"> 만 14세 ~ 18세</label>
+          <label><input type="radio" name="age" value="adult"> 만 19세 이상</label>
+        </fieldset>
+        <div id="cs-guard" hidden>
+          <p class="notice">만 14세 미만은 보호자(법정대리인)의 동의가 있어야 쓸 수 있어요. 보호자가 직접 적고 동의해 주세요. AP 코치가 보호자께 연락해 확인한 뒤에 사용이 열립니다.</p>
+          <label class="fld">보호자 이름<input id="cs-gname" autocomplete="off" maxlength="20"></label>
+          <label class="fld">관계<select id="cs-grel"><option value="">선택</option><option>부</option><option>모</option><option>그 밖의 법정대리인</option></select></label>
+          <label class="fld">보호자 연락처<input id="cs-gphone" inputmode="tel" autocomplete="off" maxlength="20" placeholder="010-0000-0000"></label>
+          <label class="ck"><input type="checkbox" id="cs-gok"> 보호자입니다. 아래 내용을 읽고 아이의 이용과 정보 처리에 동의합니다.</label>
+        </div>
+        <details class="cs-terms" open><summary>무엇을 저장하고 어떻게 쓰나요</summary>
+          <ul>
+            <li>저장: 구글 계정 이름·이메일, 직접 남긴 레슨 내용과 연습 기록, 나이 구분(만 14세 미만은 보호자 이름·관계·연락처).</li>
+            <li>목적: 레슨 정리, 훈련 계획, 담당 코치의 확인.</li>
+            <li>AI 처리: 레슨을 정리할 때 내용이 Anthropic(미국)의 AI(Claude)로 전송됩니다. 정리 결과는 코치의 판단을 대신하지 않습니다.</li>
+            <li>볼 수 있는 사람: 본인과 AP 코치진.</li>
+            <li>삭제: 언제든 코치나 AP에 요청하면 지웁니다.</li>
+          </ul>
+        </details>
+        <label class="ck"><input type="checkbox" id="cs-ok"> 위 내용을 읽었고 동의합니다.</label>
+        <p class="status err" id="cs-err" aria-live="polite"></p>
+        <button class="btn gold" type="submit">확인하고 시작하기</button>
+      </form>
+      <div class="panel" id="cs-wait" hidden>
+        <b>보호자 확인을 기다리고 있어요</b>
+        <span class="lead">AP 코치가 보호자께 연락해 확인하면 바로 쓸 수 있어요. 확인이 끝나면 이 화면을 새로고침해 주세요.</span>
+        <button class="btn" type="button" id="cs-reload">새로고침</button>
+      </div>
+    </div>
+  </div>
 <div class="wrap">
   <header class="top">
     <div style="display:flex;align-items:center;gap:12px"><button class="menu-btn" type="button" id="menu" aria-label="메뉴 열기" aria-expanded="false"><span></span><span></span><span></span></button><div class="brand" role="img" aria-label="AP Legacy System"><i class="ap-mono" aria-hidden="true"></i><span aria-hidden="true">LEGACY<small>SYSTEM</small></span></div></div>
@@ -153,6 +191,11 @@
       <h1>훈련 라이브러리</h1>
       <p class="lead">AP가 처방에 먼저 쓰는 레슨 포인트·드릴·훈련입니다. 코치진이 고치면 다음 레슨 정리부터 바로 반영됩니다.</p>
       <div class="guide" id="g-lib" data-who="daryl" data-say="여기 있는 훈련이 제 처방의 기본이에요. 틀린 게 보이면 고쳐 주세요. 바꾼 이유와 이전 버전은 다 남겨 둘게요."></div>
+    </div>
+    <div class="panel" id="guard-q" hidden>
+      <h4 class="eyebrow"><b>G</b>보호자 확인 대기</h4>
+      <p class="lead" style="margin:0">만 14세 미만 선수입니다. 보호자께 직접 연락해 본인 여부와 동의를 확인한 뒤 승인해 주세요.</p>
+      <div id="guard-list"></div>
     </div>
     <div class="notice" id="lib-role">권한을 확인하는 중입니다.</div>
     <div class="panel">

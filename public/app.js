@@ -96,6 +96,7 @@ $("go").addEventListener("click",async()=>{
   if(busy)return;busy=true;$("go").disabled=true;st.innerHTML="<div class=\"guide\" id=\"g-wait\"></div><div class=\"ld\" aria-hidden=\"true\"></div>";say($("g-wait"),"코치님 말씀을 Matrix에 맞춰 생각하는 중이에요. 20~40초만 기다려 주세요.",{now:true,who:"rook",motion:"guide"});
   try{
     const r=(await ai({task:"organize",text,coach,profile,history:lessons.slice(0,3).map(l=>({date:l.date,title:l.result.title,node:l.result.node||null}))})).data;
+    if(r&&r.off_topic){st.textContent="";say($("g-lesson"),"저는 골프 레슨과 연습 이야기만 정리할 수 있어요. 코치님이 한 말이나 공이 어떻게 갔는지 들려주세요.",{now:true,who:"rook",motion:"guide"});return}
     if(!r||!r.plan)throw new Error("format");
     draft={date:$("f-date").value||today(),coach,transcript:text,result:r};
     (r.drills||[]).forEach(d=>{const it=d.lib_id&&lib.find(x=>x.id===d.lib_id);if(it){d.source="AP 라이브러리";d.lib_rev=it.rev||1}else if(d.source==="AP 라이브러리"){d.source="AI 보완";d.lib_id=""}});
@@ -105,7 +106,7 @@ $("go").addEventListener("click",async()=>{
     $("out").scrollIntoView({behavior:"smooth",block:"start"});
   }catch(e){
     st.className="status err";
-    st.textContent=e&&/resource-exhausted/.test(e.code||"")?"오늘 정리 횟수를 다 썼습니다. 내일 다시 이용해 주세요.":e&&/unauthenticated/.test(e.code||"")?"로그인이 풀렸습니다. 다시 로그인해 주세요.":"정리하지 못했습니다. 다시 눌러 주세요.";
+    st.textContent=e&&/guardian-pending/.test(e.message||"")?"보호자 확인이 끝나면 정리할 수 있습니다.":e&&/age-required/.test(e.message||"")?"나이 확인이 필요합니다. 새로고침해 주세요.":e&&/resource-exhausted/.test(e.code||"")?"오늘 정리 횟수를 다 썼습니다. 내일 다시 이용해 주세요.":e&&/unauthenticated/.test(e.code||"")?"로그인이 풀렸습니다. 다시 로그인해 주세요.":"정리하지 못했습니다. 다시 눌러 주세요.";
   }finally{busy=false;$("go").disabled=false}
 });
 $("out").addEventListener("click",async e=>{
@@ -424,10 +425,52 @@ function setMenuUser(name,role){
 
 /* ===== 시작 ===== */
 export function start(services){
-  ({db,user,ai,dict,seedFn}=services);
+  ({db,user,ai,dict,seedFn,consent}=services);
   return boot();
 }
+/* ===== 나이 확인 · 보호자 동의 ===== */
+let consent=null;
+async function gate(){
+  if(!consent)return true;
+  let s;try{s=await consent.status()}catch(_){return true}
+  if(s.staff){loadGuardQ();return true}
+  if(s.ageBand&&(s.ageBand!=="child"||s.guardianVerified))return true;
+  $("consent").hidden=false;document.body.style.overflow="hidden";
+  const wait=()=>{$("cs-form").hidden=true;$("cs-wait").hidden=false;$("cs-h").textContent="거의 다 됐어요";say($("g-cs"),"보호자 확인이 끝나면 바로 같이 시작해요. 조금만 기다려 주세요.",{now:true,who:"logan",motion:"guide"})};
+  if(s.ageBand==="child"){wait();return false}
+  say($("g-cs"),"반가워요, 로건이에요. 안전하게 쓰려고 나이만 먼저 여쭤볼게요.",{now:true,who:"logan"});
+  return new Promise(done=>{
+    $("cs-form").addEventListener("change",()=>{$("cs-guard").hidden=($("cs-form").age.value!=="child")});
+    $("cs-form").addEventListener("submit",async e=>{
+      e.preventDefault();const err=$("cs-err");err.textContent="";
+      const age=$("cs-form").age.value;
+      if(!age){err.textContent="나이를 골라 주세요.";return}
+      let guardian=null;
+      if(age==="child"){
+        guardian={name:$("cs-gname").value.trim(),relation:$("cs-grel").value,phone:$("cs-gphone").value.trim()};
+        if(!guardian.name||!guardian.relation||!/^[0-9+\- ]{9,}$/.test(guardian.phone)){err.textContent="보호자 이름, 관계, 연락처를 모두 적어 주세요.";return}
+        if(!$("cs-gok").checked){err.textContent="보호자 동의에 체크해 주세요.";return}
+      }
+      if(!$("cs-ok").checked){err.textContent="안내 내용에 동의해 주세요.";return}
+      try{await consent.submit({ageBand:age,guardian})}catch(_){err.textContent="저장하지 못했습니다. 다시 눌러 주세요.";return}
+      if(age==="child"){wait();return}
+      $("consent").hidden=true;document.body.style.overflow="";done(true);
+    });
+  });
+}
+$("cs-reload").addEventListener("click",()=>location.reload());
+async function loadGuardQ(){
+  let list=[];try{list=await consent.pending()}catch(_){return}
+  $("guard-q").hidden=!list.length;
+  $("guard-list").innerHTML=list.map(p=>`<div class="gq"><div><b>${esc(p.name||"이름 없음")}</b><small>${p.guardian?esc(p.guardian.name+" ("+p.guardian.relation+") · "+p.guardian.phone):"보호자 정보 없음"}</small></div><button class="btn sm gold" type="button" data-verify="${esc(p.uid)}">확인 완료</button></div>`).join("");
+}
+$("guard-list").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-verify]");if(!b)return;
+  if(!confirm("보호자께 직접 연락해 동의를 확인하셨나요?"))return;
+  b.disabled=true;try{await consent.verify(b.dataset.verify);toast("승인했습니다");loadGuardQ()}catch(_){b.disabled=false;toast("승인하지 못했습니다")}
+});
 async function boot(){
+  if(!(await gate()))return;
   renderChart();
   setupMic();
   try{isEditor=!!(await user.canEdit())}catch(_){}

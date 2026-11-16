@@ -10,11 +10,23 @@ service cloud.firestore {
     function isStaff() { return signedIn() && role() in ['coach', 'admin']; }
     function isAdmin() { return signedIn() && role() == 'admin'; }
 
+    // 나이 구분(ageBand: adult|teen|child)은 본인이 한 번만 정한다. 보호자 확인(guardianVerified)은 코치·관리자만.
+    function same(f) { return request.resource.data.get(f, null) == resource.data.get(f, null); }
     match /users/{uid} {
       allow read: if signedIn();
-      allow create: if signedIn() && request.auth.uid == uid && request.resource.data.role == 'player';
-      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid
-                      && request.resource.data.role == resource.data.role);
+      allow create: if signedIn() && request.auth.uid == uid && request.resource.data.role == 'player'
+                      && !('guardianVerified' in request.resource.data);
+      allow update: if isAdmin()
+                    || (signedIn() && request.auth.uid == uid && same('role') && same('guardianVerified')
+                        && same('verifiedBy') && (resource.data.get('ageBand', null) == null || same('ageBand')))
+                    || (isStaff() && request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['guardianVerified', 'verifiedBy', 'verifiedAt']));
+    }
+
+    // 만 14세 미만 선수의 보호자 정보: 본인과 코치·관리자만 본다
+    match /guardians/{uid} {
+      allow read: if (signedIn() && request.auth.uid == uid) || isStaff();
+      allow write: if signedIn() && request.auth.uid == uid;
     }
 
     match /players/{uid} {

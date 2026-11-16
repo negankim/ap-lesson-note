@@ -4,7 +4,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, onSnapshot, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 import { start } from "./app.js";
 
@@ -113,6 +113,24 @@ document.querySelectorAll("[data-login]").forEach((b) => b.addEventListener("cli
 }));
 $("logout").addEventListener("click", () => signOut(auth).then(() => location.reload()));
 
+/* 나이 확인과 보호자 동의 (만 14세 미만은 법정대리인 동의 필요 → 코치가 보호자와 통화로 확인 후 승인) */
+function makeConsent(u, role) {
+  const ref = doc(fs, "users/" + u.uid);
+  return {
+    status: async () => { const d = (await getDoc(ref)).data() || {}; return { ageBand: d.ageBand || null, guardianVerified: d.guardianVerified === true, staff: role === "coach" || role === "admin" }; },
+    submit: async ({ ageBand, guardian }) => {
+      if (ageBand === "child") await setDoc(doc(fs, "guardians/" + u.uid), { ...guardian, player: u.displayName || "", agreedAt: serverTimestamp() });
+      await updateDoc(ref, { ageBand, consentAt: serverTimestamp(), consentVer: "2026-11-17" });
+    },
+    pending: async () => {
+      const s = await getDocs(query(collection(fs, "users"), where("ageBand", "==", "child")));
+      const list = s.docs.filter((d) => d.data().guardianVerified !== true);
+      return Promise.all(list.map(async (d) => { const g = await getDoc(doc(fs, "guardians/" + d.id)); return { uid: d.id, name: d.data().name || "", guardian: g.exists() ? g.data() : null }; }));
+    },
+    verify: (uid) => updateDoc(doc(fs, "users/" + uid), { guardianVerified: true, verifiedBy: u.uid, verifiedAt: serverTimestamp() }),
+  };
+}
+
 let started = false;
 onAuthStateChanged(auth, async (u) => {
   $("gate").hidden = !!u; $("app").hidden = !u;
@@ -126,5 +144,5 @@ onAuthStateChanged(auth, async (u) => {
     if (d.exists()) { role = d.data().role || "player"; await updateDoc(ref, { name: u.displayName || "", lastSeen: serverTimestamp() }); }
     else await setDoc(ref, { name: u.displayName || "", role: "player", createdAt: serverTimestamp(), lastSeen: serverTimestamp() });
   } catch (e) { console.warn("users doc", e); }
-  await start({ db, user: makeUser(u, role), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation(), seedFn: httpsCallable(fn, "seedLibrary", { timeout: 120000 }) });
+  await start({ db, user: makeUser(u, role), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation(), consent: makeConsent(u, role), seedFn: httpsCallable(fn, "seedLibrary", { timeout: 120000 }) });
 });

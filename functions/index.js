@@ -61,9 +61,21 @@ async function countUse(uid, task) {
   });
 }
 
+/* 미성년자 보호: 나이 확인 전, 또는 만 14세 미만인데 보호자 확인 전이면 AI를 쓰지 않는다.
+ * 나이 구분은 브라우저가 보낸 값이 아니라 서버가 users 문서에서 읽는다. */
+async function ageOf(uid) {
+  const me = await db.doc("users/" + uid).get();
+  const u = me.exists ? me.data() : {};
+  if (["coach", "admin"].includes(u.role)) return "adult";
+  if (!u.ageBand) throw new HttpsError("failed-precondition", "age-required");
+  if (u.ageBand === "child" && u.guardianVerified !== true) throw new HttpsError("failed-precondition", "guardian-pending");
+  return u.ageBand;
+}
+
 exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", timeoutSeconds: 120 }, async (req) => {
   if (!req.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
   const d = req.data || {};
+  const minor = (await ageOf(req.auth.uid)) !== "adult";
   if (d.task === "organize") {
     const text = String(d.text || "").slice(0, 12000);
     if (text.length < 20) throw new HttpsError("invalid-argument", "레슨 내용이 너무 짧습니다.");
@@ -71,13 +83,13 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     const libSnap = await db.collection("library").where("status", "==", "active").get();
     const lib = libSnap.docs.map((x) => ({ id: x.id, ...x.data() }));
     return callClaude(MODEL.organize, organizePrompt({
-      text, coach: String(d.coach || "").slice(0, 40), profile: d.profile || {}, history: (d.history || []).slice(0, 3), lib,
+      text, coach: String(d.coach || "").slice(0, 40), profile: d.profile || {}, history: (d.history || []).slice(0, 3), lib, minor,
     }), 16000);
   }
   if (d.task === "feedback") {
     await countUse(req.auth.uid, "feedback");
     return callClaude(MODEL.feedback, feedbackPrompt({
-      lesson: d.lesson || {}, verdict: String(d.verdict || ""), text: String(d.text || "").slice(0, 300),
+      lesson: d.lesson || {}, verdict: String(d.verdict || ""), text: String(d.text || "").slice(0, 300), minor,
     }), 2000);
   }
   throw new HttpsError("invalid-argument", "알 수 없는 요청입니다.");
