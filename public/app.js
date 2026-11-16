@@ -93,7 +93,7 @@ $("go").addEventListener("click",async()=>{
   const st=$("st");st.className="status";
   if(text.length<20){st.textContent="레슨 내용을 조금 더 적어 주세요.";st.className="status err";return}
   if(!ai){st.textContent="로그인한 뒤에 정리할 수 있습니다.";st.className="status err";return}
-  if(busy)return;busy=true;$("go").disabled=true;st.innerHTML="정리하는 중입니다. 20~40초 걸립니다.<div class=\"ld\" aria-hidden=\"true\"></div>";
+  if(busy)return;busy=true;$("go").disabled=true;st.innerHTML="<span class=\"ld-row\"><img class=\"ld-bulb\" src=\"img/light_bulb-s.webp\" alt=\"\" width=\"26\" height=\"47\">정리하는 중입니다. 20~40초 걸립니다.</span><div class=\"ld\" aria-hidden=\"true\"></div>";
   try{
     const r=(await ai({task:"organize",text,coach,profile,history:lessons.slice(0,3).map(l=>({date:l.date,title:l.result.title,node:l.result.node||null}))})).data;
     if(!r||!r.plan)throw new Error("format");
@@ -148,7 +148,7 @@ $("mgrid").addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(
 function sameCount(l){return (l.feedback||[]).filter(f=>f.verdict==="여전하다").length}
 function renderActive(){
   const l=lessons[0];
-  if(!l){$("active").innerHTML=`<div class="notice">아직 저장된 레슨이 없습니다. 레슨 탭에서 첫 레슨을 정리해 보세요.</div>`;return}
+  if(!l){$("active").innerHTML=`<div class="empty-st"><img src="img/golf_cart.webp" alt="" width="180" height="158"><b>아직 저장된 레슨이 없습니다</b><span>레슨 탭에서 첫 레슨을 정리해 보세요.</span><button class="btn gold" type="button" data-go-lesson>첫 레슨 정리하기</button></div>`;return}
   const r=l.result,done=l.done||[],n=(r.plan||[]).length;
   const fails=sameCount(l);
   const fbs=(l.feedback||[]).slice().reverse().map(f=>`<div class="fb"><div class="h"><span>${esc(md(f.date))}</span><span class="pill ${f.verdict==="잘 맞았다"?"ok":f.verdict==="여전하다"?"warn":""}">${esc(f.verdict)}</span></div>${f.text?`<div>${esc(f.text)}</div>`:""}${f.adjust?`<div><b>조정</b> · ${esc(f.adjust)}</div>`:""}${f.drill&&f.drill.name?`<div class="hint">추가 훈련: ${esc(f.drill.name)} ${esc(f.drill.dose||"")} <span class="pill">AI 보완</span></div>`:""}</div>`).join("");
@@ -176,6 +176,7 @@ $("active").addEventListener("change",async e=>{
   renderMandala();renderActive();
 });
 $("active").addEventListener("click",async e=>{
+  if(e.target.closest("[data-go-lesson]")){show("lesson");return}
   const chip=e.target.closest("#fb-v .chip");
   if(chip){document.querySelectorAll("#fb-v .chip").forEach(c=>c.setAttribute("aria-pressed",c===chip?"true":"false"));return}
   const cp=e.target.closest("[data-copy]");
@@ -367,7 +368,7 @@ $("drawer").addEventListener("click",e=>{
 });
 function setMenuUser(name,role){
   $("dw-name").textContent=name||"내 기록";
-  $("dw-av").textContent=(name||"A").trim().charAt(0).toUpperCase();
+  
   $("dw-role").textContent={admin:"관리자",coach:"코치"}[role]||"선수";
 }
 
