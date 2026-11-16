@@ -18,9 +18,9 @@
 
 준비물: Google 계정, Anthropic API 키, 컴퓨터에 Node.js 20 이상.
 
-1. **Firebase 프로젝트 만들기** — console.firebase.google.com 에서 새 프로젝트. 요금제를 **Blaze(종량제)** 로 올려야 서버 함수를 쓸 수 있습니다 (파일럿 규모에서는 거의 무료).
-2. 프로젝트에서 **Authentication → Google 로그인** 사용 설정, **Firestore Database** 생성(서울 `asia-northeast3`).
-3. `.firebaserc` 의 `FIREBASE-PROJECT-ID` 를 실제 프로젝트 ID로 바꿉니다.
+1. **Firebase 프로젝트** — `ap-lesson-note` 생성 완료 (2026-11-16). 요금제를 **Blaze(종량제)** 로 올려야 서버 함수를 쓸 수 있습니다 (파일럿 규모에서는 거의 무료).
+2. Google 로그인 사용 설정, Firestore(서울 `asia-northeast3`) 생성 완료.
+3. 프로젝트 ID는 `ap-lesson-note` 로 이미 설정되어 있습니다.
 4. 컴퓨터 터미널에서:
    ```bash
    npm install -g firebase-tools
