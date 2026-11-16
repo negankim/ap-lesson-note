@@ -313,10 +313,12 @@ nav.tabs button[aria-selected="true"]{color:var(--fg);font-weight:600;border-top
   #g-wait .g-av{animation:nod 1.4s ease-in-out infinite}
 }
 
-.lp-team{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.lp-team{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .lp-mate{display:grid;justify-items:center;text-align:center;gap:4px;padding:16px 10px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 .lp-mate img{width:80px;height:80px;margin-bottom:6px}
 .lp-mate b{font-size:18px}
 .lp-mate em{font-style:normal;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--gold)}
 .lp-mate span{font-size:13px;color:var(--muted);line-height:1.45}
 @media (max-width:420px){.lp-team{grid-template-columns:minmax(0,1fr)}.lp-mate{grid-template-columns:auto minmax(0,1fr);justify-items:start;text-align:left;column-gap:14px}.lp-mate img{grid-row:1/4;width:68px;height:68px;margin:0}}
+
+#g-feel{margin-bottom:2px}
