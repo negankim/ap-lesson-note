@@ -102,7 +102,7 @@ const $ = (id) => document.getElementById(id);
 /* 첫 화면: 카드와 단계가 스크롤할 때 하나씩 나타남 (움직임 줄이기 설정이면 그대로 보임) */
 if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.15 });
-  document.querySelectorAll(".lp-steps li, .lp-note, .lp-cta").forEach((el, i) => {
+  document.querySelectorAll(".lp-steps li, .lp-note, .lp-mate, .lp-cta").forEach((el, i) => {
     el.classList.add("rv"); el.style.transitionDelay = (i % 5) * 70 + "ms"; io.observe(el);
   });
 }

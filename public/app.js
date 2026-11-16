@@ -93,7 +93,7 @@ $("go").addEventListener("click",async()=>{
   const st=$("st");st.className="status";
   if(text.length<20){st.textContent="레슨 내용을 조금 더 적어 주세요.";st.className="status err";return}
   if(!ai){st.textContent="로그인한 뒤에 정리할 수 있습니다.";st.className="status err";return}
-  if(busy)return;busy=true;$("go").disabled=true;st.innerHTML="<div class=\"guide\" id=\"g-wait\"></div><div class=\"ld\" aria-hidden=\"true\"></div>";say($("g-wait"),"코치님 말씀을 Matrix에 맞춰 보는 중이에요. 20~40초만 기다려 주세요.",{now:true});
+  if(busy)return;busy=true;$("go").disabled=true;st.innerHTML="<div class=\"guide\" id=\"g-wait\"></div><div class=\"ld\" aria-hidden=\"true\"></div>";say($("g-wait"),"코치님 말씀을 Matrix에 맞춰 생각하는 중이에요. 20~40초만 기다려 주세요.",{now:true,who:"hugin"});
   try{
     const r=(await ai({task:"organize",text,coach,profile,history:lessons.slice(0,3).map(l=>({date:l.date,title:l.result.title,node:l.result.node||null}))})).data;
     if(!r||!r.plan)throw new Error("format");
@@ -101,7 +101,7 @@ $("go").addEventListener("click",async()=>{
     (r.drills||[]).forEach(d=>{const it=d.lib_id&&lib.find(x=>x.id===d.lib_id);if(it){d.source="AP 라이브러리";d.lib_rev=it.rev||1}else if(d.source==="AP 라이브러리"){d.source="AI 보완";d.lib_id=""}});
     $("out").innerHTML=resultHTML(r,coach,draft.date,{key:"draft"})+`<div class="actions" style="margin-top:12px"><button class="btn" type="button" id="redo">다시 정리</button><button class="btn gold" type="button" id="save">내 차트에 저장</button></div>`;
     st.textContent="";
-    say($("g-lesson"),r.node?`정리했어요. 지금 위치는 ${r.node} ${NODES[r.node].ko}예요. 아래 6일 플랜을 확인하고 내 차트에 저장해 주세요.`:"정리했어요. 위치를 확정하려면 확인할 게 하나 있어요. 아래 '다음 레슨에서 확인'을 봐 주세요.",{now:true});
+    say($("g-lesson"),r.node?`정리했어요. 지금 위치는 ${r.node} ${NODES[r.node].ko}예요. 아래 6일 플랜을 확인하고 내 차트에 저장해 주세요.`:"정리했어요. 위치를 확정하려면 확인할 게 하나 있어요. 아래 '다음 레슨에서 확인'을 봐 주세요.",{now:true,who:"hugin"});
     $("out").scrollIntoView({behavior:"smooth",block:"start"});
   }catch(e){
     st.className="status err";
@@ -148,8 +148,8 @@ $("mgrid").addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(
 
 function sameCount(l){return (l.feedback||[]).filter(f=>f.verdict==="여전하다").length}
 function chartSay(){
-  const l=lessons[0];const g=$("g-chart");if(!g)return;
-  if(!l){say(g,"아직 기록이 없어요. 첫 레슨을 들려주시면 여기에 차곡차곡 쌓아 둘게요.");return}
+  const l=lessons[0];const g=$("g-chart");if(!g)return;g.dataset.who="ttuk";
+  if(!l){say(g,"아직 기록이 없어요. 첫 레슨이 들어오면 6일 훈련을 같이 시작해요.");return}
   const plan=l.result.plan||[],done=l.done||[];const next=plan.find(p=>!done.includes(p.day));
   if(sameCount(l)>=3){say(g,"같은 문제가 세 번 넘게 반복됐어요. 혼자 더 하기보다 코치님과 확인해 보는 게 좋겠어요.");return}
   if(!next){say(g,"이번 배틀플랜을 다 마쳤어요. 잘했어요! 다음 레슨에서 달라진 점을 들려주세요.");return}
@@ -360,13 +360,15 @@ async function loadLessons(){
     lessons=s.docs.map(d=>({id:d.id,...d.data()})).filter(l=>l.result).sort((a,b)=>((b.date||"")+(b.createdAt||"")).localeCompare((a.date||"")+(a.createdAt||"")));
   }catch(e){lessons=[]}
 }
-/* ===== 울프 (안내 캐릭터) ===== */
+/* ===== 안내 캐릭터: 로건(기록)·휴긴(진단)·뚝심(훈련) ===== */
+const CH={logan:{n:"로건",img:"wolf_buddy-s"},hugin:{n:"휴긴",img:"raven_buddy-s"},ttuk:{n:"뚝심",img:"badger_buddy-s"}};
 const STILL=matchMedia("(prefers-reduced-motion: reduce)").matches;
-function say(el,text,{now=false}={}){
+function say(el,text,{now=false,who}={}){
   if(!el)return;
-  if(el.dataset.said===text)return;
-  el.dataset.said=text;
-  el.innerHTML=`<img class="g-av" src="img/wolf_buddy-s.webp" alt="" width="48" height="48"><div class="g-bub"><span class="g-name">울프</span><p aria-live="polite"></p></div>`;
+  const c=CH[who||el.dataset.who]||CH.logan;
+  if(el.dataset.said===c.n+text)return;
+  el.dataset.said=c.n+text;el.classList.remove("on");
+  el.innerHTML=`<img class="g-av" src="img/${c.img}.webp" alt="" width="48" height="48"><div class="g-bub"><span class="g-name">${c.n}</span><p aria-live="polite"></p></div>`;
   const p=el.querySelector("p");
   clearInterval(el._t);
   if(STILL){p.textContent=text;return}
