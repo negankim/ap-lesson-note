@@ -339,36 +339,39 @@ function renderChart(){renderMandala();renderActive();renderLegacy();renderList(
 const DOMAIN={tech:["기술 레슨","#c9a24a"],mental:["멘탈 훈련","#9b7fd4"],fitting:["클럽 피팅","#4f9bd9"],physical:["피지컬 트레이닝","#5fb36b"],course:["코스 매니지먼트","#3fb5a8"]};
 const STAGE_NAME=["지식의 뿌리","첫 기록","전해지는 가르침","이어지는 지식","쌓여가는 레거시","풍성해지는 기록","세대를 잇는 나무","살아 있는 골프 레거시"];
 let plazaTree=null,plazaStats=null;
-function treeData(st){const nodes={};for(const n of Object.keys(NODES))nodes[n]={legacyPointCount:Math.max(0,Number(st&&st.nodes&&st.nodes[n])||0)};
+const NODE_DESC={N1:"모든 노드에 곱해지는 집중·루틴의 기반",N2:"샷 전에 그리는 머릿속 임팩트와 의도",N3:"페이스와 레버 — 공의 출발 방향",N4:"클럽 경로 — 공의 휘어짐",N5:"실제 임팩트 — 컨택·타점·탄도",N6:"재현성 — 같은 샷을 반복하는 힘",N7:"효율성 — 힘을 거리로 바꾸는 법",N8:"적응 — 코스와 실전에서 쓰는 법"};
+function treeData(st,{landing=false,points={}}={}){const nodes={};
+  for(const n of Object.keys(NODES))nodes[n]={legacyPointCount:Math.max(0,Number(st&&st.nodes&&st.nodes[n])||0),
+    description:NODES[n].ko+" — "+NODE_DESC[n]+(landing?". 누가 남긴 어떤 레슨인지는 로그인하면 볼 수 있어요.":""),
+    ...(points[n]?{points:points[n]}:{})};
   return {totalLegacyPointCount:Math.max(0,Number(st&&st.total)||0),nodes}}
 function statLine(st){const t=Number(st&&st.total)||0,c=Number(st&&st.coaches)||0;
   return t?`지금까지 모인 레슨 포인트 ${t}개 · 남긴 코치 ${c}명`:"아직 첫 잎을 기다리는 나무예요. 첫 레슨 포인트가 이 나무의 첫 기록이 됩니다."}
+const plazaPoints={};
 export function mountPlaza(el,st,{landing=false}={}){
   if(!el)return null;
   const go=()=>{if(!window.APLegacyTree)return setTimeout(go,120);
-    const t=new APLegacyTree(el,{atlasUrl:"img/legacy-tree-atlas.webp",data:treeData(st),
-      onNodeSelect:({nodeId,legacyPointCount})=>{if(landing){$("lp-tree-n").textContent=`${nodeId} ${NODES[nodeId].ko} · 쌓인 레슨 포인트 ${legacyPointCount}개 — 누가 남긴 어떤 레슨인지는 로그인하면 볼 수 있어요.`}else openNode(nodeId)}});
+    const t=new APLegacyTree(el,{atlasUrl:"img/legacy-tree-atlas.webp",data:treeData(st,{landing}),
+      onNodeSelect:({nodeId})=>{if(!landing)loadNodePoints(nodeId)}});
     const n=landing?$("lp-tree-n"):$("plaza-n");if(n)n.textContent=statLine(st);
-    if(landing)t.pause(false);else plazaTree=t;};
+    if(!landing)plazaTree=t;};
   go();
+}
+/* 꽃을 누르면 나무 아래 펼쳐지는 칸에 그 노드의 레슨 포인트와 출처를 채운다 */
+async function loadNodePoints(n){
+  if(!legacy||plazaPoints[n])return;
+  let ps=[];try{ps=await legacy.points(n)}catch(_){return}
+  plazaPoints[n]=ps.map(p=>{const d=(DOMAIN[p.domain]||DOMAIN.tech)[0],src=(p.sources||[]);const s0=src[0]||{};
+    const more=src.length>1?` 외 ${src.length-1}곳에서 이어짐`:"";
+    return {id:p.id,title:`[${d}] ${p.name||"레슨 포인트"} — “${p.point}”`,coach:`${s0.coach||p.coach||"코치 미기재"} · ${s0.player||"선수"}${more} · ${p.confirmed?"코치 확인":"코치 확인 전"}`,date:md(s0.date||"")}});
+  if(plazaTree)plazaTree.update(treeData(plazaStats,{points:plazaPoints}));
 }
 async function openPlaza(){
   if(!legacy)return;
-  const st=await legacy.stats();plazaStats=st;
+  const st=await legacy.stats();plazaStats=st;for(const k in plazaPoints)delete plazaPoints[k];
   if(!plazaTree)mountPlaza($("plaza-tree"),st);else{plazaTree.update(treeData(st));$("plaza-n").textContent=statLine(st)}
-  const stage=(()=>{const th=[0,1,8,24,60,120,240,480],t=Number(st.total)||0;let k=0;th.forEach((v,i)=>{if(t>=v)k=i});return k})();
-  if(!$("g-plaza").dataset.said||!/NEW/.test($("g-plaza").dataset.said))say($("g-plaza"),`지금 나무는 '${STAGE_NAME[stage]}' 단계예요. 꽃을 누르면 그 노드에 쌓인 레슨 포인트와 누가 남겼는지 볼 수 있어요.`,{who:"logan"});
-}
-async function openNode(n){
-  const box=$("plaza-node");box.innerHTML=`<div class="panel"><div class="ld" aria-hidden="true"></div></div>`;
-  let ps=[];try{ps=await legacy.points(n)}catch(_){}
-  box.innerHTML=`<div class="panel"><div class="t-head"><span class="eyebrow"><b>${n}</b>${esc(NODES[n].en)} · ${esc(NODES[n].ko)}</span><span class="pill gold">레슨 포인트 ${ps.length}${ps.length>=100?"+":""}</span></div>
-    ${ps.length?ps.map(p=>{const d=DOMAIN[p.domain]||DOMAIN.tech,src=(p.sources||[]).slice(0,3);
-      return `<div class="lp-pt"><div class="t-head"><b>${esc(p.name||"레슨 포인트")}</b><span class="pill" style="border-color:${d[1]};color:${d[1]}">${esc(d[0])}</span></div>
-        <div class="feel">“${esc(p.point)}”</div>${p.how||p.dose?`<small class="hint">${esc([p.how,p.dose].filter(Boolean).join(" · "))}</small>`:""}
-        <div class="chips">${src.map(x=>`<span class="pill gold">${esc(x.coach)}</span><span class="pill">${esc(x.player)} · ${esc(md(x.date))}</span>`).join("")}${(p.echoes||1)>1?`<span class="pill ok">같은 포인트 ${p.echoes}번 이어짐</span>`:""}${p.confirmed?`<span class="pill ok">코치 확인</span>`:`<span class="pill">코치 확인 전</span>`}</div></div>`}).join("")
-      :`<div class="empty">아직 이 노드에 쌓인 레슨 포인트가 없어요. 첫 잎을 남겨 주세요.</div>`}</div>`;
-  box.scrollIntoView({behavior:"smooth",block:"start"});
+  const th=window.APLegacyTree?window.APLegacyTree.thresholds:[0],t=Number(st.total)||0;let k=0;th.forEach((v,i)=>{if(t>=v)k=i});
+  if(!$("g-plaza").dataset.said||!/NEW/.test($("g-plaza").dataset.said))say($("g-plaza"),`지금 나무는 '${STAGE_NAME[Math.floor(k/4)]}' (성장 ${k+1}/32)이에요. 꽃을 누르면 그 노드에 쌓인 레슨 포인트와 누가 남겼는지 볼 수 있어요.`,{who:"logan"});
 }
 const normName=s=>String(s||"").replace(/\s+/g,"").toLowerCase();
 async function loadCoaches(){
