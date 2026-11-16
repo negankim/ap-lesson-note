@@ -290,3 +290,7 @@ nav.tabs button[aria-selected="true"]{color:var(--fg);font-weight:600;border-top
   .ld-bulb{animation:bulb 1.4s ease-in-out infinite}
   .lp-rot .lp-card.on .lp-ic{animation:rise .6s cubic-bezier(.2,.7,.2,1) .1s both}
 }
+
+.lp-how{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.lp-how img{width:84px;height:auto}
+.lp-foot img{width:120px}
