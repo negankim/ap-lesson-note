@@ -317,16 +317,17 @@ nav.tabs button[aria-selected="true"]{color:var(--fg);font-weight:600;border-top
 }
 
 /* 나이 확인 · 보호자 동의 */
-.cs{position:fixed;inset:0;z-index:60;background:var(--bg);overflow:auto;padding:24px 0 40px}
+.cs{position:fixed;inset:0;z-index:60;background:var(--bg);overflow:auto;padding:24px 16px 40px}
 .cs-box{display:grid;gap:16px}
 .cs fieldset{border:0;margin:0;padding:0;display:grid;gap:8px}
 .cs legend{font-weight:600;margin-bottom:8px}.cs legend small{color:var(--muted);font-weight:400}
+.cs-age input{width:18px;height:18px;padding:0;margin:0;flex:none;accent-color:var(--gold)}
 .cs-age label{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer}
 .cs-age label:has(input:checked){border-color:var(--gold);background:var(--gold-soft)}
 .cs .fld{display:grid;gap:4px;font-size:13px;color:var(--muted)}
 .cs .fld input,.cs .fld select{font:inherit;font-size:15px;color:var(--fg);background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .cs .ck{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.5}
-.cs .ck input{width:18px;height:18px;margin-top:2px;accent-color:var(--gold);flex:none}
+.cs .ck input{width:18px;height:18px;padding:0;margin-top:2px;accent-color:var(--gold);flex:none}
 #cs-guard{display:grid;gap:10px}#cs-guard[hidden]{display:none}
 .cs-terms{font-size:13px;color:var(--muted)}.cs-terms summary{cursor:pointer;color:var(--fg)}.cs-terms ul{margin:8px 0 0;padding-left:18px;display:grid;gap:4px}
 .gq{display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid var(--line);padding:10px 0;font-size:14px}
