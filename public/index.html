@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AP 레슨 노트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0e0d0b">
+</head>
+<body>
+<section id="gate" class="wrap" style="min-height:70vh;align-content:center;gap:16px">
+  <div class="brand">AP <span>LEGACY</span></div>
+  <h1>AP 레슨 노트</h1>
+  <p class="lead">받은 레슨을 말하면 문제·레슨 정리·솔루션·훈련·배틀플랜으로 정리하고, 연습 반응에 맞춰 다음 연습을 조정합니다.</p>
+  <div class="actions"><button class="btn gold" type="button" id="login">Google로 시작하기</button></div>
+  <p class="status err" id="login-st" role="status"></p>
+</section>
+<div id="app" hidden>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">AP <span>LEGACY</span></div>
+    <div style="display:flex;gap:10px;align-items:baseline;min-width:0"><div class="who" id="who">연결 중</div><button class="btn sm" type="button" id="logout">로그아웃</button></div>
+  </header>
+
+  <!-- ===== 레슨 ===== -->
+  <section id="v-lesson" class="wrap" style="gap:16px">
+    <div>
+      <h1>오늘 받은 레슨</h1>
+      <p class="lead">레슨을 들려주거나 받아 적으면 AP가 문제·레슨 정리·솔루션·훈련·배틀플랜으로 정리합니다.</p>
+    </div>
+    <div class="flow"><span><b>1</b>말하기</span><span><b>2</b>정리</span><span><b>3</b>솔루션·훈련</span><span><b>4</b>배틀플랜</span><span><b>5</b>피드백</span></div>
+
+    <div class="panel">
+      <div class="row2">
+        <label for="f-coach">레슨한 코치<input id="f-coach" maxlength="30" placeholder="예: 김세호 프로"></label>
+        <label for="f-date">날짜<input id="f-date" type="date"></label>
+      </div>
+      <div class="mic" id="mic-row" hidden>
+        <button class="btn micbtn" type="button" id="mic" data-on="false"><span class="dot"></span><span id="mic-l">레슨 듣기 시작</span></button>
+        <span class="hint" id="mic-h">레슨 중 휴대폰 화면을 켜 둔 채로 두세요.</span>
+      </div>
+      <p class="partial" id="partial" aria-live="polite"></p>
+      <label for="f-text">레슨 내용<textarea id="f-text" maxlength="12000" placeholder="코치가 한 말, 내가 느낀 것, 공이 어떻게 갔는지 그대로 적어 주세요. 키보드 음성 입력을 써도 됩니다."></textarea></label>
+      <div class="actions">
+        <button class="btn sm" type="button" id="ex">예시 레슨 넣기</button>
+        <button class="btn gold" type="button" id="go">정리하기</button>
+      </div>
+      <p class="status" id="st" role="status"></p>
+    </div>
+
+    <div id="out"></div>
+  </section>
+
+  <!-- ===== 내 차트 ===== -->
+  <section id="v-chart" class="wrap" style="gap:16px" hidden>
+    <div>
+      <h1 id="c-title">내 차트</h1>
+      <p class="lead">레슨이 쌓일수록 내 위치와 효과 있었던 방법이 보입니다.</p>
+    </div>
+
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+        <span class="eyebrow"><b>M</b>만다라트 · 8개 영역</span>
+        <button class="btn sm" type="button" id="prof-btn">목표 바꾸기</button>
+      </div>
+      <div id="prof" hidden class="panel" style="background:var(--raise)">
+        <div><span class="hint">구분</span><div class="chips" id="lvl" style="margin-top:6px"><button type="button" class="chip" data-v="P" aria-pressed="false">투어 선수</button><button type="button" class="chip" data-v="J" aria-pressed="false">아마추어 선수</button><button type="button" class="chip" data-v="A" aria-pressed="false">일반 골퍼</button></div></div>
+        <label for="goal">최종 목표<input id="goal" maxlength="30" placeholder="예: 90타 깨기"></label>
+        <div class="actions"><button class="btn gold" type="button" id="prof-save">저장</button></div>
+      </div>
+      <div class="mgrid" id="mgrid"></div>
+      <p class="hint">칸은 그 영역 배틀플랜을 수행한 만큼 아래부터 차오릅니다. 칸을 누르면 그 영역 레슨만 봅니다.</p>
+    </div>
+
+    <div id="active"></div>
+
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+        <span class="eyebrow"><b>L</b>레슨 기록</span>
+        <span class="hint" id="filter-l"></span>
+      </div>
+      <div class="list" id="list"><div class="empty">불러오는 중</div></div>
+    </div>
+    <div id="detail"></div>
+  </section>
+
+  <!-- ===== 훈련 라이브러리 ===== -->
+  <section id="v-lib" class="wrap" style="gap:16px" hidden>
+    <div>
+      <h1>훈련 라이브러리</h1>
+      <p class="lead">AP가 처방에 먼저 쓰는 레슨 포인트·드릴·훈련입니다. 코치진이 고치면 다음 레슨 정리부터 바로 반영됩니다.</p>
+    </div>
+    <div class="notice" id="lib-role">권한을 확인하는 중입니다.</div>
+    <div class="panel">
+      <div class="chips" id="lib-node" aria-label="노드"></div>
+      <div class="chips" id="lib-st" aria-label="상태">
+        <button type="button" class="chip" data-v="active" aria-pressed="true">사용 중</button>
+        <button type="button" class="chip" data-v="pending" aria-pressed="false">검토 대기</button>
+        <button type="button" class="chip" data-v="retired" aria-pressed="false">중지</button>
+      </div>
+      <div class="actions" id="lib-add-w" hidden><button class="btn gold" type="button" id="lib-add">+ 항목 추가</button></div>
+    </div>
+    <div id="lib-form"></div>
+    <div id="lib-list" style="display:grid;gap:10px"><div class="empty">불러오는 중</div></div>
+  </section>
+</div>
+
+<nav class="tabs" role="tablist"><div class="in">
+  <button role="tab" data-tab="lesson" aria-selected="true">레슨</button>
+  <button role="tab" data-tab="chart" aria-selected="false">내 차트</button>
+  <button role="tab" data-tab="lib" aria-selected="false">훈련 라이브러리</button>
+</div></nav>
+<div class="toast" id="toast" hidden></div>
+</div>
+<script type="module" src="services.js"></script>
+</body>
+</html>
