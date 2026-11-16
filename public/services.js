@@ -94,5 +94,5 @@ onAuthStateChanged(auth, async (u) => {
     if (d.exists()) { role = d.data().role || "player"; await updateDoc(ref, { name: u.displayName || "", lastSeen: serverTimestamp() }); }
     else await setDoc(ref, { name: u.displayName || "", role: "player", createdAt: serverTimestamp(), lastSeen: serverTimestamp() });
   } catch (e) { console.warn("users doc", e); }
-  await start({ db, user: makeUser(u, role), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation() });
+  await start({ db, user: makeUser(u, role), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation(), seedFn: httpsCallable(fn, "seedLibrary", { timeout: 120000 }) });
 });

@@ -27,7 +27,7 @@ const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth
 const md=s=>s?Number(s.slice(5,7))+"/"+Number(s.slice(8,10)):"";
 function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2400)}
 
-let db=null,user=null,uid=null,ai=null,dict=null;
+let db=null,user=null,uid=null,ai=null,dict=null,seedFn=null;
 let lib=[],isEditor=false,stats={},statsAt=0,libNode="",libSt="active",editing=null,profileExists=false;
 const KIND={point:"레슨 포인트",drill:"드릴",training:"훈련"};
 const STATUS={active:"사용 중",pending:"검토 대기",retired:"중지"};
@@ -249,7 +249,7 @@ async function renderLib(){
   const list=lib.filter(x=>(!libNode||x.node===libNode)&&x.status===libSt).sort((a,b)=>(a.node||"").localeCompare(b.node||"")||(a.name||"").localeCompare(b.name||""));
   const counts={active:0,pending:0,retired:0};lib.forEach(x=>counts[x.status]=(counts[x.status]||0)+1);
   document.querySelectorAll("#lib-st .chip").forEach(c=>c.textContent=STATUS[c.dataset.v]+" "+(counts[c.dataset.v]||0));
-  $("lib-list").innerHTML=list.length?list.map(libCard).join(""):`<div class="empty">${db?"이 조건에 맞는 항목이 없습니다.":"로그인하면 라이브러리를 불러옵니다."}</div>`;
+  $("lib-list").innerHTML=list.length?list.map(libCard).join(""):(isEditor&&!lib.length&&seedFn?`<div class="notice">라이브러리가 비어 있습니다. AP 기본 훈련 85개(만다라트 훈련표 80개 + 진단 맵 예시 5개)를 넣을 수 있습니다. 관리자만 할 수 있습니다.<div class="actions" style="margin-top:10px"><button class="btn gold" type="button" id="seed">기본 라이브러리 넣기</button></div><p class="status" id="seed-st"></p></div>`:`<div class="empty">${db?"이 조건에 맞는 항목이 없습니다.":"로그인하면 라이브러리를 불러옵니다."}</div>`);
   const ids=[...new Set([...document.querySelectorAll("#lib-list [data-uid]")].map(e=>e.dataset.uid).filter(Boolean))];
   if(user&&ids.length){try{const ps=await user.profiles(ids);document.querySelectorAll("#lib-list [data-uid]").forEach(e=>{const p=ps[e.dataset.uid];e.textContent=(p&&p.name)||"코치진"})}catch(_){}}
   document.querySelectorAll("#lib-list [data-uid]").forEach(e=>{if(!e.textContent)e.textContent=e.dataset.uid?"코치진":""});
@@ -321,7 +321,10 @@ $("lib-list").addEventListener("click",async e=>{
     const data={};["kind","node","pillar","name","point","how","dose","freq","status"].forEach(k=>data[k]=snap[k]??"");
     r.disabled=true;try{await writeItem(id,data,"v"+snap.rev+"로 되돌림");toast("v"+snap.rev+" 내용으로 되돌렸습니다")}catch(_){toast("되돌리지 못했습니다");r.disabled=false}}
 });
-document.addEventListener("click",e=>{
+document.addEventListener("click",async e=>{
+  if(e.target.id==="seed"){const st=$("seed-st");e.target.disabled=true;st.textContent="넣는 중입니다.";
+    try{const r=(await seedFn()).data;st.textContent=`${r.added}개를 넣었습니다.`+(r.skipped?` 이미 있던 ${r.skipped}개는 그대로 두었습니다.`:"")}catch(err){st.className="status err";st.textContent=/permission/.test(err.code||"")?"관리자 권한이 필요합니다.":"넣지 못했습니다. 다시 눌러 주세요.";e.target.disabled=false}
+    return}
   const b=e.target.closest("[data-promote]");if(!b)return;
   const [key,i]=b.dataset.promote.split("|");
   const src=key==="draft"?draft:lessons.find(l=>l.id===key);const r=src&&src.result;const d=r&&(r.drills||[])[Number(i)];if(!d)return;
@@ -348,7 +351,7 @@ async function loadLessons(){
 }
 /* ===== 시작 ===== */
 export function start(services){
-  ({db,user,ai,dict}=services);
+  ({db,user,ai,dict,seedFn}=services);
   return boot();
 }
 async function boot(){

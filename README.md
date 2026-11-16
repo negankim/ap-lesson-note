@@ -9,9 +9,8 @@
 | 폴더 | 내용 |
 |---|---|
 | `public/` | 화면 (HTML·CSS·JS, 빌드 없음). `app.js` 화면 로직, `services.js` 로그인·DB·AI·음성 연결 |
-| `functions/` | 서버 함수 `ai` — Claude API 호출. **프롬프트와 판정 규칙은 여기에만 있음** (`prompts.js`) |
+| `functions/` | 서버 함수 `ai`(Claude API 호출)와 `seedLibrary`(라이브러리 첫 데이터 85개, `library-seed.json`). **프롬프트와 판정 규칙은 여기에만 있음** (`prompts.js`) |
 | `firestore.rules` | 데이터 접근 규칙 (선수는 본인 기록만, 코치·관리자는 전체 열람과 라이브러리 수정) |
-| `scripts/` | 훈련 라이브러리 첫 데이터 85개와 넣는 스크립트 |
 | `docs/decisions.md` | 무엇을 왜 바꿨는지 기록 |
 
 ## 처음 설정 (대표님이 한 번만)
@@ -32,13 +31,9 @@
    ```
 5. 배포가 끝나면 나오는 주소(`https://프로젝트ID.web.app`)로 접속해 Google로 로그인합니다.
 6. **역할 지정** — Firestore 콘솔의 `users/{내 uid}` 문서에서 `role` 을 `admin` 으로 바꿉니다. 코치는 `coach`. (선수는 처음 로그인하면 자동으로 `player`)
-7. **라이브러리 넣기** — 콘솔 → 프로젝트 설정 → 서비스 계정 → 새 비공개 키 생성 → `service-account.json` 으로 저장(절대 저장소에 올리지 않음, `.gitignore` 에 있음):
-   ```bash
-   cd scripts && npm install firebase-admin
-   GOOGLE_APPLICATION_CREDENTIALS=../service-account.json node seed-library.js
-   ```
+7. **라이브러리 넣기** — 관리자로 로그인한 뒤 「훈련 라이브러리」 탭에서 「기본 라이브러리 넣기」를 누릅니다. 한 번만 하면 되고, 다시 눌러도 이미 있는 항목은 덮어쓰지 않습니다.
 
-API 키, 서비스 계정 파일은 **코드나 채팅에 붙여 넣지 마세요.** 위 명령으로 Firebase에만 저장됩니다.
+API 키는 **코드나 채팅에 붙여 넣지 마세요.** 위 명령으로 Firebase에만 저장됩니다.
 
 ## 비용 관리
 

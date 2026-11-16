@@ -71,3 +71,18 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
   }
   throw new HttpsError("invalid-argument", "알 수 없는 요청입니다.");
 });
+
+/* 훈련 라이브러리 첫 데이터 넣기 — 관리자만, 없는 항목만 추가(코치진이 고친 내용은 덮어쓰지 않음) */
+exports.seedLibrary = onCall({ region: "asia-northeast3" }, async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
+  const me = await db.doc("users/" + req.auth.uid).get();
+  if (!me.exists || me.data().role !== "admin") throw new HttpsError("permission-denied", "관리자만 할 수 있습니다.");
+  const items = require("./library-seed.json");
+  let added = 0, skipped = 0;
+  for (const [id, data] of Object.entries(items)) {
+    const ref = db.doc("library/" + id);
+    if ((await ref.get()).exists) { skipped++; continue; }
+    await ref.set(data); added++;
+  }
+  return { added, skipped };
+});
