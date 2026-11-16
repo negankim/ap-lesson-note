@@ -74,11 +74,11 @@ function makeDictation() {
 }
 
 const $ = (id) => document.getElementById(id);
-$("login").addEventListener("click", async () => {
+document.querySelectorAll("[data-login]").forEach((b) => b.addEventListener("click", async () => {
   $("login-st").textContent = "";
   try { await signInWithPopup(auth, new GoogleAuthProvider()); }
   catch (e) { $("login-st").textContent = "로그인하지 못했습니다. 팝업 차단을 풀고 다시 눌러 주세요."; }
-});
+}));
 $("logout").addEventListener("click", () => signOut(auth).then(() => location.reload()));
 
 let started = false;

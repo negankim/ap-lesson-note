@@ -12,12 +12,47 @@
 <meta name="theme-color" content="#0e0d0b">
 </head>
 <body>
-<section id="gate" class="wrap" style="min-height:70vh;align-content:center;gap:16px">
-  <div class="brand">AP <span>LEGACY</span></div>
-  <h1>AP 레슨 노트</h1>
-  <p class="lead">받은 레슨을 말하면 문제·레슨 정리·솔루션·훈련·배틀플랜으로 정리하고, 연습 반응에 맞춰 다음 연습을 조정합니다.</p>
-  <div class="actions"><button class="btn gold" type="button" id="login">Google로 시작하기</button></div>
-  <p class="status err" id="login-st" role="status"></p>
+<section id="gate">
+  <div class="lp">
+    <div class="lp-top"><div class="brand">AP <span>LEGACY</span></div><button class="btn sm" type="button" data-login>로그인</button></div>
+
+    <div class="lp-hero">
+      <p class="lp-kicker">AP 레슨 노트</p>
+      <h1 class="lp-h">레슨은 한 시간.<br>기억은 <em>하루.</em></h1>
+      <p class="lp-sub">AP는 당신이 받은 모든 레슨을 기억합니다.</p>
+    </div>
+
+    <div class="lp-sec">
+      <p class="lp-label">이런 골퍼가 있습니다</p>
+      <div class="lp-cards">
+        <div class="lp-card"><b>레슨 때는 됐는데<br>집에 오면 잊는 골퍼</b><span>그때 그 느낌이 뭐였는지 떠오르지 않습니다</span></div>
+        <div class="lp-card"><b>코치마다 말이 달라<br>뭘 믿을지 모르는 골퍼</b><span>세 명에게 배웠는데 처방은 세 가지입니다</span></div>
+        <div class="lp-card"><b>연습은 많은데<br>뭘 고치는지 모르는 골퍼</b><span>공은 많이 쳤지만 목적이 없었습니다</span></div>
+        <div class="lp-card"><b>같은 미스가<br>몇 달째 반복되는 골퍼</b><span>고쳤다고 생각했는데 또 그 자리입니다</span></div>
+        <div class="lp-card"><b>아이가 무엇을 배우는지<br>궁금한 부모</b><span>레슨은 한 시간, 나머지 시간은 모릅니다</span></div>
+      </div>
+    </div>
+
+    <div class="lp-sec">
+      <p class="lp-label">AP는 이렇게 합니다</p>
+      <ol class="lp-steps">
+        <li><b>말한다</b><span>받은 레슨을 들려주거나 적습니다</span></li>
+        <li><b>정리한다</b><span>문제와 원인, 코치의 포인트를 나눠 기록합니다</span></li>
+        <li><b>위치를 찾는다</b><span>AP Swing Learning Matrix 위에 지금 내 자리가 켜집니다</span></li>
+        <li><b>훈련한다</b><span>6일 배틀플랜이 나오고, 해 본 반응에 맞춰 다시 조정합니다</span></li>
+      </ol>
+      <p class="lp-note">코치가 달라도 같은 기준으로 진단합니다. 모든 처방에는 어느 코치의 레슨인지 출처가 남습니다.</p>
+    </div>
+
+    <div class="lp-cta">
+      <p class="lp-q">오늘 받은 레슨, 지금 정리해 보세요</p>
+      <button class="btn gold lp-btn" type="button" data-login>Google로 시작하기</button>
+      <p class="status err" id="login-st" role="status"></p>
+      <p class="lp-fine">레슨 정리는 AI(Claude)가 합니다. 정리 결과는 코치의 판단을 대신하지 않습니다.</p>
+    </div>
+
+    <footer class="lp-foot">(주)에이피골프 · AP Legacy System</footer>
+  </div>
 </section>
 <div id="app" hidden>
 <div class="wrap">
