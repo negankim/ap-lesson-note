@@ -363,3 +363,11 @@ select{appearance:auto}
 .mfold>summary::after{content:"＋";color:var(--muted)}
 .mfold[open]>summary::after{content:"－"}
 @media (prefers-reduced-motion:no-preference){.msg{animation:rise .3s ease both}}
+
+/* ===== NEW 레슨 포인트 · 레거시 ===== */
+.node .leaf{font-size:15px;fill:var(--fg)}
+.node.grow rect{stroke:var(--ok)}
+@media (prefers-reduced-motion:no-preference){.node.grow .leaf{animation:pop .6s cubic-bezier(.2,.7,.2,1) .2s both;transform-box:fill-box;transform-origin:center}}
+.sec.newpt{background:var(--gold-soft);border-radius:12px;padding:12px}
+.coach-c{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.coach-c details summary{cursor:pointer}

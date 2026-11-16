@@ -27,7 +27,7 @@ const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth
 const md=s=>s?Number(s.slice(5,7))+"/"+Number(s.slice(8,10)):"";
 function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2400)}
 
-let db=null,user=null,uid=null,ai=null,dict=null,seedFn=null,chat=null;
+let db=null,user=null,uid=null,ai=null,dict=null,seedFn=null,chat=null,myCoaches=[];
 let lib=[],isEditor=false,stats={},statsAt=0,libNode="",libSt="active",editing=null,profileExists=false;
 const KIND={point:"레슨 포인트",drill:"드릴",training:"훈련"};
 const STATUS={active:"사용 중",pending:"검토 대기",retired:"중지"};
@@ -45,12 +45,13 @@ function show(tab){
 document.addEventListener("click",e=>{const b=e.target.closest("[data-show]");if(b)show(b.dataset.show)});
 
 /* ===== Matrix mini map ===== */
-function mapSVG(on,via,mf){
+function mapSVG(on,via,mf,leaves={}){
   const BW=190,BH=56;
   let g="";
   for(const [c,n] of Object.entries(NODES)){if(c==="N1")continue;
     const cls="node"+(c===on?" on":"")+(c===via?" via":"")+(on&&c!==on&&c!==via?" dim":"");
-    g+=`<g class="${cls}"><rect x="${n.x}" y="${n.y}" width="${BW}" height="${BH}" rx="10"/><text class="code" x="${n.x+16}" y="${n.y+22}">${c}</text><text class="name" x="${n.x+16}" y="${n.y+43}">${esc(n.ko)}</text></g>`}
+    const lf=leaves[c]?`<text class="leaf" x="${n.x+BW-12}" y="${n.y+24}" text-anchor="end">🌱${leaves[c]>1?" "+leaves[c]:""}</text>`:"";
+    g+=`<g class="${cls}${leaves[c]?" grow":""}"><rect x="${n.x}" y="${n.y}" width="${BW}" height="${BH}" rx="10"/><text class="code" x="${n.x+16}" y="${n.y+22}">${c}</text><text class="name" x="${n.x+16}" y="${n.y+43}">${esc(n.ko)}</text>${lf}</g>`}
   const mfOn=mf||on==="N1";
   return `<svg viewBox="0 0 560 430" role="img" aria-label="Swing Learning Matrix 위치: ${esc(on||"미정")}">
     <rect class="mf${mfOn?" on":""}" x="8" y="8" width="544" height="414" rx="16"/>
@@ -72,13 +73,19 @@ function resultHTML(r,coach,date,opts={}){
     const done=(opts.done||[]).includes(p.day);
     const ck=opts.checkable?`<input type="checkbox" data-day="${p.day}" ${done?"checked":""} aria-label="${p.day}일차 완료">`:"";
     return `<div class="day${done?" done":""}${opts.checkable?" ck":""}">${ck}<span class="dn">D${p.day}</span><div><b>${esc(p.focus)}</b><small>${esc((p.tasks||[]).join(" · "))}</small></div></div>`}).join("");
+  const nps=(r.new_points||[]).filter(p=>NODES[p.node]);
+  const leaves={};nps.forEach(p=>leaves[p.node]=(leaves[p.node]||0)+1);
+  const npHTML=nps.length?`<div class="sec newpt"><h4><i>🌱</i>NEW 레슨 포인트</h4>
+    <p class="hint" style="margin:0">${esc(coach||"코치")}님이 이번 레슨에서 새로 준 포인트예요. Matrix에 새싹으로 남고, 코치님이 확인하면 정식 잎사귀가 됩니다.</p>
+    ${nps.map(p=>`<div class="drill"><div class="t"><b>${esc(p.name)}</b><span class="pill gold">${p.node} ${esc(NODES[p.node].ko)}</span></div><div class="feel">“${esc(p.point)}”</div>${p.how||p.dose?`<small>${esc([p.how,p.dose].filter(Boolean).join(" · "))}</small>`:""}<div><span class="pill">🌱 코치 확인 전</span></div></div>`).join("")}</div>`:"";
   return `<div class="result">
     <div class="rhead"><span class="eyebrow">${esc(md(date))} · ${esc(PNAME[r.pillar]||"")}</span><h2>${esc(r.title||"레슨 정리")}</h2>
       <div class="meta">${coach?`<span class="pill gold">출처 · ${esc(coach)}</span>`:`<span class="pill">코치 미기재</span>`}${node?`<span class="pill gold">${node} ${esc(NODES[node].ko)}</span>`:`<span class="pill warn">위치 미정</span>`}${r.confidence?`<span class="pill ${conf}">판정 ${esc(r.confidence)}</span>`:""}${r.mental?`<span class="pill warn">압박 시 심해짐 · N1</span>`:""}</div></div>
     <div class="sec"><h4><i>1</i>문제</h4>
       <dl class="kv"><dt>현상</dt><dd>${esc(r.problem&&r.problem.observation)}</dd><dt>원인</dt><dd>${esc(r.problem&&r.problem.interpretation)}</dd></dl>
       ${basis?`<div><span class="pill">근거 · ${esc(basis)}</span></div>`:""}</div>
-    <div class="sec map"><h4><i>2</i>Matrix 위치</h4>${mapSVG(node,r.via&&NODES[r.via]?r.via:null,r.mental)}<p>${esc(r.node_reason)}</p>${r.check?`<div class="check"><b>다음 레슨에서 확인</b> · ${esc(r.check)}</div>`:""}</div>
+    ${npHTML}
+    <div class="sec map"><h4><i>2</i>Matrix 위치</h4>${mapSVG(node,r.via&&NODES[r.via]?r.via:null,r.mental,leaves)}<p>${esc(r.node_reason)}</p>${r.check?`<div class="check"><b>다음 레슨에서 확인</b> · ${esc(r.check)}</div>`:""}</div>
     <div class="sec"><h4><i>3</i>레슨 정리</h4>${(r.lesson&&r.lesson.points||[]).length?`<ul>${r.lesson.points.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"<p class='hint'>정리된 포인트가 없습니다.</p>"}${(r.lesson&&r.lesson.feels||[]).map(f=>`<div class="feel">“${esc(f)}”</div>`).join("")}</div>
     <div class="sec"><h4><i>4</i>솔루션</h4><p>${esc(r.solution)}</p></div>
     <div class="sec"><h4><i>5</i>훈련 방안</h4>${drills||"<p class='hint'>처방된 훈련이 없습니다.</p>"}</div>
@@ -99,11 +106,12 @@ $("go").addEventListener("click",async()=>{
     const r=(await ai({task:"organize",text,coach,profile,history:lessons.slice(0,3).map(l=>({date:l.date,title:l.result.title,node:l.result.node||null}))})).data;
     if(r&&r.off_topic){st.textContent="";say($("g-lesson"),"저는 골프 레슨과 연습 이야기만 정리할 수 있어요. 코치님이 한 말이나 공이 어떻게 갔는지 들려주세요.",{now:true,who:"rook",motion:"guide"});return}
     if(!r||!r.plan)throw new Error("format");
+    r.new_points=(Array.isArray(r.new_points)?r.new_points:[]).filter(p=>p&&NODES[p.node]&&(p.point||p.name)).slice(0,5);
     draft={date:$("f-date").value||today(),coach,transcript:text,result:r};
     (r.drills||[]).forEach(d=>{const it=d.lib_id&&lib.find(x=>x.id===d.lib_id);if(it){d.source="AP 라이브러리";d.lib_rev=it.rev||1}else if(d.source==="AP 라이브러리"){d.source="AI 보완";d.lib_id=""}});
     $("out").innerHTML=resultHTML(r,coach,draft.date,{key:"draft"})+`<div class="actions" style="margin-top:12px"><button class="btn" type="button" id="redo">다시 정리</button><button class="btn gold" type="button" id="save">내 차트에 저장</button></div>`;
     st.textContent="";
-    say($("g-lesson"),r.node?`정리했어요. 지금 위치는 ${r.node} ${NODES[r.node].ko}예요. 아래 6일 플랜을 확인하고 내 차트에 저장해 주세요.`:"정리했어요. 위치를 확정하려면 확인할 게 하나 있어요. 아래 '다음 레슨에서 확인'을 봐 주세요.",{now:true,who:"rook",motion:r.node?"success":"guide"});
+    say($("g-lesson"),r.new_points.length?`NEW 레슨 포인트! ${coach||"코치"}님이 ${r.new_points.map(p=>p.node).filter((v,i,a)=>a.indexOf(v)===i).join("·")}에 새 포인트를 줬어요. 저장하면 새싹으로 남아요.`:r.node?`정리했어요. 지금 위치는 ${r.node} ${NODES[r.node].ko}예요. 아래 6일 플랜을 확인하고 내 차트에 저장해 주세요.`:"정리했어요. 위치를 확정하려면 확인할 게 하나 있어요. 아래 '다음 레슨에서 확인'을 봐 주세요.",{now:true,who:"rook",motion:r.new_points.length||r.node?"success":"guide"});
     $("out").scrollIntoView({behavior:"smooth",block:"start"});
   }catch(e){
     st.className="status err";
@@ -117,9 +125,13 @@ $("out").addEventListener("click",async e=>{
   e.target.disabled=true;
   try{
     if(!profileExists){try{await db.doc("players/"+uid).set({...profile,updatedAt:new Date().toISOString()});profileExists=true}catch(_){}}
-    await db.collection("players/"+uid+"/lessons").add({...draft,done:[],feedback:[],createdAt:new Date().toISOString()});
-    toast("내 차트에 저장했습니다");draft=null;$("out").innerHTML="";$("f-text").value="";
-    await loadLessons();show("today");
+    const coachId=draft.coach?await coachIdFor(draft.coach):"";
+    const np=(draft.result.new_points||[]).length,npNodes=[...new Set((draft.result.new_points||[]).map(p=>p.node))],cname=draft.coach;
+    await db.collection("players/"+uid+"/lessons").add({...draft,coachId,done:[],feedback:[],createdAt:new Date().toISOString()});
+    draft=null;$("out").innerHTML="";$("f-text").value="";
+    await loadLessons();
+    if(np){show("chart");say($("g-pos"),`NEW 레슨 포인트! ${npNodes.map(n=>n+" "+NODES[n].ko).join(", ")}에 ${cname||"코치"}님의 새싹이 돋았어요.`,{now:true,who:"rook",motion:"success"});setTimeout(()=>$("legacy").scrollIntoView({behavior:"smooth",block:"start"}),400)}
+    else{toast("내 차트에 저장했습니다");show("today")}
   }catch(err){toast("저장하지 못했습니다. 잠시 뒤 다시 눌러 주세요");e.target.disabled=false}
 });
 
@@ -312,7 +324,49 @@ function renderList(){
 }
 $("list").addEventListener("click",e=>{const b=e.target.closest(".lrow");if(!b)return;openId=openId===b.dataset.id?null:b.dataset.id;renderList();if(openId)$("detail").scrollIntoView({behavior:"smooth",block:"start"})});
 
-function renderChart(){renderMandala();renderActive();renderList()}
+function renderChart(){renderMandala();renderActive();renderLegacy();renderList()}
+
+/* ===== 내 코치 · 레슨 레거시 =====
+   선수가 적은 코치 이름으로 코치 목록을 만든다. 새 레슨 포인트는 그 코치 아래 새싹으로 쌓인다.
+   (다음 단계: 코치가 초대로 들어와 확인하면 정식 잎사귀 + 코치 레거시) */
+const normName=s=>String(s||"").replace(/\s+/g,"").toLowerCase();
+async function loadCoaches(){
+  try{const s=await db.collection("players/"+uid+"/coaches").get();myCoaches=s.docs.map(d=>({id:d.id,...d.data()}))}catch(_){myCoaches=[]}
+  $("coach-list").innerHTML=myCoaches.map(c=>`<option value="${esc(c.name)}">`).join("");
+}
+async function coachIdFor(name){
+  const hit=myCoaches.find(c=>normName(c.name)===normName(name));if(hit)return hit.id;
+  try{const ref=await db.collection("players/"+uid+"/coaches").add({name:name.trim(),createdAt:new Date().toISOString(),claimedBy:null});
+    myCoaches.push({id:ref.id,name:name.trim()});$("coach-list").insertAdjacentHTML("beforeend",`<option value="${esc(name.trim())}">`);return ref.id}catch(_){return ""}
+}
+function coachGroups(){
+  const g=new Map();
+  for(const l of lessons){const key=l.coachId||("n:"+normName(l.coach));if(!l.coach)continue;
+    if(!g.has(key))g.set(key,{name:l.coach,lessons:0,points:[],last:""});
+    const c=g.get(key);c.lessons++;if(!c.last||l.date>c.last)c.last=l.date;
+    (l.result.new_points||[]).forEach(p=>c.points.push({...p,date:l.date}))}
+  return [...g.values()].sort((a,b)=>b.points.length-a.points.length||b.lessons-a.lessons);
+}
+function renderLegacy(){
+  if(!$("legacy"))return;
+  const gs=coachGroups(),all={};gs.forEach(c=>c.points.forEach(p=>all[p.node]=(all[p.node]||0)+1));
+  const tot=Object.values(all).reduce((a,b)=>a+b,0);
+  $("legacy-n").textContent=tot?`새싹 ${tot}개 · 코치 ${gs.length}명`:"";
+  $("legacy-map").innerHTML=tot?`<div class="sec map" style="border:0;padding:0">${mapSVG(null,null,false,all)}</div>`:"";
+  $("legacy-list").innerHTML=gs.length?gs.map((c,i)=>{
+    const by={};c.points.forEach(p=>by[p.node]=(by[p.node]||0)+1);
+    return `<div class="coach-c"><div class="t-head"><b>${esc(c.name)}</b><span class="hint">레슨 ${c.lessons}번 · 최근 ${esc(md(c.last))}</span></div>
+      <div class="chips">${Object.keys(by).sort().map(n=>`<span class="pill gold">${n} 🌱${by[n]}</span>`).join("")||`<span class="hint">아직 새 포인트가 없어요</span>`}</div>
+      ${c.points.length?`<details><summary class="hint">포인트 ${c.points.length}개 보기</summary>${c.points.map(p=>`<div class="feel" style="margin-top:6px"><b>${p.node}</b> ${esc(p.name)} · “${esc(p.point)}”</div>`).join("")}</details>
+      <div class="actions"><button class="btn sm" type="button" data-coach-copy="${i}">코치님께 보여 드릴 요약 복사</button></div>`:""}</div>`}).join("")
+    :`<div class="empty">레슨을 정리할 때 코치 이름을 적으면 코치별로 쌓여요.</div>`;
+}
+$("legacy-list").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-coach-copy]");if(!b)return;
+  const c=coachGroups()[Number(b.dataset.coachCopy)];if(!c)return;
+  const txt=`${c.name}님, AP 레슨 노트에 코치님 레슨을 기록하고 있어요.\n코치님이 주신 포인트가 Matrix 위에 ${c.points.length}개 쌓였어요.\n${c.points.map(p=>`· ${p.node} ${NODES[p.node].ko} — ${p.name}: “${p.point}”`).join("\n")}\n제가 맞게 이해했는지 봐 주세요.\nhttps://ap-lesson-note.web.app`;
+  try{await navigator.clipboard.writeText(txt);toast("복사했어요. 코치님께 메시지로 보내 보세요")}catch(_){toast("복사하지 못했습니다")}
+});
 
 /* ===== 프로필 (구분·목표) ===== */
 $("prof-btn").addEventListener("click",()=>{const p=$("prof");p.hidden=!p.hidden;if(!p.hidden){document.querySelectorAll("#lvl .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.v===profile.level));$("goal").value=profile.goal||""}});
@@ -567,6 +621,7 @@ async function boot(){
   uid=await user.id();
   const me=await user.me();$("who").textContent=(me&&me.name)||"내 기록";setMenuUser(me&&me.name,user.role?user.role():"");
   try{const p=await db.doc("players/"+uid).get();if(p.exists){profileExists=true;const v=p.data();profile={level:v.level||"A",goal:v.goal||""}}}catch(e){}
+  await loadCoaches();
   await loadLessons();
   let gotLib=false;const lt=setTimeout(()=>{if(!gotLib)$("lib-list").innerHTML='<div class="empty">라이브러리를 아직 불러오지 못했습니다. 연결이 느릴 수 있습니다.</div>'},10000);
   db.collection("library").onSnapshot(snap=>{gotLib=true;clearTimeout(lt);lib=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$("v-lib").hidden)renderLib()},()=>{clearTimeout(lt)});

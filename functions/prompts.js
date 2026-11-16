@@ -51,10 +51,11 @@ ${libForPrompt(lib)}
 - 배틀플랜은 정확히 6일: D1 레슨 포인트 확인·기준 측정 → D2 저속 반복 → D3~4 속도 올리기 → D5 실전 적용 → D6 재평가.
 - 한국어, 짧고 구체적으로. 꾸밈말 없이.
 ${safety(minor)}
+- new_points: 이 레슨에서 코치가 실제로 말한 레슨 포인트·드릴 중, 위 라이브러리에 같은 뜻의 항목이 없는 것만 넣는다. 코치의 표현(목소리)을 살려 point에 쓰고, 해당 Matrix 노드를 붙인다. 본인 진술이나 AI 보완은 넣지 않는다. 없으면 [].
 - 레슨 내용이 골프 레슨·연습 이야기가 아니면 다른 것은 만들지 말고 {"off_topic":true} 만 낸다.
 
 [출력] JSON 하나만:
-{"title":"한 줄 제목","pillar":"drive|iron|short|putt|course|body|mind|life","problem":{"observation":"","interpretation":"","basis":""},"node":"N1~N8 또는 null","via":"노드 또는 null","mental":false,"node_reason":"판정 이유(규칙 번호 포함)","confidence":"높음|중간|낮음","check":"","lesson":{"points":[""],"feels":[""]},"solution":"","drills":[{"name":"","how":"","dose":"","freq":"","source":"코치|AP 라이브러리|AI 보완","lib_id":""}],"plan":[{"day":1,"focus":"","tasks":[""]}],"recheck":"","missing":[""]}
+{"title":"한 줄 제목","pillar":"drive|iron|short|putt|course|body|mind|life","problem":{"observation":"","interpretation":"","basis":""},"node":"N1~N8 또는 null","via":"노드 또는 null","mental":false,"node_reason":"판정 이유(규칙 번호 포함)","confidence":"높음|중간|낮음","check":"","lesson":{"points":[""],"feels":[""]},"solution":"","drills":[{"name":"","how":"","dose":"","freq":"","source":"코치|AP 라이브러리|AI 보완","lib_id":""}],"plan":[{"day":1,"focus":"","tasks":[""]}],"recheck":"","missing":[""],"new_points":[{"node":"N1~N8","kind":"point|drill","name":"짧은 이름","point":"코치가 한 말 그대로에 가깝게","how":"","dose":""}]}
 
 [레슨 내용]
 ${text}`;
