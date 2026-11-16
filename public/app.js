@@ -148,10 +148,16 @@ $("mgrid").addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(
 
 function sameCount(l){return (l.feedback||[]).filter(f=>f.verdict==="여전하다").length}
 function chartSay(){
-  const l=lessons[0];const g=$("g-chart");if(!g)return;g.dataset.who="daryl";
-  if(!l){say(g,"아직 기록이 없어요. 첫 레슨이 들어오면 6일 훈련을 같이 시작해요.");return}
+  const l=lessons[0];const g=$("g-chart"),gp=$("g-pos");if(!g)return;g.dataset.who="daryl";
+  if(!l){if(gp){gp.innerHTML="";delete gp.dataset.said}say(g,"아직 기록이 없어요. 첫 레슨이 들어오면 6일 훈련을 같이 시작해요.");return}
   const plan=l.result.plan||[],done=l.done||[];const next=plan.find(p=>!done.includes(p.day));
-  if(sameCount(l)>=3){say(g,"같은 문제가 세 번 넘게 반복됐어요. 혼자 더 하기보다 코치님과 확인해 보는 게 좋겠어요.");return}
+  const nd=l.result.node&&NODES[l.result.node];
+  if(gp){
+    if(sameCount(l)>=3)say(gp,"같은 문제가 세 번 넘게 반복됐어요. 혼자 더 하기보다 코치님과 원인을 다시 확인해 보는 게 좋겠어요.",{who:"rook",motion:"guide"});
+    else if(nd)say(gp,`지금 내 위치는 ${l.result.node} ${nd.ko}예요. 이 자리를 먼저 잡으면 다음 단계가 열려요.`,{who:"rook"});
+    else say(gp,"아직 위치를 확정하지 못했어요. 다음 레슨에서 코치님께 확인할 것부터 챙겨 주세요.",{who:"rook",motion:"guide"});
+  }
+  if(sameCount(l)>=3){say(g,"훈련은 잠시 멈추고, 코치님 확인 뒤에 다시 이어 가요.");return}
   if(!next){say(g,"이번 배틀플랜을 다 마쳤어요. 잘했어요! 다음 레슨에서 달라진 점을 들려주세요.");return}
   say(g,`이번 배틀플랜 ${done.length}/${plan.length}일 했어요. 오늘은 D${next.day} '${next.focus}' 차례예요. 해 보고 어땠는지 알려 주세요.`);
 }
