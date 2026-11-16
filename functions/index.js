@@ -85,9 +85,18 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     await countUse(req.auth.uid, "organize");
     const libSnap = await db.collection("library").where("status", "==", "active").get();
     const lib = libSnap.docs.map((x) => ({ id: x.id, ...x.data() }));
-    return callClaude(MODEL.organize, organizePrompt({
-      text, coach: String(d.coach || "").slice(0, 40), profile: d.profile || {}, history: (d.history || []).slice(0, 3), lib, minor,
+    const coach = String(d.coach || "").slice(0, 40);
+    const r = await callClaude(MODEL.organize, organizePrompt({
+      text, coach, profile: d.profile || {}, history: (d.history || []).slice(0, 3), lib, minor,
     }), 16000);
+    /* 새 레슨 포인트는 서버가 보관해 둔다. 공동 레거시에는 이 보관본만 올라간다(브라우저가 보낸 값은 쓰지 않음). */
+    const NODE = /^N[1-8]$/, DOM = ["tech", "mental", "fitting", "physical", "course"];
+    r.new_points = (Array.isArray(r.new_points) ? r.new_points : []).filter((p) => p && NODE.test(p.node) && (p.point || p.name)).slice(0, 5)
+      .map((p) => ({ node: p.node, domain: DOM.includes(p.domain) ? p.domain : "tech", kind: p.kind === "drill" ? "drill" : "point",
+        name: String(p.name || "").slice(0, 60), point: String(p.point || "").slice(0, 300), how: String(p.how || "").slice(0, 300), dose: String(p.dose || "").slice(0, 80) }));
+    const dref = await db.collection("players/" + req.auth.uid + "/drafts").add({ coach, new_points: r.new_points, at: Date.now() });
+    r.draft_id = dref.id;
+    return r;
   }
   if (d.task === "feedback") {
     await countUse(req.auth.uid, "feedback");
@@ -127,6 +136,67 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     return { ...ans, used, limit: DAILY_LIMIT.chat };
   }
   throw new HttpsError("invalid-argument", "알 수 없는 요청입니다.");
+});
+
+/* ===== 공동 레거시 (AP 레거시 광장의 나무) =====
+ * 개인 기록과 분리된 하나의 나무. 선수가 레슨을 저장하면 그 레슨의 새 포인트가 여기에 잎으로 쌓인다.
+ * - legacyPoints/{key}: 고유 포인트 (key = 노드 + 이름을 정리한 값). 같은 포인트가 또 오면 출처만 늘린다.
+ * - legacy/stats: total(고유 포인트 수), nodes.N1~N8, domains, coaches(코치 수), contributions(기여 횟수)
+ * - legacyCoaches/{key}: 코치 이름별 기여 (코치 수 세기)
+ * 개인 기록을 지워도 이 나무는 줄지 않는다. */
+const crypto = require("crypto");
+const normKey = (s) => String(s || "").replace(/[\s·.,'"“”‘’!?()\-]/g, "").toLowerCase();
+const playerLabel = (u) => {
+  if (u.ageBand && u.ageBand !== "adult") return "주니어 선수";
+  const n = String(u.name || "").trim();
+  return n ? n.slice(0, 1) + "○○ 선수" : "선수";
+};
+async function addToLegacy(uid, lessonId) {
+  const lref = db.doc(`players/${uid}/lessons/${lessonId}`);
+  const [ls, us] = await Promise.all([lref.get(), db.doc("users/" + uid).get()]);
+  if (!ls.exists) throw new HttpsError("not-found", "레슨을 찾지 못했습니다.");
+  const L = ls.data();
+  if (L.legacyAt) return { added: 0, echoed: 0, already: true };
+  if (!L.draftId) { await lref.update({ legacyAt: Date.now(), legacyAdded: 0 }); return { added: 0, echoed: 0 }; }
+  const dref = db.doc(`players/${uid}/drafts/${L.draftId}`);
+  const ds = await dref.get();
+  if (!ds.exists || ds.data().usedBy) { await lref.update({ legacyAt: Date.now(), legacyAdded: 0 }); return { added: 0, echoed: 0 }; }
+  const draft = ds.data(), pts = draft.new_points || [], coach = String(draft.coach || "").trim();
+  const src = { coach: coach || "코치 미기재", player: playerLabel(us.exists ? us.data() : {}), date: L.date || "", at: Date.now() };
+  let added = 0, echoed = 0;
+  await db.runTransaction(async (t) => {
+    const stRef = db.doc("legacy/stats");
+    const refs = pts.map((p) => db.doc("legacyPoints/" + crypto.createHash("sha1").update(p.node + "|" + normKey(p.name || p.point)).digest("hex").slice(0, 20)));
+    const ck = normKey(coach), cref = ck ? db.doc("legacyCoaches/" + crypto.createHash("sha1").update(ck).digest("hex").slice(0, 20)) : null;
+    const snaps = await Promise.all(refs.map((r) => t.get(r)));
+    const cs = cref ? await t.get(cref) : null;
+    const inc = admin.firestore.FieldValue.increment;
+    const st = { total: inc(0), contributions: inc(pts.length) };
+    pts.forEach((p, i) => {
+      if (snaps[i].exists) {
+        echoed++;
+        t.update(refs[i], { echoes: inc(1), sources: admin.firestore.FieldValue.arrayUnion(src), updatedAt: Date.now() });
+      } else {
+        added++;
+        t.set(refs[i], { ...p, coach: src.coach, sources: [src], echoes: 1, confirmed: false, createdAt: Date.now(), updatedAt: Date.now() });
+        st["nodes." + p.node] = inc(1);
+        st["domains." + p.domain] = inc(1);
+      }
+    });
+    st.total = inc(added);
+    if (cref && !cs.exists) { t.set(cref, { name: coach, points: pts.length, firstAt: Date.now() }); st.coaches = inc(1); }
+    else if (cref) t.update(cref, { points: inc(pts.length) });
+    if (pts.length) t.set(stRef, st, { merge: true });
+    t.update(dref, { usedBy: lessonId });
+    t.update(lref, { legacyAt: Date.now(), legacyAdded: added, legacyEchoed: echoed });
+  });
+  return { added, echoed };
+}
+exports.legacy = onCall({ region: "asia-northeast3" }, async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
+  const id = String((req.data || {}).lessonId || "");
+  if (!/^[A-Za-z0-9]{10,40}$/.test(id)) throw new HttpsError("invalid-argument", "레슨 번호가 맞지 않습니다.");
+  return addToLegacy(req.auth.uid, id);
 });
 
 /* 훈련 라이브러리 첫 데이터 넣기 — 관리자만, 없는 항목만 추가(코치진이 고친 내용은 덮어쓰지 않음) */

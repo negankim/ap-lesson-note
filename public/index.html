@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="crew.css">
 <script src="crew-life.js" defer></script>
+<script src="legacy-tree.js" defer></script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="img/favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
@@ -39,6 +40,14 @@
       </div>
       <div class="lp-ctl"><span class="lp-count" id="rot-n">1 / 5</span><div class="lp-dots" id="rot-dots" role="group" aria-label="카드 선택"></div></div>
       </div>
+    </div>
+
+    <div class="lp-sec plaza">
+      <p class="lp-label">AP 레거시 광장</p>
+      <h2 class="lp-h2">흩어져 있던 골프의 지식이 모여,<br>하나의 나무가 됩니다.</h2>
+      <p class="lp-sub">코치와 선수들이 남긴 레슨 포인트가 잎으로 쌓입니다. 개인의 진척도가 아니라, 세대를 거쳐 이어지는 골프의 레거시입니다.</p>
+      <div class="plaza-tree" id="lp-tree"></div>
+      <p class="plaza-n" id="lp-tree-n"></p>
     </div>
 
     <div class="lp-sec">
@@ -127,6 +136,18 @@
     </div>
   </section>
 
+  <!-- ===== AP 레거시 광장 (공동 나무) ===== -->
+  <section id="v-plaza" class="wrap" style="gap:16px" hidden>
+    <div>
+      <h1>AP 레거시 광장</h1>
+      <p class="lead">Matrix는 지식을 받치는 뿌리와 줄기, 코치와 선수들이 남긴 레슨 포인트는 잎입니다. 이 나무는 모두의 것이라 개인 기록을 지워도 줄어들지 않습니다.</p>
+    </div>
+    <div class="plaza-tree" id="plaza-tree"></div>
+    <p class="plaza-n" id="plaza-n"></p>
+    <div class="guide" id="g-plaza"></div>
+    <div id="plaza-node"></div>
+  </section>
+
   <!-- ===== 레슨 ===== -->
   <section id="v-lesson" class="wrap" style="gap:16px" hidden>
     <div>
@@ -169,8 +190,9 @@
     <div id="active"></div>
 
     <div class="panel" id="legacy">
-      <div class="t-head"><span class="eyebrow"><b>C</b>나의 레거시 나무</span><span class="hint" id="legacy-n"></span></div>
-      <p class="hint" style="margin:0">Matrix가 뿌리·기둥·가지가 되고, 코치님들이 준 레슨 포인트가 잎사귀로 달려 나만의 나무가 자랍니다. 코치님이 확인하기 전에는 새싹으로 보입니다.</p>
+      <div class="t-head"><span class="eyebrow"><b>C</b>내가 보탠 잎 · 내 코치</span><span class="hint" id="legacy-n"></span></div>
+      <p class="hint" style="margin:0">내 레슨에서 나온 새 포인트는 AP 레거시 나무의 잎이 됩니다. 코치님께 보여 드리면, 코치님이 확인한 잎에는 코치님 이름이 정식으로 남습니다.</p>
+      <div class="actions"><button class="btn sm" type="button" data-show="plaza">AP 레거시 광장 보기</button></div>
       <div id="legacy-map"></div>
       <div id="legacy-list" style="display:grid;gap:10px"></div>
     </div>
@@ -235,12 +257,13 @@
       <button class="dw-x" type="button" data-close aria-label="메뉴 닫기">‹</button>
     </div>
     <button class="dw-main" type="button" data-go="today"><img class="dw-img" src="img/motion/AP_02_Golf_Ball_Tee-static.svg" alt="" width="34" height="34">오늘의 대화</button>
+    <button class="dw-main" type="button" data-go="plaza"><img class="dw-img" src="img/motion/AP_15_Flag_Mountain-static.svg" alt="" width="34" height="34">AP 레거시 광장</button>
     <button class="dw-main" type="button" data-go="lesson"><img class="dw-img" src="img/motion/AP_06_Golf_Glove-static.svg" alt="" width="34" height="34">레슨 정리하기</button>
     <details class="dw-grp" open>
       <summary><img class="dw-img" src="img/motion/AP_15_Flag_Mountain-static.svg" alt="" width="34" height="34">내 차트</summary>
       <button type="button" data-go="chart" data-sec="g-pos">내 위치 · Matrix</button>
       <button type="button" data-go="chart" data-sec="active">이번 배틀플랜</button>
-      <button type="button" data-go="chart" data-sec="legacy">나의 레거시 나무</button>
+      <button type="button" data-go="chart" data-sec="legacy">내가 보탠 잎 · 내 코치</button>
       <button type="button" data-go="chart" data-sec="list">레슨 기록</button>
       <button type="button" data-go="chart" data-sec="mfold">목표와 8개 영역</button>
     </details>

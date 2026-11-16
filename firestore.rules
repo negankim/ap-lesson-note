@@ -23,6 +23,24 @@ service cloud.firestore {
                         .hasOnly(['guardianVerified', 'verifiedBy', 'verifiedAt']));
     }
 
+    // 공동 레거시 나무: 집계 숫자는 누구나(첫 화면 광장), 포인트와 출처는 로그인한 사람이 본다. 쓰기는 서버만.
+    match /legacy/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /legacyPoints/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    match /legacyCoaches/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    // 레슨 정리 때 서버가 보관한 새 포인트 원본 (서버 전용)
+    match /players/{uid}/drafts/{id} {
+      allow read, write: if false;
+    }
+
     // 오늘의 대화 기록: 서버 함수만 쓴다. 본인과 코치·관리자가 읽는다.
     match /players/{uid}/chats/{id} {
       allow read: if (signedIn() && request.auth.uid == uid) || isStaff();

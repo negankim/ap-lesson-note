@@ -27,7 +27,7 @@ const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth
 const md=s=>s?Number(s.slice(5,7))+"/"+Number(s.slice(8,10)):"";
 function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2400)}
 
-let db=null,user=null,uid=null,ai=null,dict=null,seedFn=null,chat=null,myCoaches=[];
+let db=null,user=null,uid=null,ai=null,dict=null,seedFn=null,chat=null,legacy=null,myCoaches=[];
 let lib=[],isEditor=false,stats={},statsAt=0,libNode="",libSt="active",editing=null,profileExists=false;
 const KIND={point:"레슨 포인트",drill:"드릴",training:"훈련"};
 const STATUS={active:"사용 중",pending:"검토 대기",retired:"중지"};
@@ -36,7 +36,9 @@ let profile={level:"A",goal:""},lessons=[],draft=null,pillarFilter=null,openId=n
 /* ===== 화면 전환 (왼쪽 메뉴에서) · 오늘 / 레슨 / 내 차트 / 훈련 라이브러리(코치 전용) ===== */
 function show(tab){
   if(tab==="lib"&&!isEditor)tab="today";
-  for(const v of ["today","lesson","chart","lib"])$("v-"+v).hidden=tab!==v;
+  for(const v of ["today","plaza","lesson","chart","lib"])$("v-"+v).hidden=tab!==v;
+  if(tab==="plaza")openPlaza();
+  plazaTree&&plazaTree.pause(tab!=="plaza");
   if(tab==="today")renderToday();
   if(tab==="chart")renderChart();
   if(tab==="lib"){renderLib();loadStats()}
@@ -76,7 +78,7 @@ function resultHTML(r,coach,date,opts={}){
   const nps=(r.new_points||[]).filter(p=>NODES[p.node]);
   const leaves={};nps.forEach(p=>leaves[p.node]=(leaves[p.node]||0)+1);
   const npHTML=nps.length?`<div class="sec newpt"><h4><i>🌱</i>NEW 레슨 포인트</h4>
-    <p class="hint" style="margin:0">${esc(coach||"코치")}님이 이번 레슨에서 새로 준 포인트예요. 나의 레거시 나무에 새싹으로 달리고, 코치님이 확인하면 정식 잎사귀가 됩니다.</p>
+    <p class="hint" style="margin:0">${esc(coach||"코치")}님이 이번 레슨에서 새로 준 포인트예요. 저장하면 AP 레거시 나무의 잎으로 쌓이고, 코치님이 확인하면 코치님 이름이 정식으로 남습니다.</p>
     ${nps.map(p=>`<div class="drill"><div class="t"><b>${esc(p.name)}</b><span class="pill gold">${p.node} ${esc(NODES[p.node].ko)} · ${esc((DOMAIN[p.domain]||DOMAIN.tech)[0])}</span></div><div class="feel">“${esc(p.point)}”</div>${p.how||p.dose?`<small>${esc([p.how,p.dose].filter(Boolean).join(" · "))}</small>`:""}<div><span class="pill">🌱 코치 확인 전</span></div></div>`).join("")}</div>`:"";
   return `<div class="result">
     <div class="rhead"><span class="eyebrow">${esc(md(date))} · ${esc(PNAME[r.pillar]||"")}</span><h2>${esc(r.title||"레슨 정리")}</h2>
@@ -127,10 +129,13 @@ $("out").addEventListener("click",async e=>{
     if(!profileExists){try{await db.doc("players/"+uid).set({...profile,updatedAt:new Date().toISOString()});profileExists=true}catch(_){}}
     const coachId=draft.coach?await coachIdFor(draft.coach):"";
     const np=(draft.result.new_points||[]).length,npNodes=[...new Set((draft.result.new_points||[]).map(p=>p.node))],cname=draft.coach;
-    await db.collection("players/"+uid+"/lessons").add({...draft,coachId,done:[],feedback:[],createdAt:new Date().toISOString()});
+    const ref=await db.collection("players/"+uid+"/lessons").add({...draft,draftId:draft.result.draft_id||"",coachId,done:[],feedback:[],createdAt:new Date().toISOString()});
     draft=null;$("out").innerHTML="";$("f-text").value="";
+    let lg={added:0,echoed:0};
+    if(np&&legacy&&legacy.add&&ref&&ref.id){try{lg=(await legacy.add({lessonId:ref.id})).data||lg}catch(_){}}
     await loadLessons();
-    if(np){show("chart");say($("g-pos"),`NEW 레슨 포인트! ${npNodes.map(n=>n+" "+NODES[n].ko).join(", ")}에 ${cname||"코치"}님의 새싹이 돋았어요.`,{now:true,who:"rook",motion:"success"});setTimeout(()=>$("legacy").scrollIntoView({behavior:"smooth",block:"start"}),400)}
+    if(lg.added||lg.echoed){plazaStats=null;show("plaza");
+      say($("g-plaza"),`NEW 레슨 포인트! ${cname||"코치"}님의 레슨이 ${npNodes.map(n=>n+" "+NODES[n].ko).join(", ")}에 ${lg.added?`새 잎 ${lg.added}개`:""}${lg.added&&lg.echoed?", ":""}${lg.echoed?`이미 있던 잎에 출처 ${lg.echoed}개`:""}로 더해졌어요.`,{now:true,who:"rook",motion:"success"})}
     else{toast("내 차트에 저장했습니다");show("today")}
   }catch(err){toast("저장하지 못했습니다. 잠시 뒤 다시 눌러 주세요");e.target.disabled=false}
 });
@@ -329,64 +334,41 @@ function renderChart(){renderMandala();renderActive();renderLegacy();renderList(
 /* ===== 내 코치 · 레슨 레거시 =====
    선수가 적은 코치 이름으로 코치 목록을 만든다. 새 레슨 포인트는 그 코치 아래 새싹으로 쌓인다.
    (다음 단계: 코치가 초대로 들어와 확인하면 정식 잎사귀 + 코치 레거시) */
-/* ===== 레거시 나무: 뿌리 N1 · 기둥 N5 · 왼쪽 가지(만들기) N4·N3·N2 · 오른쪽 가지(유지) N6·N7·N8 ===== */
+/* ===== AP 레거시 광장: 모두가 함께 키우는 하나의 나무 =====
+   단계 = 전체 고유 레슨 포인트 수, 꽃 = 노드별 축적량. 개인 기록과 분리. */
 const DOMAIN={tech:["기술 레슨","#c9a24a"],mental:["멘탈 훈련","#9b7fd4"],fitting:["클럽 피팅","#4f9bd9"],physical:["피지컬 트레이닝","#5fb36b"],course:["코스 매니지먼트","#3fb5a8"]};
-/* 레거시 나무: 아래 만다라 = Matrix(가운데 N1, 왼쪽 만들기 N4·N3·N2, 오른쪽 유지 N6·N7·N8)
-   가운데 만다라에서 줄기(N5)가 솟고, 가지는 왼쪽 N4·N3·N2 / 오른쪽 N6·N7·N8로 갈라져 잎(레슨 포인트)이 달린다. */
-function rnd(seed){let x=seed>>>0||1;return()=>((x=(x*1664525+1013904223)>>>0)/4294967296)}
-const TM={N4:[46,458,32],N3:[114,430,34],N2:[168,482,19],N1:[250,452,58],N8:[332,482,19],N7:[386,430,34],N6:[454,458,32]};
-function mandala(cx,cy,r,n,hot){
-  const k=8+Math.min(n,8)*2;let g=`<circle cx="${cx}" cy="${cy}" r="${r}"/><circle cx="${cx}" cy="${cy}" r="${(r*.82).toFixed(1)}"/>`;
-  for(let i=0;i<k;i++){const a=i/k*Math.PI*2,a2=(i+.5)/k*Math.PI*2;
-    const x=cx+Math.cos(a)*r*.62,y=cy+Math.sin(a)*r*.62;
-    g+=`<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${(r*.2).toFixed(1)}" ry="${(r*.09).toFixed(1)}" transform="rotate(${(a*180/Math.PI).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`;
-    g+=`<circle class="dot" cx="${(cx+Math.cos(a2)*r*.91).toFixed(1)}" cy="${(cy+Math.sin(a2)*r*.91).toFixed(1)}" r="${(r*.035+.6).toFixed(1)}"/>`;
-    g+=`<path d="M${(cx+Math.cos(a)*r*.18).toFixed(1)} ${(cy+Math.sin(a)*r*.18).toFixed(1)} L${(cx+Math.cos(a2)*r*.38).toFixed(1)} ${(cy+Math.sin(a2)*r*.38).toFixed(1)}"/>`}
-  g+=`<circle cx="${cx}" cy="${cy}" r="${(r*.4).toFixed(1)}"/><circle class="core" cx="${cx}" cy="${cy}" r="${(r*.12).toFixed(1)}"/>`;
-  return `<g class="tmd${hot?" hot":""}">${g}</g>`;
+const STAGE_NAME=["지식의 뿌리","첫 기록","전해지는 가르침","이어지는 지식","쌓여가는 레거시","풍성해지는 기록","세대를 잇는 나무","살아 있는 골프 레거시"];
+let plazaTree=null,plazaStats=null;
+function treeData(st){const nodes={};for(const n of Object.keys(NODES))nodes[n]={legacyPointCount:Math.max(0,Number(st&&st.nodes&&st.nodes[n])||0)};
+  return {totalLegacyPointCount:Math.max(0,Number(st&&st.total)||0),nodes}}
+function statLine(st){const t=Number(st&&st.total)||0,c=Number(st&&st.coaches)||0;
+  return t?`지금까지 모인 레슨 포인트 ${t}개 · 남긴 코치 ${c}명`:"아직 첫 잎을 기다리는 나무예요. 첫 레슨 포인트가 이 나무의 첫 기록이 됩니다."}
+export function mountPlaza(el,st,{landing=false}={}){
+  if(!el)return null;
+  const go=()=>{if(!window.APLegacyTree)return setTimeout(go,120);
+    const t=new APLegacyTree(el,{atlasUrl:"img/legacy-tree-atlas.webp",data:treeData(st),
+      onNodeSelect:({nodeId,legacyPointCount})=>{if(landing){$("lp-tree-n").textContent=`${nodeId} ${NODES[nodeId].ko} · 쌓인 레슨 포인트 ${legacyPointCount}개 — 누가 남긴 어떤 레슨인지는 로그인하면 볼 수 있어요.`}else openNode(nodeId)}});
+    const n=landing?$("lp-tree-n"):$("plaza-n");if(n)n.textContent=statLine(st);
+    if(landing)t.pause(false);else plazaTree=t;};
+  go();
 }
-function treeSVG(points){
-  const by={};points.forEach(p=>{(by[p.node]=by[p.node]||[]).push(p)});
-  const R=rnd(11);let br="",dots="",tips={};
-  /* 가지 그리기 (재귀) — 큰 가지 하나가 한 노드 */
-  function grow(x,y,ang,len,w,depth,node){
-    const x2=x+Math.cos(ang)*len,y2=y+Math.sin(ang)*len,mx=(x+x2)/2+(R()-.5)*len*.25,my=(y+y2)/2+(R()-.5)*len*.25;
-    br+=`<path class="tbr" d="M${x.toFixed(1)} ${y.toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}" style="stroke-width:${w.toFixed(2)}"/>`;
-    if(depth>=2)for(let i=0;i<3;i++){const t=R();dots+=`<ellipse class="tdot" cx="${(x+(x2-x)*t+(R()-.5)*14).toFixed(1)}" cy="${(y+(y2-y)*t+(R()-.5)*14).toFixed(1)}" rx="1.3" ry="2.1" transform="rotate(${(R()*360).toFixed(0)})" transform-origin="${(x+(x2-x)*t).toFixed(1)} ${(y+(y2-y)*t).toFixed(1)}"/>`}
-    if(depth>=4){(tips[node]=tips[node]||[]).push([x2,y2,ang]);return}
-    const n=depth<1?2:2+(R()<.4?1:0);
-    for(let i=0;i<n;i++)grow(x2,y2,ang+(i-(n-1)/2)*(.42+R()*.2)+(R()-.5)*.2,len*(.68+R()*.12),w*.62,depth+1,node);
-  }
-  /* 줄기(N5): 꼬인 다발 */
-  let trunk="";for(let i=0;i<8;i++){const o=(i-3.5)*3.4,w=Math.sin(i*1.7)*9;
-    trunk+=`<path class="tstr" d="M${250+o*2.2} 404 C${250+o+w} 360 ${250-o-w} 320 ${250+o*.6} 280 S${250+o*1.4} 250 ${250+o*1.8} 236"/>`}
-  const main={N4:-2.75,N3:-2.35,N2:-1.95,N8:-1.19,N7:-.79,N6:-.39};
-  for(const [n,a] of Object.entries(main))grow(250,238,a,62,4.2,0,n);
-  /* 잎사귀(레슨 포인트): 그 노드 가지 끝에 */
-  let lv="",k=0;
-  const leaf=(x,y,ang,p)=>{const col=(DOMAIN[p.domain]||DOMAIN.tech)[1],a=ang*180/Math.PI+(R()-.5)*50;
-    return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${a.toFixed(0)})"><g class="tleaf${p.confirmed?"":" sprout"}" style="--c:${col};animation-delay:${(k++)*70}ms"><path d="M0 0 Q6 -4.5 13 0 Q6 4.5 0 0Z"/><path class="rib" d="M1.5 0 L11 0"/></g></g>`};
-  for(const [n,ps] of Object.entries(by)){
-    if(n==="N5"){ps.forEach((p,i)=>{lv+=leaf(250+(i%2?12:-12),390-i*20,i%2?-.4:-2.7,p)});continue}
-    if(n==="N1")continue;
-    const T=tips[n]||[];ps.forEach((p,i)=>{const t=T[(i*5+2)%T.length]||[250,238,-1.57];lv+=leaf(t[0],t[1],t[2],p)});
-  }
-  /* 아래 만다라 = Matrix */
-  let md="",lab="";
-  for(const [n,[cx,cy,r0]] of Object.entries(TM)){
-    const c=(by[n]||[]).length,r=n==="N1"?r0:Math.min(r0+c,r0+6);
-    md+=mandala(cx,cy,r,c,c>0);
-    lab+=`<text class="tlab" x="${cx}" y="${cy+r+13}" text-anchor="middle">${n}${n==="N1"?" 뿌리":""}${c?" · "+c:""}</text>`;
-  }
-  (by.N1||[]).forEach((p,i)=>{const a=-Math.PI/2+(i-(by.N1.length-1)/2)*.32;lv+=leaf(250+Math.cos(a)*70,452+Math.sin(a)*70,a,p)});
-  /* 하늘의 점선 소용돌이 */
-  const sw=[[40,120,1],[430,90,-1],[470,200,-1],[30,250,1]].map(([x,y,d])=>`<path class="tsw" d="M${x} ${y} c${d*20} -18 ${d*44} -6 ${d*40} 12 s${d*-26} 18 ${d*-14} 2"/>`).join("");
-  return `<svg class="tree" viewBox="0 0 500 540" role="img" aria-label="나의 레거시 나무: 잎사귀 ${points.length}개">
-    ${sw}${br}${dots}${trunk}${md}${lv}${lab}
-    <text class="tlab trunk" x="250" y="330" text-anchor="middle">N5</text>
-    <text class="tside" x="14" y="22">만들기 · CREATION</text><text class="tside" x="486" y="22" text-anchor="end">유지하기 · SUSTAINING</text>
-  </svg>
-  <div class="tlegend">${Object.values(DOMAIN).map(([n,c])=>`<span><i style="background:${c}"></i>${n}</span>`).join("")}<span><i class="sp"></i>코치 확인 전(새싹)</span></div>`;
+async function openPlaza(){
+  if(!legacy)return;
+  const st=await legacy.stats();plazaStats=st;
+  if(!plazaTree)mountPlaza($("plaza-tree"),st);else{plazaTree.update(treeData(st));$("plaza-n").textContent=statLine(st)}
+  const stage=(()=>{const th=[0,1,8,24,60,120,240,480],t=Number(st.total)||0;let k=0;th.forEach((v,i)=>{if(t>=v)k=i});return k})();
+  if(!$("g-plaza").dataset.said||!/NEW/.test($("g-plaza").dataset.said))say($("g-plaza"),`지금 나무는 '${STAGE_NAME[stage]}' 단계예요. 꽃을 누르면 그 노드에 쌓인 레슨 포인트와 누가 남겼는지 볼 수 있어요.`,{who:"logan"});
+}
+async function openNode(n){
+  const box=$("plaza-node");box.innerHTML=`<div class="panel"><div class="ld" aria-hidden="true"></div></div>`;
+  let ps=[];try{ps=await legacy.points(n)}catch(_){}
+  box.innerHTML=`<div class="panel"><div class="t-head"><span class="eyebrow"><b>${n}</b>${esc(NODES[n].en)} · ${esc(NODES[n].ko)}</span><span class="pill gold">레슨 포인트 ${ps.length}${ps.length>=100?"+":""}</span></div>
+    ${ps.length?ps.map(p=>{const d=DOMAIN[p.domain]||DOMAIN.tech,src=(p.sources||[]).slice(0,3);
+      return `<div class="lp-pt"><div class="t-head"><b>${esc(p.name||"레슨 포인트")}</b><span class="pill" style="border-color:${d[1]};color:${d[1]}">${esc(d[0])}</span></div>
+        <div class="feel">“${esc(p.point)}”</div>${p.how||p.dose?`<small class="hint">${esc([p.how,p.dose].filter(Boolean).join(" · "))}</small>`:""}
+        <div class="chips">${src.map(x=>`<span class="pill gold">${esc(x.coach)}</span><span class="pill">${esc(x.player)} · ${esc(md(x.date))}</span>`).join("")}${(p.echoes||1)>1?`<span class="pill ok">같은 포인트 ${p.echoes}번 이어짐</span>`:""}${p.confirmed?`<span class="pill ok">코치 확인</span>`:`<span class="pill">코치 확인 전</span>`}</div></div>`}).join("")
+      :`<div class="empty">아직 이 노드에 쌓인 레슨 포인트가 없어요. 첫 잎을 남겨 주세요.</div>`}</div>`;
+  box.scrollIntoView({behavior:"smooth",block:"start"});
 }
 const normName=s=>String(s||"").replace(/\s+/g,"").toLowerCase();
 async function loadCoaches(){
@@ -410,8 +392,8 @@ function renderLegacy(){
   if(!$("legacy"))return;
   const gs=coachGroups(),pts=gs.flatMap(c=>c.points);
   const tot=pts.length;
-  $("legacy-n").textContent=tot?`잎사귀 ${tot}개 · 코치 ${gs.length}명`:"";
-  $("legacy-map").innerHTML=treeSVG(pts);
+  $("legacy-n").textContent=tot?`내가 보탠 잎 ${tot}개 · 코치 ${gs.length}명`:"";
+  $("legacy-map").innerHTML="";
   $("legacy-list").innerHTML=gs.length?gs.map((c,i)=>{
     const by={};c.points.forEach(p=>by[p.node]=(by[p.node]||0)+1);
     return `<div class="coach-c"><div class="t-head"><b>${esc(c.name)}</b><span class="hint">레슨 ${c.lessons}번 · 최근 ${esc(md(c.last))}</span></div>
@@ -627,7 +609,7 @@ function setMenuUser(name,role){
 
 /* ===== 시작 ===== */
 export function start(services){
-  ({db,user,ai,dict,seedFn,consent,chat}=services);
+  ({db,user,ai,dict,seedFn,consent,chat,legacy}=services);
   return boot();
 }
 /* ===== 나이 확인 · 보호자 동의 ===== */

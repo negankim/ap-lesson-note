@@ -6,7 +6,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, onSnapshot, serverTimestamp, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
-import { start } from "./app.js";
+import { start, mountPlaza } from "./app.js";
 
 /* Firebase Hosting 이 자동으로 주는 설정을 쓴다 (키를 코드에 적지 않는다) */
 const config = await fetch("/__/firebase/init.json").then((r) => r.json());
@@ -141,6 +141,16 @@ function makeChat(u) {
   };
 }
 
+/* 공동 레거시 나무: 집계 숫자는 로그인 전에도 읽는다 (첫 화면 광장) */
+const legacy = {
+  stats: async () => { try { const d = await getDoc(doc(fs, "legacy/stats")); return d.exists() ? d.data() : {}; } catch (_) { return {}; } },
+  points: async (node) => {
+    const s = await getDocs(query(collection(fs, "legacyPoints"), where("node", "==", node), limit(100)));
+    return s.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.echoes || 1) - (a.echoes || 1) || (b.createdAt || 0) - (a.createdAt || 0));
+  },
+};
+legacy.stats().then((st) => mountPlaza(document.getElementById("lp-tree"), st, { landing: true }));
+
 let started = false;
 onAuthStateChanged(auth, async (u) => {
   $("gate").hidden = !!u; $("app").hidden = !u;
@@ -154,5 +164,5 @@ onAuthStateChanged(auth, async (u) => {
     if (d.exists()) { role = d.data().role || "player"; await updateDoc(ref, { name: u.displayName || "", lastSeen: serverTimestamp() }); }
     else await setDoc(ref, { name: u.displayName || "", role: "player", createdAt: serverTimestamp(), lastSeen: serverTimestamp() });
   } catch (e) { console.warn("users doc", e); }
-  await start({ db, user: makeUser(u, role), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation(), consent: makeConsent(u, role), chat: makeChat(u), seedFn: httpsCallable(fn, "seedLibrary", { timeout: 120000 }) });
+  await start({ db, user: makeUser(u, role), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation(), consent: makeConsent(u, role), chat: makeChat(u), legacy: { ...legacy, add: httpsCallable(fn, "legacy", { timeout: 60000 }) }, seedFn: httpsCallable(fn, "seedLibrary", { timeout: 120000 }) });
 });
