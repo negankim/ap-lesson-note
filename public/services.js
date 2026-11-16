@@ -75,10 +75,34 @@ function makeDictation() {
 }
 
 const $ = (id) => document.getElementById(id);
+/* 이런 골퍼가 있습니다: 한 장씩 자동으로 넘어감 (밀어서 넘기기, 누르고 있으면 멈춤) */
+(() => {
+  const rot = $("rot"); if (!rot) return;
+  const cards = [...rot.querySelectorAll(".lp-card")], dots = $("rot-dots"), n = $("rot-n");
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let i = 0, timer = null, paused = false;
+  dots.innerHTML = cards.map((_, k) => `<button type="button" aria-label="${k + 1}번째 카드"></button>`).join("");
+  const go = (k) => {
+    const prev = i; i = (k + cards.length) % cards.length;
+    cards.forEach((c, x) => { c.classList.toggle("on", x === i); c.classList.toggle("out", x === prev && x !== i); c.setAttribute("aria-hidden", x === i ? "false" : "true"); });
+    [...dots.children].forEach((d, x) => d.setAttribute("aria-current", x === i ? "true" : "false"));
+    n.textContent = `${i + 1} / ${cards.length}`;
+  };
+  const tick = () => { clearInterval(timer); if (!still) timer = setInterval(() => { if (!paused && !document.hidden) go(i + 1); }, 3500); };
+  dots.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; go([...dots.children].indexOf(b)); tick(); });
+  let x0 = null;
+  rot.addEventListener("pointerdown", (e) => { x0 = e.clientX; paused = true; });
+  rot.addEventListener("pointerup", (e) => { if (x0 !== null && Math.abs(e.clientX - x0) > 40) { go(i + (e.clientX < x0 ? 1 : -1)); tick(); } x0 = null; paused = false; });
+  rot.addEventListener("pointerleave", () => { x0 = null; paused = false; });
+  rot.addEventListener("mouseenter", () => (paused = true));
+  rot.addEventListener("mouseleave", () => (paused = false));
+  go(0); tick();
+})();
+
 /* 첫 화면: 카드와 단계가 스크롤할 때 하나씩 나타남 (움직임 줄이기 설정이면 그대로 보임) */
 if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.15 });
-  document.querySelectorAll(".lp-card, .lp-steps li, .lp-note, .lp-cta").forEach((el, i) => {
+  document.querySelectorAll(".lp-steps li, .lp-note, .lp-cta").forEach((el, i) => {
     el.classList.add("rv"); el.style.transitionDelay = (i % 5) * 70 + "ms"; io.observe(el);
   });
 }
