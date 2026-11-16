@@ -36,6 +36,7 @@ function makeUser(u, role) {
     id: async () => u.uid,
     me: async () => ({ name: u.displayName || u.email || "" }),
     canEdit: async () => role === "coach" || role === "admin",
+    role: () => role,
     profiles: async (ids) => {
       const out = {};
       await Promise.all(ids.map(async (id) => {

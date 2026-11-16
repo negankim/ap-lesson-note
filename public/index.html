@@ -57,7 +57,7 @@
 <div id="app" hidden>
 <div class="wrap">
   <header class="top">
-    <div class="brand">AP <span>LEGACY</span></div>
+    <div style="display:flex;align-items:center;gap:12px"><button class="menu-btn" type="button" id="menu" aria-label="메뉴 열기" aria-expanded="false"><span></span><span></span><span></span></button><div class="brand">AP <span>LEGACY</span></div></div>
     <div style="display:flex;gap:10px;align-items:baseline;min-width:0"><div class="who" id="who">연결 중</div><button class="btn sm" type="button" id="logout">로그아웃</button></div>
   </header>
 
@@ -149,6 +149,40 @@
   <button role="tab" data-tab="chart" aria-selected="false">내 차트</button>
   <button role="tab" data-tab="lib" aria-selected="false">훈련 라이브러리</button>
 </div></nav>
+
+<div class="dw" id="drawer" hidden>
+  <div class="dw-bg" data-close></div>
+  <nav class="dw-panel" aria-label="메뉴">
+    <div class="dw-head">
+      <div class="dw-av" id="dw-av">A</div>
+      <div class="dw-who"><b id="dw-name">내 기록</b><span class="pill gold" id="dw-role">선수</span></div>
+      <button class="dw-x" type="button" data-close aria-label="메뉴 닫기">‹</button>
+    </div>
+    <button class="dw-main" type="button" data-go="lesson"><span class="dw-ic">✎</span>오늘의 레슨 정리</button>
+    <details class="dw-grp" open>
+      <summary><span class="dw-ic">◎</span>내 차트</summary>
+      <button type="button" data-go="chart" data-sec="mgrid">만다라트 · 8개 영역</button>
+      <button type="button" data-go="chart" data-sec="active">이번 배틀플랜 · 피드백</button>
+      <button type="button" data-go="chart" data-sec="list">레슨 기록</button>
+    </details>
+    <details class="dw-grp">
+      <summary><span class="dw-ic">▤</span>훈련 라이브러리</summary>
+      <button type="button" data-go="lib" data-node="">전체 보기</button>
+      <div class="dw-nodes">
+        <button type="button" data-go="lib" data-node="N1">N1 멘탈</button><button type="button" data-go="lib" data-node="N2">N2 머릿속 임팩트</button>
+        <button type="button" data-go="lib" data-node="N3">N3 페이스</button><button type="button" data-go="lib" data-node="N4">N4 경로</button>
+        <button type="button" data-go="lib" data-node="N5">N5 실제 임팩트</button><button type="button" data-go="lib" data-node="N6">N6 재현성</button>
+        <button type="button" data-go="lib" data-node="N7">N7 효율</button><button type="button" data-go="lib" data-node="N8">N8 적응</button>
+      </div>
+    </details>
+    <details class="dw-grp">
+      <summary><span class="dw-ic">◐</span>내 계정</summary>
+      <button type="button" data-go="chart" data-sec="prof">목표 바꾸기</button>
+      <button type="button" data-logout>로그아웃</button>
+    </details>
+    <div class="dw-foot">(주)에이피골프 · AP Legacy System</div>
+  </nav>
+</div>
 <div class="toast" id="toast" hidden></div>
 </div>
 <script type="module" src="services.js"></script>

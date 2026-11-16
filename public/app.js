@@ -349,6 +349,28 @@ async function loadLessons(){
     lessons=s.docs.map(d=>({id:d.id,...d.data()})).filter(l=>l.result).sort((a,b)=>((b.date||"")+(b.createdAt||"")).localeCompare((a.date||"")+(a.createdAt||"")));
   }catch(e){lessons=[]}
 }
+/* ===== 메뉴 (왼쪽 서랍) ===== */
+function openMenu(){$("drawer").hidden=false;$("menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden"}
+function closeMenu(){$("drawer").hidden=true;$("menu").setAttribute("aria-expanded","false");document.body.style.overflow=""}
+$("menu").addEventListener("click",openMenu);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("drawer").hidden)closeMenu()});
+$("drawer").addEventListener("click",e=>{
+  if(e.target.closest("[data-close]")){closeMenu();return}
+  if(e.target.closest("[data-logout]")){closeMenu();$("logout").click();return}
+  const b=e.target.closest("[data-go]");if(!b)return;
+  closeMenu();
+  if(b.dataset.go==="lib"&&b.dataset.node!==undefined){libNode=b.dataset.node;document.querySelectorAll("#lib-node .chip").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===libNode))}
+  show(b.dataset.go);
+  const sec=b.dataset.sec;
+  if(sec==="prof"){$("prof-btn").click();sec&&setTimeout(()=>$("prof").scrollIntoView({behavior:"smooth",block:"start"}),50);return}
+  if(sec)setTimeout(()=>{const el=$(sec);if(el)(el.closest(".panel")||el).scrollIntoView({behavior:"smooth",block:"start"})},50);
+});
+function setMenuUser(name,role){
+  $("dw-name").textContent=name||"내 기록";
+  $("dw-av").textContent=(name||"A").trim().charAt(0).toUpperCase();
+  $("dw-role").textContent={admin:"관리자",coach:"코치"}[role]||"선수";
+}
+
 /* ===== 시작 ===== */
 export function start(services){
   ({db,user,ai,dict,seedFn}=services);
@@ -360,7 +382,7 @@ async function boot(){
   try{isEditor=!!(await user.canEdit())}catch(_){}
   setRole();
   uid=await user.id();
-  const me=await user.me();$("who").textContent=(me&&me.name)||"내 기록";
+  const me=await user.me();$("who").textContent=(me&&me.name)||"내 기록";setMenuUser(me&&me.name,user.role?user.role():"");
   try{const p=await db.doc("players/"+uid).get();if(p.exists){profileExists=true;const v=p.data();profile={level:v.level||"A",goal:v.goal||""}}}catch(e){}
   await loadLessons();
   let gotLib=false;const lt=setTimeout(()=>{if(!gotLib)$("lib-list").innerHTML='<div class="empty">라이브러리를 아직 불러오지 못했습니다. 연결이 느릴 수 있습니다.</div>'},10000);
