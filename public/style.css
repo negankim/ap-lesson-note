@@ -671,3 +671,4 @@ body{background:linear-gradient(#eaf6fb,var(--bg) 340px)}
 .wl[open] summary{margin-bottom:10px}
 .dw-acct .dw-row small{margin-left:auto}
 .acct-row>.hint,.acct-row>span.hint{white-space:nowrap;flex:none}
+.acct-row.link{text-decoration:none}.acct-row.link i{font-style:normal;color:var(--muted);font-size:20px}

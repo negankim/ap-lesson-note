@@ -1569,8 +1569,10 @@ function renderSet(){
       ${acctRow(`<span class="danger">계정 삭제</span>`,"내 기록과 계정을 지워요",`<button class="btn sm" type="button" data-st="del">자세히</button>`)}
       <div id="st-del" hidden></div></div>
     <h3 class="acct-k">정보 · 약관</h3><div class="acct-list">
-      ${acctRow("개인정보 처리방침","",`<span class="hint">준비 중</span>`)}
-      ${acctRow("이용약관","",`<span class="hint">준비 중</span>`)}
+      ${acctRow("연구 참여","가린 기록으로 AP 훈련 규칙을 다듬는 데 보태요. 안 해도 똑같이 쓸 수 있어요",`<label class="switch"><input type="checkbox" id="st-res" ${inf.research?"checked":""} ${myAge==="child"?"disabled":""}><i></i></label>`)}
+      ${myAge==="child"?`<p class="hint" style="margin:0 16px 10px">만 14세 미만 기록은 연구에 쓰지 않아요.</p>`:""}
+      <a class="acct-row link" href="privacy.html" target="_blank" rel="noopener"><span><b>개인정보 처리방침</b></span><i aria-hidden="true">›</i></a>
+      <a class="acct-row link" href="terms.html" target="_blank" rel="noopener"><span><b>이용약관</b></span><i aria-hidden="true">›</i></a>
       ${myAge==="child"?acctRow("보호자 동의","만 14세 미만 · 보호자 확인 상태는 코치님이 확인해요"):""}
       ${acctRow("앱 버전",APP_VER)}</div>`;
 }
@@ -1590,5 +1592,6 @@ $("set-box").addEventListener("click",async e=>{
 });
 $("set-box").addEventListener("submit",async e=>{if(e.target.id!=="st-name-f")return;e.preventDefault();const v=$("st-name-i").value.trim();if(!v){toast("이름을 적어 주세요");return}
   try{await db.doc("users/"+uid).update({nickname:v});$("who").textContent=v;setMenuUser(v,user.role?user.role():"");toast("이름을 바꿨어요");buzz();renderSet()}catch(_){toast("저장하지 못했어요")}});
-$("set-box").addEventListener("change",e=>{if(e.target.id==="st-vib"){prefSet("vib",e.target.checked?"1":"0");if(e.target.checked)buzz()}});
+$("set-box").addEventListener("change",async e=>{if(e.target.id==="st-vib"){prefSet("vib",e.target.checked?"1":"0");if(e.target.checked)buzz()}
+  if(e.target.id==="st-res"){const on=e.target.checked;try{await db.doc("users/"+uid).update({research:on,researchAt:new Date().toISOString()});const i=user.info();user.info=()=>({...i,research:on});toast(on?"연구 참여에 동의했어요":"연구 참여를 껐어요")}catch(_){e.target.checked=!on;toast("저장하지 못했어요")}}});
 document.addEventListener("click",e=>{if(e.target.closest("#set-box [data-logout]"))$("logout").click()});

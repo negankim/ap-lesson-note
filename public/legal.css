@@ -1,0 +1,16 @@
+:root{--fg:#1f2a1f;--muted:#6b6a5e;--line:#e4dfcf;--bg:#f7f3e8;--green:#2f5d3a;--gold:#9a7a2e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all}
+.legal{max-width:720px;margin:0 auto;padding:20px 18px 60px}
+.back{display:inline-block;color:var(--green);text-decoration:none;font-size:14px;margin-bottom:12px}
+h1{font-size:26px;margin:4px 0 6px}
+h2{font-size:18px;margin:32px 0 8px;color:var(--green)}
+.meta{color:var(--muted);font-size:14px;margin:0 0 12px}
+.pilot{background:#fff8e6;border:1px solid #ecd9a6;border-radius:12px;padding:10px 14px;font-size:14px}
+ul{padding-left:20px}li{margin:4px 0}
+table{width:100%;border-collapse:collapse;font-size:14px;background:#fff;border-radius:12px;overflow:hidden;margin:8px 0}
+th,td{border-bottom:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+th{background:#efe9d8;font-weight:600}
+.tbd{color:var(--gold)}
+a{color:var(--green)}
+.foot{margin-top:36px}

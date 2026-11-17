@@ -37,7 +37,7 @@ function makeUser(u, role, extra = {}) {
   return {
     id: async () => u.uid,
     me: async () => ({ name: extra.nickname || u.displayName || u.email || "" }),
-    info: () => ({ email: u.email || "", provider: (u.providerData[0] && u.providerData[0].providerId) || "", google: u.displayName || "", nickname: extra.nickname || "", tone: extra.tone || "coach" }),
+    info: () => ({ email: u.email || "", provider: (u.providerData[0] && u.providerData[0].providerId) || "", google: u.displayName || "", nickname: extra.nickname || "", tone: extra.tone || "coach", research: !!extra.research }),
     canEdit: async () => role === "coach" || role === "admin",
     role: () => role,
     profiles: async (ids) => {
@@ -164,7 +164,7 @@ onAuthStateChanged(auth, async (u) => {
   let role = "player", extra = {};
   try {
     const d = await getDoc(ref);
-    if (d.exists()) { role = d.data().role || "player"; extra = { nickname: d.data().nickname || "", tone: d.data().tone || "coach" }; await updateDoc(ref, { name: u.displayName || "", lastSeen: serverTimestamp() }); }
+    if (d.exists()) { role = d.data().role || "player"; extra = { nickname: d.data().nickname || "", tone: d.data().tone || "coach", research: !!d.data().research }; await updateDoc(ref, { name: u.displayName || "", lastSeen: serverTimestamp() }); }
     else await setDoc(ref, { name: u.displayName || "", role: "player", createdAt: serverTimestamp(), lastSeen: serverTimestamp() });
   } catch (e) { console.warn("users doc", e); }
   await start({ db, account: httpsCallable(fn, "account", { timeout: 120000 }), user: makeUser(u, role, extra), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation(), consent: makeConsent(u, role), chat: makeChat(u), legacy: { ...legacy, add: httpsCallable(fn, "legacy", { timeout: 60000 }) }, seedFn: httpsCallable(fn, "seedLibrary", { timeout: 120000 }) });
