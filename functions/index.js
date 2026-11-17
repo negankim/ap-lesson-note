@@ -91,6 +91,11 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     }), 16000);
     /* 새 레슨 포인트는 서버가 보관해 둔다. 공동 레거시에는 이 보관본만 올라간다(브라우저가 보낸 값은 쓰지 않음). */
     const NODE = /^N[1-8]$/, DOM = ["tech", "mental", "fitting", "physical", "course"];
+    /* 멘탈 포커스: 기술 위치와 따로 곱해지는 계수. 화면은 기존처럼 mental 표시만 쓴다 */
+    const MF = ["높음", "보통", "낮음", "판단 보류"];
+    r.mf = r.mf && typeof r.mf === "object" ? { level: MF.includes(r.mf.level) ? r.mf.level : "판단 보류", signs: String(r.mf.signs || "").slice(0, 200), basis: String(r.mf.basis || "").slice(0, 20) } : { level: "판단 보류", signs: "", basis: "" };
+    r.mental = !!r.mental || r.mf.level === "낮음";
+    if (!NODE.test(String(r.via2 || ""))) r.via2 = null;
     r.new_points = (Array.isArray(r.new_points) ? r.new_points : []).filter((p) => p && NODE.test(p.node) && (p.point || p.name)).slice(0, 5)
       .map((p) => ({ node: p.node, domain: DOM.includes(p.domain) ? p.domain : "tech", kind: p.kind === "drill" ? "drill" : "point",
         name: String(p.name || "").slice(0, 60), point: String(p.point || "").slice(0, 300), how: String(p.how || "").slice(0, 300), dose: String(p.dose || "").slice(0, 80) }));

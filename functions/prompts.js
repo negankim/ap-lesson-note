@@ -25,6 +25,19 @@ function safety(minor) {
 - 이 골퍼는 미성년자다. 쉬운 말과 존댓말로, 격려하되 과장하지 않는다. 연락처·주소·학교 같은 개인 정보는 묻거나 기록하지 않는다. 하루 연습량은 코치가 정한 범위를 넘기지 않는다.` : "");
 }
 
+/* AP Swing Learning Matrix 인과 구조 (대표 정의)
+ * N1 멘탈 포커스는 단계가 아니라 N2~N8 모두에 곱해지는 조절 계수(0~1). 기술 위치와 따로 본다.
+ * 만들기 N2→N3→N4 수직 인접 인과, N5 실제 임팩트는 경계 노드(거울 짝 없는 축),
+ * 거울 인과 N2↔N8 · N3↔N7 · N4↔N6. 유지 N6→N7→N8은 한 방향.
+ * 회귀: 1차 거울 짝 만들기 노드, 2차 바로 아래 인접 노드. */
+const CAUSAL = `[인과 구조 — 판정의 바탕]
+- N1 멘탈 포커스는 단계가 아니라 N2~N8 모든 단계에 곱해지는 조절 계수(0~1)다. 수행 = 기술 수준 × 멘탈 포커스. 그래서 같은 기술이 연습장과 대회·압박에서 다르게 나오면 멘탈 포커스가 낮아진 것이다.
+- 기술 원인은 node(N2~N8)에, 멘탈 포커스는 mf에 따로 판단한다. 멘탈 문제를 기술 노드로 바꿔 부르지 않고, 기술 문제를 멘탈 탓으로 돌리지 않는다. 기술 근거 없이 긴장·루틴·집중만의 문제일 때만 node를 N1로 둔다.
+- 만들기(Creation) N2 머릿속 임팩트 → N3 페이스·레버 → N4 클럽 경로는 수직 인접 인과다. 위 단계의 문제는 바로 아래 단계로 내려가 확인한다.
+- N5 실제 임팩트는 경계 노드다. 만들기 단계의 결과가 쏟아져 드러나는 축이라 거울 짝이 없다. N5에서 보이는 문제는 N2~N4 중 어디서 흘러왔는지 확인한다.
+- 거울 인과: N2↔N8, N3↔N7, N4↔N6. 유지(Sustaining) N6 → N7 → N8은 한 방향으로만 올라간다.
+- 회귀 경로: 유지 단계 문제는 1차로 거울 짝인 만들기 노드(via)로, 그래도 설명되지 않으면 2차로 바로 아래 인접 노드(via2)로 내려가 확인한다. (N6→via N4 · N7→via N3, 2차 N6 · N8→via N2, 2차 N7)`;
+
 function organizePrompt({ text, coach, profile, history, lib, minor }) {
   const level = (profile && LV[profile.level]) ? profile.level : "A";
   const hist = (history || []).map((h) => `- ${h.date} ${h.title} (${h.node || "미정"})`).join("\n") || "없음";
@@ -37,8 +50,10 @@ ${hist}
 [AP Swing Learning Matrix 8노드]
 N1 Mental Focus(주의·긴장·루틴, 모든 노드에 곱해지는 계수) / N2 Perceived Impact(머릿속 임팩트·의도) / N3 Face & Lever(페이스·레버, 공의 출발 방향) / N4 Club Path(클럽 경로, 공의 휘어짐) / N5 Real Impact(컨택·타점·탄도) / N6 Consistency(재현성, 거울 N4) / N7 Efficiency(효율·비거리, 거울 N3) / N8 Adaptability(실전 적용, 거울 N2)
 [판정 규칙]
-규칙1 공의 출발 방향이 틀리면 N3. 규칙2 출발은 맞는데 휘면 N4. 규칙3 컨택·탄도 문제는 N5. 규칙4 좌우가 섞이는 편차는 N6(via N4). 비거리 정체는 N7(via N3). 연습장에선 되는데 코스에서 안 되면 N8(via N2). 긴장·루틴·집중 문제는 N1. 대회·압박에서 더 심해지면 mental=true.
+규칙1 공의 출발 방향이 틀리면 N3. 규칙2 출발은 맞는데 휘면 N4. 규칙3 컨택·탄도 문제는 N5(어느 만들기 단계에서 흘러왔는지 via로). 규칙4 좌우가 섞이는 편차는 N6(via N4). 비거리 정체는 N7(via N3). 연습장에선 되는데 코스에서 안 되면 N8(via N2). 기술 근거 없이 긴장·루틴·집중만의 문제면 N1.
+규칙5 멘탈 포커스(mf)는 기술 판정과 별개로 항상 본다: 대회·압박·첫 홀·실수 직후에 더 심해지거나, 연습 때와 결과가 다르면 낮음. 근거가 없으면 "판단 보류". mf가 낮음이면 mental=true.
 근거가 부족하면 node는 null, confidence는 "낮음", check에 확인 질문 하나.
+${CAUSAL}
 
 [AP 훈련 라이브러리 · 코치진이 검증 중인 처방. 레슨 내용과 맞는 항목이 있으면 먼저 쓴다. 기준은 골퍼 구분(투어·아마·일반)에 맞는 것을 고른다]
 ${libForPrompt(lib)}
@@ -57,7 +72,7 @@ ${safety(minor)}
 - 레슨 내용이 골프 레슨·연습 이야기가 아니면 다른 것은 만들지 말고 {"off_topic":true} 만 낸다.
 
 [출력] JSON 하나만:
-{"title":"한 줄 제목","pillar":"drive|iron|short|putt|course|body|mind|life","problem":{"observation":"","interpretation":"","basis":""},"node":"N1~N8 또는 null","via":"노드 또는 null","mental":false,"node_reason":"판정 이유(규칙 번호 포함)","confidence":"높음|중간|낮음","check":"","lesson":{"points":[""],"feels":[""]},"solution":"","drills":[{"name":"","how":"","dose":"","freq":"","source":"코치|AP 라이브러리|AI 보완","lib_id":""}],"plan":[{"day":1,"focus":"","tasks":[""]}],"recheck":"","missing":[""],"new_points":[{"node":"N1~N8","domain":"tech|mental|fitting|physical|course","kind":"point|drill","name":"짧은 이름","point":"코치가 한 말 그대로에 가깝게","how":"","dose":""}]}
+{"title":"한 줄 제목","pillar":"drive|iron|short|putt|course|body|mind|life","problem":{"observation":"","interpretation":"","basis":""},"node":"N1~N8 또는 null","via":"노드 또는 null","via2":"2차 회귀 노드 또는 null","mental":false,"mf":{"level":"높음|보통|낮음|판단 보류","signs":"그렇게 본 근거(레슨에 나온 말)","basis":"코치 판단|본인 진술|AI 추정"},"node_reason":"판정 이유(규칙 번호 포함)","confidence":"높음|중간|낮음","check":"","lesson":{"points":[""],"feels":[""]},"solution":"","drills":[{"name":"","how":"","dose":"","freq":"","source":"코치|AP 라이브러리|AI 보완","lib_id":""}],"plan":[{"day":1,"focus":"","tasks":[""]}],"recheck":"","missing":[""],"new_points":[{"node":"N1~N8","domain":"tech|mental|fitting|physical|course","kind":"point|drill","name":"짧은 이름","point":"코치가 한 말 그대로에 가깝게","how":"","dose":""}]}
 
 [레슨 내용]
 ${text}`;
@@ -68,14 +83,17 @@ function feedbackPrompt({ lesson, verdict, text, minor }) {
   const prev = ((lesson && lesson.feedback) || [])
     .map((f) => `- ${f.date} ${f.verdict}: ${f.text || ""} → ${f.adjust || ""}`).join("\n") || "없음";
   return `너는 AP 골프 아카데미의 연습 파트너다. 골퍼가 레슨 후 연습한 결과를 말했다. 다음 연습을 조정한다.
-레슨: ${r.title} / 위치 ${r.node || "미정"} / 솔루션: ${r.solution}
+레슨: ${r.title} / 위치 ${r.node || "미정"}${r.via ? " (via " + r.via + (r.via2 ? ", 2차 " + r.via2 : "") + ")" : ""} / 멘탈 포커스 ${(r.mf && r.mf.level) || (r.mental ? "낮음" : "판단 보류")} / 솔루션: ${r.solution}
 코치 포인트: ${((r.lesson && r.lesson.points) || []).join(" / ")}
 처방 훈련: ${(r.drills || []).map((d) => d.name + " " + (d.dose || "")).join(" / ")}
 이전 피드백:
 ${prev}
 이번 반응: ${verdict}${text ? " / " + text : ""}
 
+${CAUSAL}
 [원칙] 코치의 처방을 뒤집지 말고 수행 방법·강도·설명을 조정한다. 반응이 같은 문제가 3번 이상이면 coach_needed=true. 근거가 본인 진술뿐이면 단정하지 말고 확인할 것을 말한다.
+- 연습에선 되는데 실전·긴장 상황에서만 안 되면 기술을 더 바꾸지 말고 멘탈 포커스(루틴·주의) 쪽으로 조정한다.
+- '여전하다'가 반복되면 회귀 경로(거울 짝 → 인접 노드)에서 무엇을 확인할지 ask_coach에 묻는다. 위치 판정을 직접 바꾸지는 않는다.
 ${safety(minor)}
 JSON 하나만: {"adjust":"다음 연습에서 바꿀 것 1~2문장","drill":{"name":"","how":"","dose":"","freq":"","source":"AI 보완"} 또는 null,"coach_needed":false,"ask_coach":"코치에게 물어볼 질문 하나"}`;
 }
@@ -87,7 +105,7 @@ function chatPrompt({ question, lessons, profile, history, minor, today }) {
     const r = l.result || {}, done = l.done || [];
     const fb = (l.feedback || []).slice(-3).map((f) => `${f.date} ${f.verdict}${f.text ? " / " + f.text : ""}${f.adjust ? " → 조정: " + f.adjust : ""}`).join(" | ") || "없음";
     return `[L${i + 1}] ${l.date || ""} · 코치 ${l.coach || "미기재"} · ${r.title || ""}
-  위치 ${r.node || "미정"}${r.via ? " (via " + r.via + ")" : ""} · 근거 ${(r.problem && r.problem.basis) || ""} · 현상 ${(r.problem && r.problem.observation) || ""} · 원인 ${(r.problem && r.problem.interpretation) || ""}
+  위치 ${r.node || "미정"}${r.via ? " (via " + r.via + (r.via2 ? ", 2차 " + r.via2 : "") + ")" : ""} · 멘탈 포커스 ${(r.mf && r.mf.level) || (r.mental ? "낮음" : "판단 보류")} · 근거 ${(r.problem && r.problem.basis) || ""} · 현상 ${(r.problem && r.problem.observation) || ""} · 원인 ${(r.problem && r.problem.interpretation) || ""}
   판정 이유 ${r.node_reason || ""}
   코치 포인트 ${((r.lesson && r.lesson.points) || []).join(" / ")} · 감각 표현 ${((r.lesson && r.lesson.feels) || []).join(" / ")}
   솔루션 ${r.solution || ""}
@@ -106,6 +124,8 @@ daryl(데릴, 벌꿀오소리): 훈련 담당. 오늘 뭐 해요, 배틀플랜, 
 paco(파코, 카멜레온): 감각과 실전. 느낌이 안 와요, 코스에서 안 돼요, 실전 적용.
 
 [AP Swing Learning Matrix] N1 멘탈 포커스 / N2 머릿속 임팩트 / N3 페이스·레버(출발 방향) / N4 클럽 경로(휘어짐) / N5 실제 임팩트(컨택) / N6 재현성 / N7 효율(비거리) / N8 적응(실전)
+${CAUSAL}
+- 원인을 설명할 때는 이 인과 구조로 설명하되, 기록에 없는 회귀·멘탈 판단을 새로 내리지 않고 코치님께 확인할 질문으로 돌린다.
 
 [내 레슨 기록 · 최신순]
 ${L}
