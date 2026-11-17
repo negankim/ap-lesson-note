@@ -714,6 +714,7 @@ async function boot(){
   db.collection("library").onSnapshot(snap=>{gotLib=true;clearTimeout(lt);lib=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$("v-lib").hidden)renderLib();if(!$("v-train").hidden){renderMandalaAP();renderPlan()}},()=>{clearTimeout(lt)});
   renderChart();
   show("home");
+  $("dp-tab").hidden=false;
   await loadChat();
 }
 
@@ -1220,3 +1221,37 @@ $("bplan").addEventListener("click",async e=>{const b=e.target.closest('[data-m=
 $("bplan").addEventListener("change",async e=>{const c=e.target.closest("input[data-sess]");if(!c)return;const s=mandala.sessions.find(x=>x.n===Number(c.dataset.sess));if(!s)return;
   const id=c.dataset.item;s.done=c.checked?[...new Set([...s.done,id])]:s.done.filter(x=>x!==id);
   try{await saveMandala()}catch(_){toast("저장하지 못했어요")}renderPlan();renderMandalaAP();chartSay()});
+
+
+/* ===== 나의 데이터 (오른쪽 패널) =====
+   휴대폰에서 오른쪽 가장자리 탭을 누르거나 왼쪽으로 밀면 펼쳐진다. 내 기록을 한눈에 보고 각 방으로 바로 간다. */
+function dpOpen(){renderDataPanel();$("dpanel").hidden=false;requestAnimationFrame(()=>$("dpanel").classList.add("on"));$("dp-tab").setAttribute("aria-expanded","true");document.body.style.overflow="hidden";setTimeout(()=>$("dpanel").querySelector(".dp-x").focus(),250)}
+function dpClose(){const p=$("dpanel");if(p.hidden)return;p.classList.remove("on");$("dp-tab").setAttribute("aria-expanded","false");document.body.style.overflow="";setTimeout(()=>{p.hidden=true;$("dp-tab").focus({preventScroll:true})},260)}
+function renderDataPanel(){
+  const coachL=lessons.filter(l=>l.source!=="self"),selfL=lessons.filter(l=>l.source==="self");
+  const ss=(mandala&&mandala.sessions)||[],fin=ss.filter(x=>x.items.length&&x.done.length===x.items.length).length;
+  const last=lessons[0]?lessons[0].date:"";$("dp-last").textContent=last?"마지막 기록 "+last.replace(/-/g,"."):"";
+  $("dp-tiles").innerHTML=[["레슨 기록",coachL.length,"개"],["문제 진술",selfL.length,"개"],["배틀플랜",ss.length?fin:"—",ss.length?" / "+ss.length:""]]
+    .map(([l,v,u])=>`<div class="dp-tile"><small>${l}</small><b>${v}<i>${u}</i></b></div>`).join("");
+  const b=stmt.bio||{},areas=AREAS.filter(a=>a.rate!==false).map(a=>[a.n,areaAvg(a)]);
+  const row=(n,title,sub,body,go,cls="")=>`<details class="dp-item${cls}"><summary><span class="dp-n">${n}</span><span class="dp-t"><b>${title}</b><small>${sub}</small></span><span class="dp-chev" aria-hidden="true">⌄</span></summary><div class="dp-body">${body}${go?`<button class="btn sm gold" type="button" data-dp-go="${go}">열기</button>`:""}</div></details>`;
+  const lessonRow=l=>`<div class="dp-line"><span>${esc(md(l.date))}</span><span>${esc(l.result.title)}</span></div>`;
+  $("dp-list").innerHTML=
+    row("01","나의 스테이트먼트",[b.years,b.handicap].filter(Boolean).map(esc).join(" · ")||"아직 비어 있어요",
+      `<div class="dp-bars">${areas.map(([n,v])=>`<div><span>${esc(n)}</span><i><i style="width:${v?v/5*100:0}%"></i></i><small>${v?v.toFixed(1):"—"}</small></div>`).join("")}</div>`,"me")+
+    row("02","내 문제 진술",selfL[0]?esc(selfL[0].result.title):"아직 남긴 진술이 없어요",selfL.slice(0,3).map(lessonRow).join("")||`<p class="hint">루크에게 지금 겪는 문제를 골라서 알려 주세요.</p>`,"dx")+
+    row("03","레슨 기록",coachL[0]?esc(md(coachL[0].date)+" · "+(coachL[0].coach||"코치 미기재")):"아직 레슨 기록이 없어요",coachL.slice(0,3).map(lessonRow).join("")||`<p class="hint">로건에게 코치님 말씀을 들려주세요.</p>`,"lesson")+
+    row("04","만다라트 · 배틀플랜",mandala?(ss.length?`배틀플랜 ${fin}/${ss.length}회차`:"배틀플랜을 만들어 보세요"):"아직 만다라트가 없어요",
+      mandala?`<div class="dp-mini">${[0,1,2,3,null,4,5,6,7].map(i=>i===null?`<span class="g">${esc(mandala.goal||profile.goal||DEF_GOAL[profile.level])}</span>`:(()=>{const [p,n]=PILLARS[i],st=cellStat(p);return `<span style="--p:${st.pct||0}%">${esc(n)}<small>${st.pct===null?"—":st.pct+"%"}</small></span>`})()).join("")}</div>`:`<p class="hint">데릴의 훈련장에서 만다라트를 만들 수 있어요.</p>`,"train")+
+    `<div class="dp-item soon"><span class="dp-n">05</span><span class="dp-t"><b>맞는 레슨자 추천</b><small>곧 열려요</small></span></div>`;
+}
+$("dp-tab").addEventListener("click",dpOpen);
+$("dpanel").addEventListener("click",e=>{if(e.target.closest("[data-dp-close]")){dpClose();return}const g=e.target.closest("[data-dp-go]");if(g){dpClose();show(g.dataset.dpGo)}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("dpanel").hidden)dpClose()});
+/* 밀어서 열고 닫기: 오른쪽 가장자리에서 왼쪽으로 밀면 열림, 패널을 오른쪽으로 밀면 닫힘 */
+(function(){let x0=null,y0=0,from="";
+  document.addEventListener("touchstart",e=>{const t=e.touches[0];if($("dp-tab").hidden)return;
+    if($("dpanel").hidden&&t.clientX>innerWidth-28&&$("drawer").hidden){x0=t.clientX;y0=t.clientY;from="edge"}else if(!$("dpanel").hidden&&e.target.closest(".dp-sheet")){x0=t.clientX;y0=t.clientY;from="sheet"}else x0=null},{passive:true});
+  document.addEventListener("touchend",e=>{if(x0===null)return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=Math.abs(t.clientY-y0);
+    if(dy<60){if(from==="edge"&&dx<-50)dpOpen();if(from==="sheet"&&dx>70)dpClose()}x0=null},{passive:true});
+})();

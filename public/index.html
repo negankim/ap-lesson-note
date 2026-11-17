@@ -303,6 +303,18 @@
   </section>
 </div>
 
+<!-- 나의 데이터: 오른쪽 가장자리 탭을 누르거나 밀면 펼쳐지는 패널 -->
+<button id="dp-tab" class="dp-tab" type="button" aria-controls="dpanel" aria-expanded="false" hidden><span aria-hidden="true">‹</span><small>내 데이터</small></button>
+<div id="dpanel" class="dpanel" hidden>
+  <div class="dp-scrim" data-dp-close></div>
+  <button class="dp-handle" type="button" data-dp-close aria-label="나의 데이터 닫기">›</button>
+  <section class="dp-sheet" role="dialog" aria-modal="true" aria-labelledby="dp-h">
+    <header class="dp-head"><img src="img/ap-monogram.webp" alt="" width="30" height="30"><h2 id="dp-h">나의 데이터</h2><button class="dp-x" type="button" data-dp-close aria-label="닫기">×</button></header>
+    <div class="dp-k"><span>MY RECORDS</span><span id="dp-last"></span></div>
+    <div class="dp-tiles" id="dp-tiles"></div>
+    <div class="dp-list" id="dp-list"></div>
+  </section>
+</div>
 <div class="dw" id="drawer" hidden>
   <div class="dw-bg" data-close></div>
   <nav class="dw-panel" aria-label="메뉴">
