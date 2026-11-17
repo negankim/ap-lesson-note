@@ -396,7 +396,6 @@ function renderLegacy(){
   const gs=coachGroups(),pts=gs.flatMap(c=>c.points);
   const tot=pts.length;
   $("legacy-n").textContent=tot?`내가 보탠 잎 ${tot}개 · 코치 ${gs.length}명`:"";
-  $("legacy-map").innerHTML="";
   $("legacy-list").innerHTML=gs.length?gs.map((c,i)=>{
     const by={};c.points.forEach(p=>by[p.node]=(by[p.node]||0)+1);
     return `<div class="coach-c"><div class="t-head"><b>${esc(c.name)}</b><span class="hint">레슨 ${c.lessons}번 · 최근 ${esc(md(c.last))}</span></div>
