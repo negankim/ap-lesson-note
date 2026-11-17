@@ -36,10 +36,11 @@ let profile={level:"A",goal:""},lessons=[],draft=null,pillarFilter=null,openId=n
 /* ===== 화면 전환: 광장(첫 화면) · 로건(레슨 기록) · 루크(진단) · 데릴(훈련장) · 파코(감각·실전) · 크루에게 묻기 · 라이브러리(코치) ===== */
 const VIEWS=["home","lesson","dx","train","feel","me","ask","lib"],ALIAS={today:"home",plaza:"home",chart:"dx"};
 function show(tab){
+  if(typeof crewStop==="function")crewStop();
   tab=ALIAS[tab]||tab;if(!VIEWS.includes(tab))tab="home";
   if(tab==="lib"&&!isEditor)tab="home";
   for(const v of VIEWS)$("v-"+v).hidden=tab!==v;
-  if(tab==="home")openPlaza();
+  if(tab==="home"){openPlaza();setTimeout(crewWalk,300)}
   plazaTree&&plazaTree.pause(tab!=="home");
   if(tab==="lesson"){renderList();renderLegacy()}
   if(tab==="dx"){renderProbForm();renderProbList();chartSay();$("coach-zone").hidden=!isEditor;if(isEditor)renderDx()}
@@ -1291,3 +1292,37 @@ function growTour(tree,el,realData){
   const timer=setInterval(()=>{tree.update(demo(s));
     if(s>=31){clearInterval(timer);setTimeout(()=>{el.classList.remove("growing");tree.update({...realData(),stageOverride:31})},1200);return}s++},190);
 }
+
+
+/* ===== 광장 크루가 스스로 돌아다니기 =====
+   크루는 광장 바닥(타원) 안에서 천천히 걸어 다니다 멈춰 쉬고, 가끔 인사한다. 누르면 그 방으로 들어간다(조작해서 움직이는 게임은 아님).
+   그림은 자세별 정지 이미지라 다리 동작은 없고, 이동 + 살짝 흔들림으로 걷는 느낌만 낸다. 모자 AP 모노그램이 뒤집히지 않게 좌우 반전은 하지 않는다. */
+const WALK={timers:[],on:false};
+function floorPoint(self){ // 바닥 타원 안의 한 점 (left %, bottom %) — 나무 줄기 앞 가운데는 비우고, 다른 크루(가는 곳 포함)와 떨어진 곳
+  const others=[...document.querySelectorAll("#v-home .station")].filter(x=>x!==self).map(x=>({x:+x.dataset.x,y:+x.dataset.y}));
+  for(let k=0;k<40;k++){const x=6+Math.random()*80,y=3+Math.random()*30;
+    const cx=(x+7-50)/46,cy=(y-18)/17;if(cx*cx+cy*cy>1)continue;if(Math.abs(x+7-50)<11&&y>22)continue;
+    if(others.some(o=>Math.abs(o.x-x)<17&&Math.abs(o.y-y)<12))continue;return {x,y}}
+  return {x:10+Math.random()*70,y:6+Math.random()*12};
+}
+function placeStation(st,pt,dur){st.style.transitionDuration=dur+"s";st.style.left=pt.x+"%";st.style.bottom=pt.y+"%";
+  st.style.zIndex=String(40-Math.round(pt.y));const sc=1.08-pt.y/34*0.3;st.style.setProperty("--depth",sc.toFixed(3));st.style.transform=`scale(${sc.toFixed(3)})`;st.style.transformOrigin="50% 100%"}
+function crewWalk(){
+  const sts=[...document.querySelectorAll("#v-home .station")];if(!sts.length)return;
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(!WALK.placed){const start=[{x:8,y:20},{x:24,y:5},{x:62,y:5},{x:80,y:20}];sts.forEach((st,i)=>{st.dataset.x=start[i].x;st.dataset.y=start[i].y;placeStation(st,start[i],0)});WALK.placed=true}
+  if(reduce||WALK.on)return;WALK.on=true;
+  sts.forEach((st,i)=>{
+    const img=st.querySelector(".crew-go img"),id=(img.src.match(/crew3d\/(\w+)-/)||[])[1];
+    if(!st.dataset.bound){st.dataset.bound="1";["pointerenter","focusin"].forEach(ev=>st.addEventListener(ev,()=>{st.dataset.hold="1";st.classList.remove("walking")}));["pointerleave","focusout"].forEach(ev=>st.addEventListener(ev,()=>{delete st.dataset.hold}))}
+    const held=()=>!!st.dataset.hold;
+    const rest=()=>{if(!WALK.on)return;st.classList.remove("walking");
+      if(Math.random()<.35&&id){img.src=`img/crew3d/${id}-greet.webp`;WALK.timers.push(setTimeout(()=>{img.src=`img/crew3d/${id}-idle.webp`},1800))}
+      WALK.timers.push(setTimeout(go,2500+Math.random()*4500))};
+    const go=()=>{if(!WALK.on)return;if(held()||document.hidden||$("v-home").hidden){WALK.timers.push(setTimeout(go,1500));return}
+      const from={x:+st.dataset.x,y:+st.dataset.y},to=floorPoint(st),dist=Math.hypot(to.x-from.x,(to.y-from.y)*1.6),dur=Math.max(2.5,dist/5.5);
+      st.dataset.x=to.x;st.dataset.y=to.y;st.classList.add("walking");placeStation(st,to,dur);WALK.timers.push(setTimeout(rest,dur*1000))};
+    WALK.timers.push(setTimeout(go,800+i*900));
+  });
+}
+function crewStop(){WALK.on=false;WALK.timers.forEach(clearTimeout);WALK.timers=[];document.querySelectorAll("#v-home .station").forEach(st=>{st.classList.remove("walking");st.style.transitionDuration="0s"})}
