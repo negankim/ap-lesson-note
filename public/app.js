@@ -397,7 +397,8 @@ export function mountPlaza(el,st,{landing=false}={}){
     const t=new APLegacyTree(el,{atlasUrl:"img/legacy-tree-atlas-light.webp",data:treeData(st,{landing}),
       onNodeSelect:({nodeId})=>{if(!landing)loadNodePoints(nodeId)}});
     const n=landing?$("lp-tree-n"):$("plaza-n");if(n)n.textContent=statLine(st);
-    if(!landing){plazaTree=t;const d=el.querySelector(".ap-legacy-detail"),slot=$("plaza-detail");if(d&&slot)slot.append(d)}};
+    if(!landing){plazaTree=t;const d=el.querySelector(".ap-legacy-detail"),slot=$("plaza-detail");if(d&&slot)slot.append(d)}
+    growTour(t,el,()=>treeData(landing?st:(plazaStats||st),{landing,points:landing?{}:plazaPoints}),landing?"lp":"plaza")};
   go();
 }
 /* 꽃을 누르면 나무 아래 펼쳐지는 칸에 그 노드의 레슨 포인트와 출처를 채운다 */
@@ -1275,3 +1276,30 @@ function renderDrawerStatus(){
 $("talk-plus").addEventListener("click",()=>{const sh=$("talk-sheet"),open=sh.hidden;sh.hidden=!open;$("talk-plus").setAttribute("aria-expanded",open);$("talk-plus").textContent=open?"×":"+"});
 $("talk-sheet").addEventListener("click",e=>{const b=e.target.closest("[data-tk]");if(!b)return;$("talk-sheet").hidden=true;$("talk-plus").textContent="+";$("talk-plus").setAttribute("aria-expanded","false");
   const a=b.dataset.tk;if(a==="rec"){show("lesson");setTimeout(()=>{$("f-coach").focus();if(dict&&!$("mic-row").hidden)toast("코치 이름을 적고 '레슨 듣기 시작'을 누르면 녹음돼요")},120);return}show(a)});
+
+
+/* ===== 레거시 나무가 자라는 모습 (미리보기) =====
+   처음 보면 1단계부터 32단계(풀옵션)까지 자라는 모습을 보여 주고, 실제 우리 나무 단계로 돌아온다.
+   자라는 동안은 '미리보기'로 분명히 표시한다(시연 숫자를 실제 기록처럼 보이지 않는다). 다시 보기 버튼으로 언제든 재생. */
+function growTour(tree,el,realData,key){
+  if(!tree||!el)return;
+  if(getComputedStyle(el).position==="static")el.style.position="relative";
+  const cap=document.createElement("div");cap.className="grow-cap";cap.setAttribute("aria-live","polite");
+  const btn=document.createElement("button");btn.type="button";btn.className="grow-btn";btn.textContent="▶ 나무가 자라는 모습";
+  el.append(cap,btn);
+  const th=(window.APLegacyTree&&window.APLegacyTree.thresholds)||[];const names=STAGE_NAME;
+  let timer=null;
+  const demo=s=>{const f=s/31,nodes={};["N1","N2","N3","N4","N5","N6","N7","N8"].forEach((n,i)=>nodes[n]={legacyPointCount:Math.round(f*f*80*(.55+.45*((i*37)%10)/10))});
+    return {nodes,totalLegacyPointCount:th[s]||0,stageOverride:s}};
+  const stop=()=>{clearInterval(timer);timer=null;el.classList.remove("growing");tree.update(realData());
+    const t=Number((realData().totalLegacyPointCount))||0;let k=0;th.forEach((v,i)=>{if(t>=v)k=i});
+    cap.innerHTML=`<b>지금 우리 나무</b> · ${esc(names[Math.floor(k/4)]||"")} · 성장 ${k+1}/32`;btn.hidden=false;
+    setTimeout(()=>{if(!timer)cap.classList.add("dim")},2600)};
+  const play=()=>{if(timer)return;btn.hidden=true;cap.classList.remove("dim");el.classList.add("growing");let s=0;
+    const step=()=>{tree.update(demo(s));cap.innerHTML=`<span class="pill">미리보기</span> 레슨 포인트가 쌓이면 이렇게 자라요 · ${esc(names[Math.floor(s/4)]||"")} ${s+1}/32`;
+      if(s>=31){clearInterval(timer);timer=-1;setTimeout(()=>{timer=null;stop()},2400);return}s++};
+    step();timer=setInterval(step,190)};
+  btn.onclick=play;
+  const seen="grow-"+key;let auto=true;try{auto=!sessionStorage.getItem(seen);sessionStorage.setItem(seen,"1")}catch(_){}
+  if(auto&&!matchMedia("(prefers-reduced-motion: reduce)").matches)setTimeout(play,700);else stop();
+}
