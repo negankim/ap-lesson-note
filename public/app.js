@@ -25,9 +25,11 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 const md=s=>s?Number(s.slice(5,7))+"/"+Number(s.slice(8,10)):"";
-function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2400)}
+function toast(t){const el=$("toast");el.textContent=T(t);el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2400)}
 
 let db=null,user=null,uid=null,ai=null,dict=null,seedFn=null,chat=null,legacy=null,account=null,myCoaches=[];
+/* 화면 번역(i18n.js): 한국어 문장을 고른 언어로. 없으면 그대로 */
+const T=s=>(window.APT?window.APT(s):s);
 let micTarget="lesson",lib=[],isEditor=false,stats={},statsAt=0,libNode="",libSt="active",editing=null,profileExists=false;
 const KIND={point:"레슨 포인트",drill:"드릴",training:"훈련"};
 const STATUS={active:"사용 중",pending:"검토 대기",retired:"중지"};
@@ -116,7 +118,7 @@ function resultHTML(r,coach,date,opts={}){
 
 /* ===== 정리하기 ===== */
 $("f-date").value=today();
-$("ex").addEventListener("click",()=>{$("f-text").value=EXAMPLE;if(!$("f-coach").value)$("f-coach").value="예시 코치";$("f-text").focus()});
+$("ex").addEventListener("click",()=>{$("f-text").value=T(EXAMPLE);if(!$("f-coach").value)$("f-coach").value=T("예시 코치");$("f-text").focus()});
 $("go").addEventListener("click",async()=>{
   const text=$("f-text").value.trim(),coach=$("f-coach").value.trim();
   const st=$("st");st.className="status";
@@ -168,7 +170,7 @@ function setupMic(){
   dict.onPartial(({text})=>{if(micTarget==="lesson")$("partial").textContent=text});
   dict.onFinal(({text})=>{const t=micTarget==="prob"?$("p-words"):$("f-text");if(!t)return;t.value=(t.value?t.value.replace(/\s*$/,"")+(micTarget==="prob"?" ":"\n"):"")+text;$("partial").textContent=""});
   dict.onState(({state})=>{on=state==="listening";$("mic").dataset.on=on&&micTarget==="lesson";$("mic-l").textContent=on&&micTarget==="lesson"?"듣는 중 · 눌러서 멈춤":"레슨 듣기 시작";
-    const pm=$("p-mic");if(pm){pm.textContent=on&&micTarget==="prob"?"■ 멈추기":"🎙 말하기"}});
+    const pm=$("p-mic");if(pm){const pon=on&&micTarget==="prob";pm.dataset.on=pon?"1":"";pm.textContent=T(pon?"■ 멈추기":"🎙 말하기")}});
   $("mic").addEventListener("click",()=>{
     if(on){dict.stop().catch(()=>{});return}
     micTarget="lesson";
@@ -616,7 +618,7 @@ const STILL=matchMedia("(prefers-reduced-motion: reduce)").matches;
 const POSE={hello:"greet",guide:"explain",success:"success",think:"think",idle:"idle",point:"point",cheer:"think"};
 const crewImg=(id,motion="idle")=>`img/crew3d/${CH[id]?id:"logan"}-${POSE[motion]||"greet"}.webp`;
 function say(el,text,{now=false,who,motion="hello"}={}){
-  if(!el)return;
+  if(!el)return;text=T(text);
   const id=CH[who||el.dataset.who]?(who||el.dataset.who):"logan",c=CH[id];
   if(el.dataset.said===c.n+text)return;
   el.dataset.said=c.n+text;el.classList.remove("on");
@@ -717,12 +719,14 @@ async function loadGuardQ(){
 }
 $("guard-list").addEventListener("click",async e=>{
   const b=e.target.closest("[data-verify]");if(!b)return;
-  if(!confirm("보호자께 직접 연락해 동의를 확인하셨나요?"))return;
+  if(!confirm(T("보호자께 직접 연락해 동의를 확인하셨나요?")))return;
   b.disabled=true;try{await consent.verify(b.dataset.verify);toast("승인했습니다");loadGuardQ()}catch(_){b.disabled=false;toast("승인하지 못했습니다")}
 });
 async function boot(){
   if(!(await gate()))return;
   renderChart();
+  /* 계정 언어와 화면 언어가 다르면 한 번 맞추고 다시 연다 */
+  {const ul=(user.info&&user.info().lang)||"";if(ul&&ul!==(window.AP_LANG||"ko")&&!sessionStorage.getItem("ap-lang-sync")){try{localStorage.setItem("ap-lang",ul);sessionStorage.setItem("ap-lang-sync","1");location.reload();return}catch(_){}}}
   if(dict&&dict.setLang)dict.setLang(speakLang());
   setupMic();fillSpeak();
   try{isEditor=!!(await user.canEdit())}catch(_){}
@@ -1107,7 +1111,7 @@ function renderProbForm(){
 $("prob-form").addEventListener("click",e=>{
   if(e.target.closest('[data-pick="p-shot"] .chip')){setTimeout(()=>{const putt=picked($("prob-form"),"p-shot").includes("퍼트"),sw=picked($("prob-form"),"p-shot").some(x=>x!=="퍼트");
     const keep=picked($("prob-form"),"p-miss");$("p-miss-box").innerHTML=chipsHTML("p-miss",[...(sw||!putt?P_MISS.swing:[]),...(putt?P_MISS.putt:[])],keep,true)},0)}
-  if(e.target.id==="p-mic"&&dict){if(e.target.textContent.includes("멈추기")){dict.stop().catch(()=>{});return}
+  if(e.target.id==="p-mic"&&dict){if(e.target.dataset.on==="1"){dict.stop().catch(()=>{});return}
     micTarget="prob";dict.start().catch(()=>toast("마이크를 쓸 수 없어 글로 적어 주세요"))}
 });
 $("prob-form").addEventListener("submit",async e=>{
@@ -1232,7 +1236,7 @@ async function makeMandala(keepGoal){
 $("mandala").addEventListener("click",async e=>{const b=e.target.closest("[data-m]");if(!b)return;const a=b.dataset.m;
   try{
     if(a==="make"){await makeMandala();toast("만다라트를 만들었어요. 아래에서 배틀플랜을 만들어 보세요");renderMandalaAP();renderPlan();return}
-    if(a==="remake"){if(mandala&&(mandala.sessions||[]).some(s=>s.done.length)&&!confirm("다시 만들면 지금 배틀플랜 체크는 기록으로 보관되고 새로 시작해요. 다시 만들까요?"))return;await makeMandala(mandala?mandala.goal:"");toast("최근 기록에 맞춰 다시 만들었어요");renderMandalaAP();renderPlan();return}
+    if(a==="remake"){if(mandala&&(mandala.sessions||[]).some(s=>s.done.length)&&!confirm(T("다시 만들면 지금 배틀플랜 체크는 기록으로 보관되고 새로 시작해요. 다시 만들까요?")))return;await makeMandala(mandala?mandala.goal:"");toast("최근 기록에 맞춰 다시 만들었어요");renderMandalaAP();renderPlan();return}
     if(a==="cell"){mOpen=mOpen===b.dataset.p?"":b.dataset.p;renderMandalaAP();return}
     if(a==="goal"){mOpen=mOpen==="goal"?"":"goal";renderMandalaAP();return}
     if(a==="goal-save"){mandala.goal=$("m-goal").value.trim();await saveMandala();mOpen="";renderMandalaAP();return}
@@ -1241,7 +1245,7 @@ $("mandala").addEventListener("click",async e=>{const b=e.target.closest("[data-
 $("bplan").addEventListener("click",async e=>{const b=e.target.closest('[data-m="plan"]');if(!b)return;const r=$("bplan");
   const set={perWeek:slVal(r,"bp-w"),minutes:slVal(r,"bp-m"),weeks:slVal(r,"bp-k")};
   if([set.perWeek,set.minutes,set.weeks].some(v=>v===null)){toast("주 몇 회·회당 시간·기간을 밀어서 골라 주세요");return}
-  if((mandala.sessions||[]).some(s=>s.done.length)&&!confirm("지금 플랜의 체크는 기록으로 보관되고 새로 시작해요. 다시 만들까요?"))return;
+  if((mandala.sessions||[]).some(s=>s.done.length)&&!confirm(T("지금 플랜의 체크는 기록으로 보관되고 새로 시작해요. 다시 만들까요?")))return;
   if((mandala.sessions||[]).length)mandala.history=[...(mandala.history||[]),{at:mandala.updatedAt||"",settings:mandala.settings,sessions:mandala.sessions,cells:mandala.cells}].slice(-5);
   mandala.settings=set;mandala.sessions=genSessions(mandala.cells,set,mandala.focus||[]);
   try{await saveMandala();toast(`배틀플랜 ${mandala.sessions.length}회차를 만들었어요`);renderPlan();renderMandalaAP()}catch(_){toast("저장하지 못했어요")}
@@ -1287,8 +1291,8 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("dpanel").hidden
 
 /* ===== 오늘의 대화 (첫 화면) + 왼쪽 메뉴 상태 ===== */
 function renderTalk(){
-  const d=new Date();$("talk-date").textContent=`${d.getMonth()+1}월 ${d.getDate()}일 ${"일월화수목금토"[d.getDay()]}요일`;
-  const name=($("who").textContent||"").trim();const nm=name&&name!=="내 기록"&&name!=="연결 중"?name+"님":"";
+  const d=new Date();$("talk-date").textContent=(window.AP_LANG&&window.AP_LANG!=="ko")?d.toLocaleDateString({en:"en-US",ja:"ja-JP",zh:"zh-CN",ms:"ms-MY",id:"id-ID"}[window.AP_LANG]||"en-US",{month:"long",day:"numeric",weekday:"long"}):`${d.getMonth()+1}월 ${d.getDate()}일 ${"일월화수목금토"[d.getDay()]}요일`;
+  const name=($("who").textContent||"").trim();const nm=name&&name!=="내 기록"&&name!=="연결 중"?((window.AP_LANG||"ko")!=="ko"?" "+name:name+"님"):"";
   const ss=(mandala&&mandala.sessions)||[],nx=ss.find(x=>x.done.length<x.items.length);
   const line2=!lessons.length?"오늘 받은 레슨이나 지금 겪는 문제부터 남겨 볼까요?":nx?`오늘은 배틀플랜 ${nx.n}회차가 기다리고 있어요. 무엇부터 해 볼까요?`:"오늘은 무엇을 남겨 볼까요?";
   $("talk-hi").innerHTML=`<p>안녕하세요${nm?", "+esc(nm):""}.</p><p>${esc(line2)}</p>`;
@@ -1498,7 +1502,7 @@ $("link-box").addEventListener("click",async e=>{const b=e.target.closest("[data
   try{
     if(a==="ok"){await db.doc(`players/${uid}/viewers/${id}`).update({status:"active",approvedAt:new Date().toISOString()});toast("수락했어요");buzz()}
     if(a==="no"){await db.doc(`players/${uid}/viewers/${id}`).update({status:"declined",approvedAt:new Date().toISOString()});toast("거절했어요")}
-    if(a==="cut"){if(!confirm("연결을 끊을까요? 그 사람은 더 이상 내 기록을 볼 수 없어요."))return;await db.doc(`players/${uid}/viewers/${id}`).delete();toast("연결을 끊었어요")}
+    if(a==="cut"){if(!confirm(T("연결을 끊을까요? 그 사람은 더 이상 내 기록을 볼 수 없어요.")))return;await db.doc(`players/${uid}/viewers/${id}`).delete();toast("연결을 끊었어요")}
     if(a==="make"){const role=picked($("link-box"),"lk-role")[0]||"coach";const arr=new Uint8Array(9);crypto.getRandomValues(arr);
       const code=[...arr].map(x=>"abcdefghjkmnpqrstuvwxyz23456789"[x%31]).join("");
       await db.doc("invites/"+code).set({owner:uid,ownerName:myName(),role,createdAt:new Date().toISOString(),expires:Date.now()+7*864e5});
@@ -1571,7 +1575,7 @@ function renderSet(){
       <div id="st-name" hidden></div>
       ${acctRow("로그인 이메일",esc(inf.email||"—"))}
       ${acctRow("로그인 방식",inf.provider==="google.com"?"Google로 로그인":esc(inf.provider||"—"))}</div>
-    <h3 class="acct-k">크루 말투</h3><div class="acct-list">${TONE_OPTS.map(([k,l,ex])=>`<button type="button" class="acct-row tone" data-tone="${k}" aria-pressed="${k===tone}"><span><b>${l}</b><small>“${ex}”</small></span><i class="tone-ck" aria-hidden="true">${k===tone?"✓":""}</i></button>`).join("")}</div>
+    <h3 class="acct-k">크루 말투</h3><div class="acct-list">${TONE_OPTS.map(([k,l,ex])=>`<button type="button" class="acct-row tone" data-tone="${k}" aria-pressed="${k===tone}"><span><b>${l}</b><small>“${T(ex)}”</small></span><i class="tone-ck" aria-hidden="true">${k===tone?"✓":""}</i></button>`).join("")}</div>
     <p class="hint" style="margin-top:-4px">말하는 방식만 바뀌고, 정리 규칙과 안전 규칙은 그대로예요.</p>
     <h3 class="acct-k">기능</h3><div class="acct-list">
       ${acctRow("언어","화면과 크루의 답, 레슨 정리 결과가 이 언어로 나와요",`<select class="lang-sel" id="st-lang">${LANG_OPTS.map(([k,l])=>`<option value="${k}" ${k===(inf.lang||"ko")?"selected":""}>${l}</option>`).join("")}</select>`)}
@@ -1597,9 +1601,9 @@ $("set-box").addEventListener("click",async e=>{
   if(b.dataset.st==="name"){const box=$("st-name");box.hidden=!box.hidden;box.innerHTML=`<form class="acct-row col" id="st-name-f"><label class="fld">앱 안에서 보일 이름<input id="st-name-i" maxlength="20" value="${esc(myName())}"></label><p class="hint" style="margin:0">연결된 코치님·부모님 화면에도 이 이름으로 보여요.</p><div class="actions"><button class="btn sm gold" type="submit">저장</button></div></form>`;return}
   if(b.dataset.st==="del"){const box=$("st-del");box.hidden=!box.hidden;box.innerHTML=`<div class="acct-row col"><p style="margin:0">지우면 내 레슨 기록, 문제 진술, 스테이트먼트, 만다라트·배틀플랜, 훈련 카드, 대화, 연결이 모두 사라지고 되돌릴 수 없어요.</p>
       <p class="hint" style="margin:0">공동 레거시 나무에 남긴 레슨 포인트는 이름이 가려진 채 남아요.</p>
-      <label class="fld">확인을 위해 <b>삭제</b>라고 적어 주세요<input id="st-del-i" maxlength="4" autocomplete="off"></label>
+      <label class="fld">확인을 위해 <b>삭제</b>라고 적어 주세요<input id="st-del-i" maxlength="12" autocomplete="off"></label>
       <div class="actions"><button class="btn sm danger-btn" type="button" data-st="del-go">계정 삭제</button></div><p class="status err" id="st-del-st"></p></div>`;return}
-  if(b.dataset.st==="del-go"){if($("st-del-i").value.trim()!=="삭제"){$("st-del-st").textContent="'삭제'라고 정확히 적어 주세요.";return}
+  if(b.dataset.st==="del-go"){if(![T("삭제"),"삭제"].includes($("st-del-i").value.trim())){$("st-del-st").textContent="'삭제'라고 정확히 적어 주세요.";return}
     if(!account){$("st-del-st").textContent="지금은 삭제할 수 없어요. 새로고침 후 다시 해 주세요.";return}
     b.disabled=true;$("st-del-st").textContent="지우는 중이에요…";
     try{await account({task:"delete",confirm:"삭제"});toast("계정을 삭제했어요");setTimeout(()=>$("logout").click(),800)}catch(_){$("st-del-st").textContent="삭제하지 못했어요. 잠시 뒤 다시 해 주세요.";b.disabled=false}}
@@ -1607,7 +1611,7 @@ $("set-box").addEventListener("click",async e=>{
 $("set-box").addEventListener("submit",async e=>{if(e.target.id!=="st-name-f")return;e.preventDefault();const v=$("st-name-i").value.trim();if(!v){toast("이름을 적어 주세요");return}
   try{await db.doc("users/"+uid).update({nickname:v});$("who").textContent=v;setMenuUser(v,user.role?user.role():"");toast("이름을 바꿨어요");buzz();renderSet()}catch(_){toast("저장하지 못했어요")}});
 $("set-box").addEventListener("change",async e=>{if(e.target.id==="st-vib"){prefSet("vib",e.target.checked?"1":"0");if(e.target.checked)buzz()}
-  if(e.target.id==="st-lang"){const v=e.target.value;try{await db.doc("users/"+uid).update({lang:v});prefSet("speak",(LANG_OPTS.find(x=>x[0]===v)||[])[2]||"ko-KR");toast("언어를 바꿨어요");setTimeout(()=>location.reload(),500)}catch(_){toast("저장하지 못했어요")}return}
+  if(e.target.id==="st-lang"){const v=e.target.value;try{await db.doc("users/"+uid).update({lang:v});try{localStorage.setItem("ap-lang",v)}catch(_){}prefSet("speak",(LANG_OPTS.find(x=>x[0]===v)||[])[2]||"ko-KR");toast("언어를 바꿨어요");setTimeout(()=>location.reload(),500)}catch(_){toast("저장하지 못했어요")}return}
   if(e.target.id==="st-res"){const on=e.target.checked;try{await db.doc("users/"+uid).update({research:on,researchAt:new Date().toISOString()});const i=user.info();user.info=()=>({...i,research:on});toast(on?"연구 참여에 동의했어요":"연구 참여를 껐어요")}catch(_){e.target.checked=!on;toast("저장하지 못했어요")}}});
 document.addEventListener("click",e=>{if(e.target.closest("#set-box [data-logout]"))$("logout").click()});
 

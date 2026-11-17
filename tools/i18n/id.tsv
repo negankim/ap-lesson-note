@@ -1,0 +1,1080 @@
+0	AP Lesson Note
+1	Masuk
+2	Pelajaran satu jam.
+3	Ingatan hanya
+4	sehari.
+5	AP mengingat setiap pelajaran yang Anda terima.
+6	Ada pegolf seperti ini
+7	Bisa saat pelajaran,
+8	tapi lupa begitu sampai rumah
+9	Tidak ingat lagi rasanya waktu itu
+10	Setiap pelatih bilang hal berbeda,
+11	tidak tahu harus percaya yang mana
+12	Belajar dari tiga orang, tiga resep berbeda
+13	Banyak berlatih,
+14	tapi tidak tahu apa yang diperbaiki
+15	Banyak bola dipukul, tanpa tujuan
+16	Kesalahan yang sama
+17	berulang berbulan-bulan
+18	Kira sudah beres, ternyata kembali lagi
+19	Orang tua yang penasaran
+20	apa yang dipelajari anaknya
+21	Pelajaran satu jam, sisanya tidak diketahui
+22	Pilih kartu
+23	Alun-Alun Warisan AP
+24	Pengetahuan golf yang tercecer berkumpul
+25	menjadi satu pohon.
+26	Poin pelajaran yang ditinggalkan pelatih dan pemain menumpuk menjadi daun. Bukan kemajuan pribadi, melainkan warisan golf yang diteruskan lintas generasi.
+27	Ketuk buah untuk melihat pengetahuan yang terkumpul di bidang itu
+28	Bantuan Pohon Warisan
+29	Kru AP yang melihat pelajaran bersama Anda
+30	Dengar perkenalan Logan
+31	Logan
+32	Catatan · LEGACY
+33	Mengingat setiap pelajaran dan setiap ucapan pelatih Anda
+34	Dengar perkenalan Rook
+35	Rook
+36	Diagnosis · OUTTHINK
+37	Mencari penyebab masalah dan menandai posisi Anda di Matrix
+38	Dengar perkenalan Daryl
+39	Daryl
+40	Latihan · GRIT
+41	Menemani rencana tempur 6 hari Anda sampai tuntas
+42	Dengar perkenalan Paco
+43	Paco
+44	Rasa & Permainan · FEEL
+45	Mendengar rasa latihan Anda dan menyesuaikannya untuk permainan nyata
+46	Ketuk karakter untuk menyapa.
+47	Susun pelajaran hari ini sekarang
+48	Mulai dengan Google
+49	Pelajaran disusun oleh AI (Claude). Hasilnya tidak menggantikan penilaian pelatih.
+50	AP Golf Co., Ltd. · AP Legacy System
+51	Satu pemeriksaan sebelum mulai
+52	Pilih usia Anda
+53	(usia penuh)
+54	Di bawah 14
+55	14 sampai 18
+56	19 ke atas
+57	Negara tempat tinggal
+58	Republik Korea
+59	Amerika Serikat
+60	Jepang
+61	Tiongkok
+62	Malaysia
+63	Indonesia
+64	Negara lain
+65	Pengguna di bawah 14 tahun (18 tahun ke bawah di Indonesia dan Malaysia) memerlukan persetujuan wali (wakil sah). Wali harus mengisi dan menyetujuinya sendiri. Akses dibuka setelah pelatih AP menghubungi wali untuk konfirmasi.
+66	Nama wali
+67	Hubungan
+68	Pilih
+69	Ayah
+70	Ibu
+71	Wakil sah lainnya
+72	Telepon wali
+73	Saya wali. Saya telah membaca informasi di bawah dan menyetujui penggunaan oleh anak saya serta pemrosesan informasinya.
+74	Apa yang kami simpan dan cara kami memakainya
+75	Disimpan: nama dan email akun Google, pelajaran dan catatan latihan yang Anda tinggalkan, kelompok usia (di bawah 14: nama, hubungan, dan telepon wali).
+76	Tujuan: menyusun pelajaran, rencana latihan, tinjauan oleh pelatih Anda.
+77	Pemrosesan AI: saat menyusun pelajaran, isinya dikirim ke AI (Claude) milik Anthropic (AS). Hasilnya tidak menggantikan penilaian pelatih.
+78	Yang dapat melihat: Anda, pelatih AP, dan orang yang koneksinya Anda terima (hanya membaca).
+79	Penghapusan: Anda dapat menghapusnya sendiri kapan saja di Pengaturan → Hapus akun.
+80	(Tiongkok) Saya secara terpisah menyetujui informasi pribadi saya ditransfer ke luar negeri (Korea, AS) untuk disimpan dan diproses AI, serta pemrosesan informasi sensitif (informasi anak di bawah 14 tahun, catatan kondisi fisik).
+81	Saya telah membaca dan menyetujui hal di atas,
+82	Ketentuan Layanan
+83	Kebijakan Privasi
+84	.
+85	Konfirmasi dan mulai
+86	Menunggu konfirmasi wali
+87	Anda bisa mulai begitu pelatih AP menghubungi wali untuk konfirmasi. Muat ulang layar ini setelah selesai.
+88	Muat ulang
+89	Biodata dasar saya
+90	Kru perlu sedikit informasi dasar agar dapat menyusun dan menjawab sesuai Anda. Hanya satu menit.
+91	Buka menu
+92	Ke alun-alun
+93	Menghubungkan
+94	Keluar
+95	Minta bantuan Milo
+96	Milo
+97	Ketuk kalau penasaran
+98	Aku Milo. Mau tahu apa?
+99	Pohon Warisan
+100	Logan · Catatan pelajaran
+101	Rook · Masalah saya
+102	Daryl · Tempat latihan
+103	Paco · Rasa & permainan
+104	Obrolan Hari Ini
+105	Pernyataan Saya
+106	Data Saya
+107	Tutup
+108	Masuk
+109	Lihat perkenalan Logan
+110	Catatan pelajaran
+111	Lihat perkenalan Rook
+112	Masalah saya
+113	Lihat perkenalan Daryl
+114	Tempat latihan
+115	Lihat perkenalan Paco
+116	Rasa · Permainan
+117	Catat pelajaran hari ini
+118	Tanya kru
+119	Logan · Catatan
+120	Perdengarkan atau ketik pelajaran Anda, dan saya susun menjadi masalah, ringkasan pelajaran, solusi, latihan, dan rencana tempur.
+121	Bantuan catatan pelajaran
+122	Bicara
+123	Susun
+124	Solusi · Latihan
+125	Rencana tempur
+126	Umpan balik
+127	Pelatih / ahli
+128	mis. Pelatih Kim
+129	Tanggal
+130	Mulai dengarkan pelajaran
+131	Bahasa bicara
+132	Biarkan layar ponsel tetap menyala selama pelajaran.
+133	Isi pelajaran
+134	Tulis apa yang dikatakan pelatih, apa yang Anda rasakan, dan bagaimana bola terbang. Anda juga bisa memakai input suara keyboard.
+135	Masukkan contoh pelajaran
+136	Susun
+137	Memuat
+138	Daun yang saya tambahkan · Pelatih saya
+139	Poin baru dari pelajaran Anda menjadi daun di Pohon Warisan AP. Tunjukkan kepada pelatih — daun yang dikonfirmasi pelatih resmi membawa nama pelatih.
+140	Lihat Pohon Warisan
+141	Rook · Diagnosis
+142	Pilih masalah yang sedang Anda alami. Anda langsung mendapat masalah, solusi, dan latihan, yang berlanjut ke mandalart dan rencana tempur.
+143	Bantuan masalah saya
+144	Area pelatih · Posisi Matrix dan bukti
+145	Daryl · Latihan
+146	Saya akan menemani latihan hari ini sampai tuntas dengan mandalart dan rencana tempur.
+147	Bantuan tempat latihan
+148	Rencana 6 hari dari pelajaran terbaru
+149	Jenis pemain dan pelajaran per bidang
+150	Ubah tujuan
+151	Jenis
+152	Pemain tur
+153	Pemain amatir
+154	Pegolf umum
+155	Tujuan akhir
+156	mis. Tembus di bawah 90
+157	Simpan
+158	Setiap kotak terisi dari bawah sesuai pelaksanaan rencana tempur bidang itu. Ketuk kotak untuk melihat pelajaran bidang itu saja.
+159	Paco · Rasa & permainan
+160	Tinggalkan 30 detik tentang rasa latihan, dan saya akan menyesuaikan latihan dan permainan berikutnya.
+161	Bantuan rasa · permainan
+162	Karakter dasar saya
+163	Catat diri Anda saat ini, dan kru akan merujuknya saat menyusun pelajaran dan menjawab. Catatan pelajaran dan ucapan pelatih selalu didahulukan.
+164	Bantuan pernyataan
+165	Kembali
+166	Koneksi
+167	Langganan
+168	Pengaturan
+169	Pemain yang saya ikuti
+170	Kru AP
+171	Bantuan Obrolan Hari Ini
+172	Catatan pelajaran · Logan
+173	Catat pelajaran
+174	Tinggalkan nama pelatih dan pelajaran lewat suara atau teks, lalu disusun menjadi masalah, solusi, dan latihan
+175	Mulai ›
+176	Masalah saya · Rook
+177	Ceritakan masalah saya sekarang
+178	Cukup pilih untuk mendapat solusi, latihan, bahkan rencana tempur
+179	Tutup dan lihat alun-alun ›
+180	Pertanyaan yang disarankan
+181	Anda bisa bertanya hingga 10 kali sehari.
+182	Rekam pelajaran · catat
+183	Ceritakan masalah saya
+184	Catat rasa latihan
+185	Lihat latihan hari ini
+186	Buka menu catatan
+187	Bicara dengan kru
+188	Kirim
+189	Pustaka latihan
+190	Poin pelajaran, drill, dan latihan yang dipakai AP lebih dulu dalam resep. Perubahan pelatih berlaku mulai penyusunan pelajaran berikutnya.
+191	Menunggu pemeriksaan wali
+192	Pemain di bawah 14 tahun. Hubungi wali secara langsung untuk memastikan identitas dan persetujuan, lalu setujui.
+193	Memeriksa izin.
+194	Simpul
+195	Status
+196	Aktif
+197	Menunggu tinjauan
+198	Dihentikan
+199	+ Tambah item
+200	Data saya
+201	Tutup Data Saya
+202	Menu
+203	Catatan saya
+204	Pemain
+205	Tutup menu
+206	Diagnosis
+207	Diagnosis · Pernyataan Saya
+208	Pegolf seperti apa saya?
+209	Biodata dasar
+210	Pernyataan 6 bidang
+211	Tes mental
+212	🔒 Segera hadir
+213	Khusus · Cek yips
+214	Lihat hasil di Data Saya
+215	Catatan
+216	Latihan
+217	Mandalart · Rencana tempur
+218	Usulan latihan hari ini
+219	Rasa · Permainan
+220	Pelatih
+221	Lihat semua
+222	N1 Mental
+223	N2 Gambaran impak
+224	N3 Muka stik
+225	N4 Jalur
+226	N5 Impak nyata
+227	N6 Keterulangan
+228	N7 Efisiensi
+229	N8 Adaptasi
+230	Akun saya
+231	Tidak ada
+232	Uji coba
+233	Alun-Alun Warisan
+234	Tempat pohon dan kru berada
+235	Fokus mental
+236	Gambaran impak
+237	Muka stik · tuas
+238	Jalur stik
+239	Impak nyata
+240	Keterulangan
+241	Efisiensi
+242	Adaptasi
+243	Driver
+244	Besi
+245	Permainan pendek
+246	Putting
+247	Manajemen lapangan
+248	Fisik
+249	Mental
+250	Rutinitas · karakter
+251	Raih kartu tur
+252	Bergabung KPGA sebagai pro
+253	Tembus di bawah 90
+254	Pelatih: Driver kamu terus lurus ke kanan, ya? Bukan melengkung — sejak awal bolanya berangkat ke kanan. Itu karena muka stik terbuka saat impak. Pelatih: Rasakan seperti menekan punggung tangan kiri ke arah tanah saat downswing, seperti memutar gagang pintu berlawanan arah jarum jam. Saya: Kalau begitu, awalnya terasa seperti tertarik ke kiri. Pelatih: Untuk sekarang itu benar. Minggu ini latih ayunan setengah memberangkatkan bola melewati gerbang dua tee, 10 bola × 3 set, 3 kali seminggu. Pelajaran berikutnya kita cek arah berangkat lagi. Saya: Sepertinya makin parah saat ikut turnamen.
+255	Poin pelajaran
+256	Drill
+257	Belum ditentukan
+258	Posisi Swing Learning Matrix: {0}
+259	Asli {0} → {1}
+260	Bahasa asli catatan
+261	Tinggi
+262	Sedang
+263	Rendah
+264	Pustaka AP
+265	Resep pelatih
+266	Pustaka AP{0}
+267	Pelengkap AI
+268	+ Tambah ke pustaka
+269	Hari {0} selesai
+270	🌱 Belum dikonfirmasi pelatih
+271	Poin pelajaran BARU
+272	Poin baru yang diberikan {0} dalam pelajaran ini. Saat disimpan menjadi daun di Pohon Warisan AP, dan setelah pelatih mengonfirmasi, nama pelatih tercatat resmi.
+273	Ringkasan pelajaran
+274	Pernyataan sendiri
+275	Sumber · {0}
+276	Pelatih tidak diisi
+277	Posisi belum ditentukan
+278	Putusan {0}
+279	Lebih parah di bawah tekanan
+280	Khusus · Yips
+281	Bukti · {0}
+282	Ada tanda-tanda yips. Yips tidak bisa diperbaiki dengan mengubah satu bagian saja, jadi jangan ubah teknik sekaligus — tangani bertahap bersama pelatih. Jika gemetar atau kejang berlanjut di luar golf, silakan berkonsultasi dengan tenaga profesional.
+283	Cek di pelajaran berikutnya
+284	Posisi Matrix
+285	Area pelatih
+286	Perlu dicek
+287	Rasa yang saya ceritakan
+288	Tidak ada poin yang disusun.
+289	Tidak ada latihan yang diresepkan.
+290	Evaluasi ulang
+291	Belum ditentukan pelatih: {0}
+292	Masalah
+293	Yang terjadi
+294	Penyebab
+295	Solusi
+296	Rencana latihan
+297	Rencana tempur · 6 hari
+298	Pelatih contoh
+299	Tolong tulis sedikit lagi tentang pelajarannya.
+300	Anda bisa menyusun setelah masuk.
+301	Sedang mencocokkan ucapan pelatih dengan Matrix. Mohon tunggu 20–40 detik.
+302	Saya hanya bisa menyusun pelajaran dan latihan golf. Ceritakan apa yang dikatakan pelatih atau bagaimana bola terbang.
+303	Susun ulang
+304	Simpan ke grafik saya
+305	Poin pelajaran BARU! {0} memberi {1} poin baru. Simpan untuk meninggalkannya sebagai tunas di Pohon Warisan.
+306	Selesai. Periksa masalah, solusi, dan latihan di bawah, lalu simpan ke grafik Anda.
+307	Selesai. Ada satu hal yang perlu dicek untuk memastikan posisi — lihat "Cek di pelajaran berikutnya" di bawah.
+308	Anda bisa menyusun setelah pemeriksaan wali selesai.
+309	Perlu pemeriksaan usia. Silakan muat ulang.
+310	Jatah penyusunan hari ini sudah habis. Silakan coba lagi besok.
+311	Sesi Anda berakhir. Silakan masuk lagi.
+312	Tidak dapat menyusun. Silakan ketuk lagi.
+313	Masuk untuk menyimpan
+314	{0} daun baru
+315	{0} sumber ditambahkan ke daun yang ada
+316	Poin pelajaran BARU! Pelajaran {0} ditambahkan ke {1} sebagai {2}{3}{4}.
+317	Tersimpan. Dapatkan usulan latihan hari ini di tempat latihan Daryl
+318	Tidak dapat menyimpan. Silakan ketuk lagi sebentar lagi
+319	Mendengarkan · ketuk untuk berhenti
+320	■ Berhenti
+321	🎙 Bicara
+322	Mikrofon tidak diizinkan — lanjut dengan mengetik
+323	Pelajaran {0} · {1}%
+324	Masih sama
+325	Pilih masalah yang sedang Anda alami. Tidak perlu menulis. Saya langsung susun masalah, solusi, dan latihan.
+326	Mandalart Anda siap. Pilih pengaturan dan buat rencana tempur.
+327	Belum ada catatan. Buat mandalart dulu, atau ceritakan masalah kepada Rook.
+328	Masalah yang sama terulang lebih dari tiga kali. Daripada terus sendiri, cek ulang penyebabnya bersama pelatih.
+329	Pilih masalah yang sedang Anda alami. Tulisan boleh singkat atau tidak ada. Saya langsung susun masalah, solusi, dan latihan.
+330	Hentikan latihan sejenak dan lanjutkan setelah pelatih memeriksa.
+331	Ada catatan baru. Buat mandalart dan saya isi latihan sesuai isinya.
+332	Mandalart Anda siap. Geser untuk memilih kali per minggu, menit per sesi, dan durasi, lalu buat rencana tempur.
+333	Anda menyelesaikan seluruh {0} sesi rencana tempur. Hebat! Ceritakan perubahannya kepada Rook atau pelatih.
+334	Rencana tempur: {0}/{1} sesi selesai. Hari ini sesi {2}. Centang latihan yang selesai dan tinggalkan rasanya untuk Paco.
+335	Belum ada pelajaran tersimpan
+336	Ceritakan pelajaran pertama Anda kepada Logan. Rencana 6 hari akan muncul di sini.
+337	Susun pelajaran pertama
+338	Masalah yang sama tidak terselesaikan {0} kali.
+339	Saatnya cek bersama pelatih, bukan terus sendiri.
+340	Salin ringkasan untuk pelatih
+341	Rencana tempur ini
+342	{0}/{1} hari selesai
+343	Catat rasanya · Paco
+344	Tidak dapat menyimpan
+345	Ringkasan disalin
+346	Tidak dapat menyalin
+347	Latihan hari ini
+348	{0}/{1} hari
+349	Sudah · catat rasa
+350	Anda menyelesaikan rencana tempur ini. Tunjukkan perubahannya kepada pelatih di pelajaran berikutnya.
+351	Berhasil
+352	Penyesuaian Paco
+353	Latihan tambahan: {0} {1}
+354	Log latihan saya
+355	Ceritakan pelajaran pertama kepada Logan
+356	Belum ada pelajaran tersimpan. Setelah ada, kita sesuaikan rasa latihan di sini bersama.
+357	Centang jika tugas hari ini selesai
+358	Masalah yang sama tidak terselesaikan {0} kali.
+359	Saatnya cek bersama pelatih, bukan berlatih lagi sendiri.
+360	Rasa latihan · 30 detik
+361	Tidak bisa merasakan
+362	Berapa banyak
+363	Rasa dalam satu baris
+364	Catat rasa
+365	mis. 30 bola · 40 menit
+366	mis. Ayunan setengah bisa, tapi ayunan penuh ke kanan lagi
+367	Coba begini lain kali.
+368	Bagaimana D{0} '{1}'? Cukup pilih berhasil, masih sama, atau tidak bisa merasakan.
+369	Anda menuntaskan 6 hari. Catat juga rasanya dalam permainan nyata.
+370	Pilih satu saja: bagaimana hasilnya?
+371	Menyesuaikan latihan berikutnya.
+372	Jumlah
+373	Latihan tercatat
+374	{0} {1} pelajaran
+375	Perkiraan AI
+376	Cek dengan pelatih
+377	Bertanya {0}/{1} kali hari ini.
+378	Bagaimana cara mencatat pelajaran?
+379	Kru AP membantu apa saja?
+380	Bagaimana sebaiknya saya berlatih hari ini?
+381	Apa yang sebaiknya saya lakukan sebelum pelajaran berikutnya?
+382	Ringkas poin utama pelajaran terakhir
+383	Kenapa muncul {0}?
+384	Saya tidak bisa merasakannya. Harus bagaimana?
+385	Jatah pertanyaan hari ini habis. Silakan tanya lagi besok
+386	Mencari catatan Anda…
+387	Anda bisa bertanya setelah pemeriksaan wali selesai
+388	Perlu pemeriksaan usia. Silakan muat ulang
+389	Tidak mendapat jawaban. Silakan tanya lagi
+390	Belum ada pelajaran untuk didiagnosis
+391	Ceritakan pelajaran kepada Logan dan Rook akan menandai posisi Anda di Matrix.
+392	Kenapa posisi ini
+393	Jejak posisi
+394	Posisi saya sekarang
+395	Yang terjadi · pengamatan
+396	Penyebab · tafsiran
+397	Lihat seluruh pelajaran ini
+398	saja
+399	Belum ada pelajaran di bidang ini.
+400	Belum ada catatan pelajaran.
+401	Pelajaran teknik
+402	Latihan mental
+403	Fitting stik
+404	Latihan fisik
+405	Akar pengetahuan
+406	Catatan pertama
+407	Ajaran yang diwariskan
+408	Pengetahuan yang bersambung
+409	Warisan yang bertumbuh
+410	Catatan yang makin kaya
+411	Pohon lintas generasi
+412	Warisan golf yang hidup
+413	Perhatian · masuk rutinitas · respons tekanan · atur ulang
+414	Gambaran impak dan niat sebelum pukulan
+415	Muka stik dan tuas — arah berangkat bola
+416	Jalur stik — lengkungan bola
+417	Impak nyata — kontak, titik pukul, lintasan
+418	Keterulangan — kemampuan mengulang pukulan yang sama
+419	Efisiensi — mengubah tenaga menjadi jarak
+420	Adaptasi — memakainya di lapangan dan permainan nyata
+421	. Masuk untuk melihat siapa meninggalkan pelajaran yang mana.
+422	Poin pelajaran terkumpul sejauh ini: {0} · Pelatih yang berkontribusi: {1}
+423	Pohon yang menunggu daun pertamanya. Poin pelajaran pertama menjadi catatan pertama pohon ini.
+424	berlanjut di {0} tempat lain
+425	Dikonfirmasi pelatih
+426	Belum dikonfirmasi pelatih
+427	Ketuk buah untuk melihat poin pelajaran yang terkumpul di bidang itu dan siapa yang meninggalkannya.
+428	Daun yang saya tambahkan: {0} · Pelatih: {1}
+429	Belum ada poin baru
+430	Lihat {0} poin
+431	Salin ringkasan untuk ditunjukkan kepada pelatih
+432	{0} pelajaran · terbaru {1}
+433	Isi nama pelatih saat menyusun pelajaran dan poin akan dikelompokkan per pelatih.
+434	Tersalin. Kirim kepada pelatih lewat pesan
+435	Tujuan tersimpan
+436	Semua
+437	Dibuka dengan izin edit. Tambahan dan perubahan berlaku mulai penyusunan pelajaran berikutnya, dan versi sebelumnya bisa dipulihkan kapan saja dari riwayat perubahan.
+438	Hanya lihat. Jika resep tidak cocok, tinggalkan umpan balik 'Masih sama' di grafik Anda. Pelatih merevisi berdasarkan data efektivitas.
+439	Setujui
+440	Hentikan penggunaan
+441	Gunakan lagi
+442	Riwayat perubahan {0}
+443	Edit
+444	Catatan saat itu: {0}
+445	Pulihkan versi ini
+446	Contoh · perlu diganti
+447	Cara ·
+448	Perubahan terakhir · {0} ·
+449	Diresepkan {0} · Berhasil {1} · Masih sama {2}
+450	Pustaka kosong. Anda dapat memasukkan 85 latihan dasar AP (80 latihan mandalart + 5 contoh peta diagnosis). Hanya admin.
+451	Masukkan pustaka dasar
+452	Tidak ada item yang cocok dengan kondisi ini.
+453	Masuk untuk memuat pustaka.
+454	Tim pelatih
+455	Item baru
+456	Edit item · v
+457	Catatan
+458	Alasan perubahan
+459	Wajib · nanti terlihat kenapa diubah
+460	Simpul Matrix
+461	Bidang mandalart
+462	Tidak ada
+463	Nama
+464	Poin pelajaran · apa yang diperbaiki
+465	Cara
+466	Repetisi · set
+467	Frekuensi
+468	Simpan sebagai menunggu tinjauan
+469	Tidak dipakai dalam resep sampai disetujui
+470	Batal
+471	mis. Gerbang garis awal
+472	Yang disampaikan kepada pemain, gerakan yang dicek
+473	mis. Dua tee 1 m di depan bola, mulai dengan ayunan setengah
+474	mis. 10 bola × 3 set
+475	mis. 3 kali seminggu
+476	mis. 10 bola terlalu banyak untuk junior, disesuaikan menjadi 7
+477	Isi nama dan poin pelajaran.
+478	Tulis satu baris alasan mengubahnya.
+479	Diedit. Berlaku mulai penyusunan berikutnya
+480	Ditambahkan
+481	Tidak dapat menyimpan. Pastikan Anda punya izin edit.
+482	Setujui · gunakan
+483	Dibuka untuk dipakai dalam resep
+484	Dikeluarkan dari resep
+485	Tidak dapat mengubah
+486	Ketuk sekali lagi untuk memulihkan
+487	dipulihkan
+488	Dipulihkan ke isi tersebut
+489	Tidak dapat memulihkan
+490	Sedang memasukkan.
+491	{0} dimasukkan.
+492	{0} item yang ada dibiarkan.
+493	Perlu izin admin.
+494	Tidak dapat memasukkan. Silakan ketuk lagi.
+495	Dari pelajaran
+496	ditambahkan
+497	Halo, saya Logan, bagian catatan. Saya akan mengingat pelajaran hari ini untuk Anda.
+498	Saya Rook. Mari cari penyebabnya bersama dan tandai posisi Anda sekarang.
+499	Aku Daryl. Ayo kerjakan latihan hari ini satu per satu, sampai tuntas.
+500	Saya Paco. Ceritakan bagaimana rasanya, dan mari sesuaikan untuk permainan nyata.
+501	Admin
+502	Bahasa Korea
+503	Hampir selesai
+504	Kita mulai bersama begitu pemeriksaan wali selesai. Mohon tunggu sebentar.
+505	Senang bertemu, saya Logan. Demi keamanan, saya tanya usia Anda dulu.
+506	Silakan pilih usia Anda.
+507	Silakan isi nama, hubungan, dan telepon wali.
+508	Silakan centang persetujuan wali.
+509	Untuk memakai aplikasi di Tiongkok, diperlukan persetujuan transfer ke luar negeri dan informasi sensitif.
+510	Silakan setujui informasinya.
+511	Tidak dapat menyimpan. Silakan ketuk lagi.
+512	Tanpa nama
+513	Tidak ada info wali
+514	Dikonfirmasi
+515	Apakah Anda sudah menghubungi wali langsung dan memastikan persetujuannya?
+516	Disetujui
+517	Tidak dapat menyetujui
+518	Pustaka belum dapat dimuat. Koneksi mungkin lambat.
+519	Ini pohon milik semua orang, tempat poin pelajaran dari pelatih dan pemain menumpuk menjadi daun. Bukan kemajuanmu — ini tempat pengetahuan golf berkumpul.
+520	Ketuk buah (N1–N8) untuk melihat pelajaran yang terkumpul di bidang itu dan siapa yang meninggalkannya.
+521	Di sini kamu meninggalkan pelajaran hari ini lewat suara atau teks.
+522	Ketuk Susun dan semuanya disusun sekaligus: masalah, solusi, latihan, dan rencana tempur 6 hari.
+523	Ke catatan pelajaran
+524	Di sini kamu menceritakan masalahmu dengan kata-katamu sendiri. Cukup pilih pukulan apa, bola ke mana, dan kapan makin parah.
+525	Masalah, solusi, dan latihan langsung keluar, dan setelah disimpan berlanjut ke mandalart dan rencana tempur.
+526	Ceritakan masalah
+527	Di sini ada mandalart dengan tujuan di tengah dan 8 bidang, serta rencana tempur yang dibuat sesuai pengaturanmu.
+528	Ketuk kotak untuk melihat latihan dan tingkat pelaksanaan bidang itu; centang setiap sesi rencana tempur. Ceritakan rasanya kepada Paco.
+529	Ke tempat latihan
+530	Paco · Rasa & permainan
+531	Di sini kamu mencatat rasa latihan dalam 30 detik.
+532	Pilih satu saja — berhasil, masih sama, atau tidak bisa merasakan — dan latihan berikutnya disesuaikan.
+533	Catat rasa
+534	Di sini kru menjawab berdasarkan catatan pelajaranmu.
+535	Bisa bertanya hingga 10 kali sehari. Hal yang tidak ada di catatan diberi label 'Perkiraan AI'.
+536	Geser untuk memilih
+537	Tidak tahu
+538	Lama bermain
+539	Kurang dari 1 tahun
+540	tahun
+541	Usia (penuh)
+542	tahun
+543	Jenis kelamin
+544	Laki-laki
+545	Perempuan
+546	Rata-rata skor
+547	Rata-rata
+548	pukulan
+549	Frekuensi latihan
+550	Jarang
+551	Per minggu
+552	kali
+553	Durasi per latihan
+554	Per sesi
+555	jam
+556	Frekuensi bermain
+557	Jarang bermain
+558	Per bulan
+559	ronde
+560	Usia
+561	Volume latihan
+562	Saat kuesioner tes mental resmi siap, bagian ini akan diganti dengannya.
+563	Mengelola gugup (latihan · kompetisi)
+564	Perhatian (fokus pada pukulan ini)
+565	Fokus berkelanjutan (sepanjang 18 hole)
+566	Mengelola perubahan tubuh di bawah tekanan
+567	Tangan gemetar
+568	Napas menjadi cepat
+569	Jantung berdebar
+570	Tubuh menegang
+571	Tidak ada perubahan berarti
+572	Pukulan pitch
+573	Jarak yang yakin
+574	Pukulan chip
+575	Kemampuan scramble
+576	Tingkat selamatkan par
+577	Keterampilan (bunker, lob, dll.)
+578	Pukulan
+579	Rata-rata jarak
+580	Pukulan besi
+581	Jarak besi 7
+582	Membentuk pukulan (arah bola)
+583	Lurus
+584	Draw
+585	Fade
+586	Hook
+587	Slice
+588	Arah bola utama
+589	Rentang gerak
+590	Kekuatan
+591	Daya tahan otot
+592	Kelincahan
+593	Tenaga
+594	Pemilihan stik
+595	Strategi lapangan
+596	Adaptasi lapangan
+597	Fitting stik (material)
+598	Berat driver
+599	Kekerasan shaft
+600	Kecepatan ayunan
+601	Spin rate driver
+602	Pernah fitting
+603	Ya
+604	Sangat kurang
+605	Kurang
+606	Sedang
+607	Baik
+608	Kekuatan
+609	Simpan dan lanjut
+610	Senang bertemu, saya Rook. Tidak perlu menulis. Cukup geser untuk memilih — satu menit selesai.
+611	Belum dipilih:
+612	Pengukuran
+613	Hanya jika tahu
+614	Yang sesuai
+615	Penilaian diri
+616	Edit
+617	· rata-rata {0}
+618	{0}/{1} terisi{2}
+619	Tersimpan
+620	Di sini kamu mencatat dirimu saat ini: biodata dasar dan 6 bidang — mental, permainan pendek, pukulan, fisik, lapangan, dan fitting stik.
+621	Tidak perlu menulis. Geser untuk menilai 1–5, dan geser untuk memilih angka yang kamu tahu. Mandalart dan rencana tempur mendahulukan bidang yang lemah.
+622	Putt
+623	Pendekatan
+624	Hole sulit
+625	Dogleg
+626	Kemiringan
+627	Peluang birdie
+628	Selamatkan par
+629	Persaingan
+630	Kayu fairway
+631	Hybrid
+632	Besi panjang
+633	Besi pendek
+634	Putt pendek
+635	Putt panjang
+636	Tingkat kesulitan lie
+637	Kontrol jarak
+638	Tingkat kesulitan green
+639	Turunan
+640	Tanjakan
+641	Green tinggi
+642	Satu situasi
+643	Beberapa situasi sekaligus
+644	Acak
+645	Situasi tekanan + pertahankan rutinitas persiapan
+646	Pertahankan rutinitas persiapan
+647	Dikelompokkan per kondisi
+648	Jadwal bergantian (2 per kondisi bergiliran)
+649	Tekanan
+650	Seberapa membebani situasinya
+651	Kecemasan
+652	Khawatir akan gagal
+653	Ketegangan tubuh
+654	Tegang di bahu atau tangan
+655	Berlangsung
+656	Hasil belum diisi
+657	Diusulkan
+658	Belum dilakukan
+659	Dihentikan
+660	Hasil diisi
+661	Situasi tekanan
+662	Situasi tekanan ({0})
+663	{0} per kondisi
+664	· Yang berubah: {0}
+665	Lakukan di hari lain, bukan hari ini. Ini untuk melihat apakah bertahan setelah sehari.
+666	Masih belum diketahui: {0}
+667	Bukti:
+668	Pelajaran
+669	Catatan pelajaran belum cukup, jadi kita cek performa saat ini dulu.
+670	Tujuan hari ini
+671	Latihan yang disarankan
+672	Cara melakukan
+673	Yang dihitung berhasil
+674	Poin cek
+675	Alasan disarankan
+676	{0} · Usulan buatan AI. Penilaian pelatih didahulukan.
+677	{0} · Dihentikan karena {1}. Tidak dihitung selesai atau gagal.
+678	Tidak diukur
+679	Tafsiran situasi {0}
+680	· selisih {0}{1}
+681	Dikelompokkan per kondisi
+682	Bergantian
+683	Tercatat bahwa jarak, kemiringan, atau stik berbeda per kondisi.
+684	Kondisi pemicu
+685	Stik
+686	Tugas
+687	Tekanan · kondisi situasi{0}
+688	Tekanan · kondisi visual{0}
+689	Cara penyajian{0}
+690	Yang berubah saat acak{0}
+691	Bergantian (disarankan)
+692	Dikelompokkan per kondisi
+693	Meski diedit, usulan awal AI tetap disimpan dan Anda melanjutkan dengan versi editan.
+694	Satu per baris
+695	Pisahkan dengan ·
+696	Jarak
+697	Kemiringan · lie
+698	Repetisi per kondisi
+699	Urutan{0}
+700	Simpan editan
+701	Tantangan
+702	Terasa sanggup
+703	Ancaman
+704	Terasa takut
+705	Campuran
+706	Keduanya
+707	Netral
+708	Tidak ada rasa khusus
+709	Bagaimana Anda menanggapi situasinya?
+710	Terasa sanggup (tantangan) · Terasa takut (ancaman) · Keduanya · Tidak ada rasa khusus
+711	Tekanan yang dirasakan pemain (0 tidak ada ~ 5 sangat tinggi, skala AP)
+712	Jika tidak ditanyakan, biarkan 'Tidak diukur'
+713	Berhasil
+714	Percobaan
+715	Rata-rata selisih dari target ({0})
+716	Isi selisih tiap percobaan (opsional)
+717	Selisih per percobaan ({0}), pisahkan dengan koma
+718	mis. 30, 45, 20
+719	Urutan dan situasi yang sebenarnya
+720	mis. Biasa → Selamatkan par (putt panjang) → Pertahankan rutinitas (putt pendek)
+721	Kondisi rencana: {0} · Yang berubah: {1}
+722	Putter
+723	Bergantian sesuai jadwal
+724	Jarak sebenarnya
+725	Stik yang benar-benar dipakai
+726	Semua kondisi memakai jarak, kemiringan, dan stik yang sama
+727	Siapa yang memeriksa?
+728	Saya hitung sendiri
+729	Pelatih melihat
+730	Diukur dengan alat
+731	Simpan hasil
+732	{0} latihan sebelumnya
+733	Mengusulkan satu latihan untuk hari ini berdasarkan catatan pelajaran terbaru.
+734	Kita cek performa saat ini dulu, lalu sesuaikan latihan berikutnya.
+735	Latihan terakhir disimpan sebagai dihentikan. Saat tubuh sudah baik, mulai lagi setelah berdiskusi dengan pelatih.
+736	Usulan terakhir disimpan sebagai belum dilakukan.
+737	Dapatkan usulan latihan hari ini
+738	Diedit
+739	Usulan AI
+740	Terapkan
+741	Tidak kali ini
+742	Lihat hasil
+743	Isi hasil
+744	Dihentikan (nyeri · lelah)
+745	Nyeri
+746	Kelelahan berlebih
+747	Lainnya
+748	Kenapa berhenti? Istirahatkan gerakan itu dan diskusikan dengan pelatih.
+749	Saya lanjutkan
+750	Latihan berikutnya belum disesuaikan dari hasil. Silakan ketuk tombol di bawah.
+751	Latihan berikutnya
+752	Tinjau latihan ini
+753	Sesuaikan latihan berikutnya
+754	Dapatkan usulan latihan berikutnya
+755	Dapatkan usulan latihan baru
+756	Anda bisa mendapat usulan latihan setelah pemeriksaan wali selesai.
+757	Perlu pemeriksaan usia. Silakan muat ulang.
+758	Jatah usulan latihan hari ini habis. Silakan coba lagi besok.
+759	Kali ini tidak dapat membuat usulan yang andal. Catatan pelajaran Anda tidak berubah. Silakan ketuk lagi sebentar lagi.
+760	Tidak mendapat usulan. Catatan pelajaran dan simpanan Anda tidak berubah. Silakan ketuk lagi sebentar lagi.
+761	Tersedia setelah masuk
+762	Mencocokkan latihan hari ini dengan catatan pelajaran Anda. Sekitar 20 detik.
+763	Latihan hari ini siap. Lakukan apa adanya, atau sesuaikan bersama pelatih lalu terapkan.
+764	Hasil tersimpan. Latihan berikutnya belum disesuaikan. Silakan ketuk 'Sesuaikan latihan berikutnya' lagi.
+765	Diterapkan sebagai latihan hari ini
+766	Tidak dapat menyimpan. Silakan ketuk lagi
+767	Tujuan, latihan, dan cara melakukan tidak boleh kosong
+768	Isi repetisi antara 1 dan 30
+769	Jika kurang dari {0} per kondisi, kami mungkin meminta satu putaran lagi alih-alih membandingkan.
+770	Tidak ada situasi tekanan yang dipilih, jadi tekanan tidak dapat dibandingkan.
+771	Jarak atau stik berubah dari usulan awal. Hasil ini hanya dibandingkan di antara kondisi yang diedit.
+772	Mengelompokkan per kondisi menyulitkan pemisahan efek latihan, kelelahan, dan urutan.
+773	Putt pendek adalah 2 m atau kurang (standar operasi ops-1). Silakan cek jarak sebenarnya.
+774	Putt panjang adalah 10 m atau lebih (standar operasi ops-1). Silakan cek jarak sebenarnya.
+775	Tersimpan dengan editan. Usulan awal tetap tersimpan
+776	(cek angka)
+777	Silakan cek jumlah berhasil dan percobaan:
+778	Silakan isi stik yang benar-benar dipakai.
+779	Hasil tersimpan
+780	Tidak dapat menyimpan. Silakan ketuk lagi.
+781	dtk
+782	Metrik kartu latihan AI (uji coba)
+783	Diusulkan
+784	Diterapkan (diadopsi)
+785	Edit pelatih/pemain
+786	Benar-benar dilakukan
+787	Sampai tinjauan hasil
+788	Belum dilakukan · dihentikan
+789	Diuji ulang di hari lain
+790	Rata-rata waktu mengisi hasil
+791	Kami tidak menilai hasil hanya dari jumlah usulan. Target ditetapkan setelah data penggunaan awal terkumpul.
+792	Kayu fairway · hybrid
+793	Bunker
+794	Tangan kaku atau tersentak seperti yips
+795	Berangkat ke kiri
+796	Berangkat ke kanan
+797	Melengkung ke kiri
+798	Melengkung ke kanan
+799	Fat
+800	Topping
+801	Shank
+802	Jarak kurang
+803	Jarak tidak konsisten
+804	Arah tidak konsisten
+805	Lintasan terlalu tinggi
+806	Lintasan terlalu rendah
+807	Pendek
+808	Kelewatan
+809	Meleset ke kiri
+810	Meleset ke kanan
+811	Kontrol jarak tidak konsisten
+812	Gugup di putt pendek
+813	Tidak bisa membaca garis
+814	Bahkan di driving range
+815	Di lapangan
+816	Kompetisi · tekanan
+817	Hole pertama · pukulan pertama
+818	Tepat setelah kesalahan
+819	Saat lelah
+820	Pada jarak atau stik tertentu
+821	Dalam seminggu
+822	Sekitar sebulan
+823	Sekitar 3 bulan
+824	Sekitar 6 bulan
+825	Lebih dari setahun
+826	{0} dari 10
+827	Seberapa sering
+828	Sudah berapa lama
+829	Pukulan apa?
+830	Bolanya ke mana?
+831	Kapan lebih parah?
+832	Seberapa sering?
+833	Sudah berapa lama?
+834	Tambahkan dengan kata-kata
+835	Lihat masalah dan solusi
+836	mis. Di driving range baik-baik saja, tapi hanya tee shot hole pertama terdorong ke kanan
+837	Tidak bisa memakai mikrofon — silakan ketik
+838	Silakan pilih pukulan apa dan ke mana bolanya.
+839	Tersedia setelah masuk.
+840	Menyusun situasi yang Anda ceritakan. Mohon tunggu 20–40 detik.
+841	Saya hanya bisa menyusun topik golf.
+842	Pilih ulang
+843	Simpan ke catatan saya · ke mandalart
+844	Selesai. Penyebab masih 'perlu dicek'. Simpan dan Daryl akan langsung memasukkannya ke mandalart dan rencana tempur.
+845	Tersedia setelah pemeriksaan wali selesai.
+846	Jatah hari ini habis. Silakan coba lagi besok.
+847	Tidak dapat menyusun. Silakan ketuk lagi.
+848	Tersimpan. Sesuaikan mandalart dan rencana tempur Anda
+849	Tidak dapat menyimpan. Silakan ketuk lagi
+850	Detail
+851	Masalah yang saya ceritakan
+852	Tur
+853	Amatir
+854	Umum
+855	Mandalart saya
+856	Memuat pustaka latihan AP.
+857	Tujuan Anda di tengah dan latihan AP mengisi 8 bidang di sekelilingnya secara otomatis, masalah terbaru dan bidang lemah didahulukan.
+858	Tujuan tengah
+859	Buat mandalart
+860	Tujuan
+861	{0} latihan
+862	% dilakukan
+863	Bidang prioritas
+864	{0}% dilakukan · {1}/{2}
+865	Cek di ronde
+866	{0}/{1} kali dilakukan
+867	Tidak ada di rencana ini
+868	Pustaka AP v{0}
+869	Belum ada latihan di pustaka untuk bidang ini.
+870	Latihan {0}
+871	Masalah atau pelajaran baru tersimpan. Ketuk 'Buat ulang' untuk mengisi ulang latihan sesuai isinya.
+872	Buat ulang
+873	Ketuk kotak untuk melihat latihan bidang itu. Kotak terisi sesuai pelaksanaan di rencana tempur. ● menandai bidang prioritas.
+874	Kali per minggu
+875	mnt
+876	Durasi per sesi
+877	Durasi
+878	Buat ulang dengan pengaturan ini
+879	Buat rencana tempur
+880	Sesi hari ini
+881	Selesai
+882	Sesi {0}
+883	Minggu {0}
+884	Pengaturan: {0}×/minggu · {1} mnt/sesi · {2} minggu
+885	mandala-1 (dibuat otomatis dari Pustaka AP · uji coba)
+886	Mandalart dibuat. Buat rencana tempur di bawah
+887	Membuat ulang akan mengarsipkan centang rencana tempur saat ini dan mulai baru. Buat ulang?
+888	Dibuat ulang sesuai catatan terbaru
+889	Geser untuk memilih kali per minggu, menit per sesi, dan durasi
+890	Centang rencana saat ini akan diarsipkan dan Anda mulai baru. Buat ulang?
+891	Rencana tempur {0} sesi dibuat
+892	Tidak dapat menyimpan
+893	Catatan terakhir
+894
+895	Pernyataan masalah
+896	Buka
+897	Masih kosong
+898	Khusus · Yips: {0}
+899	Belum ada pernyataan
+900	Pilih masalah yang sedang Anda alami dan ceritakan kepada Rook.
+901	Belum ada catatan pelajaran
+902	Ceritakan ucapan pelatih kepada Logan.
+903	Rencana tempur {0}/{1} sesi
+904	Buat rencana tempur
+905	Belum ada mandalart
+906	Anda bisa membuat mandalart di tempat latihan Daryl.
+907	Rekomendasi pelatih yang cocok
+908	Segera hadir
+909	{1}/{0} {2}
+910	Mau mulai dari pelajaran hari ini atau masalah yang sedang Anda alami?
+911	Sesi {0} rencana tempur Anda menunggu hari ini. Mulai dari mana?
+912	Apa yang mau dicatat hari ini?
+913	Halo{0}.
+914	Ketik di sini
+915	Isi nama pelatih lalu ketuk 'Mulai dengarkan pelajaran' untuk merekam
+916	Itu tab emas 'Data saya' di tepi kanan layar. Ketuk atau geser ke kiri untuk membuka.
+917	Lihat jumlah catatan pelajaran, pernyataan masalah, kemajuan rencana tempur, dan pernyataan sekilas, lalu langsung ke tiap ruang.
+918	Buka
+919	Pergi
+920	Pernah dulu
+921	Ada sekarang
+922	Putt pendek
+923	Putt panjang
+924	Chip · pendekatan
+925	Tangan atau pergelangan kaku
+926	Tiba-tiba tersentak atau mencangkul
+927	Tidak bisa memulai backswing
+928	Pada jarak tertentu
+929	Belum dicek
+930	Tidak ada yips
+931	Tingkat {0}/5
+932	Frekuensi yips
+933	Sedikit mengganggu
+934	Kadang memengaruhi hasil
+935	Sering memengaruhi
+936	Takut memukul
+937	Hampir tidak bisa memukul
+938	Tingkat yips
+939	Yips bukan masalah satu bidang — ini 'kesalahan' yang muncul di seluruh ayunan, jadi kami catat terpisah. Kru tidak akan langsung memastikan penyebab dan membantu Anda menanganinya perlahan bersama pelatih.
+940	Pernahkah Anda mengalami yips?
+941	Bagaimana munculnya?
+942	Kapan munculnya?
+943	Seberapa parah?
+944	Jika gemetar atau kejang di tangan atau lengan berlanjut di luar golf, pastikan berdiskusi dengan pelatih dan tenaga medis.
+945	Bagian khusus · Yips
+946	Pilih dulu apakah Anda pernah mengalami yips
+947	Pelatih
+948	Orang tua · wali
+949	Keluarga · teman
+950	Gaya pelatih
+951	Hari ini kita cek arah berangkat dulu. 10 melewati gerbang — hitung yang berhasil.
+952	Gaya teman
+953	Tidak apa-apa kalau kemarin terlewat! Hari ini kita lakukan 10 melewati gerbang bersama.
+954	Gaya lugas
+955	10 melewati gerbang. Catat yang berhasil. Selesai.
+956	{0} permintaan
+957	{0} orang
+958	orang
+959	{0} · diminta {1}
+960	Terima
+961	Tolak
+962	Permintaan masuk
+963	Putuskan koneksi
+964	Belum ada yang terhubung
+965	Pemain di bawah umur harus memeriksa dan menghubungkan bersama orang tua atau wali. Jangan terima permintaan dari orang yang tidak dikenal.
+966	Setelah terhubung, pelatih atau orang tua dapat melihat catatan Anda (pelajaran, pernyataan masalah, mandalart, rencana tempur, pernyataan). Mereka hanya bisa melihat, tidak bisa mengedit. Terima permintaan di sini saat datang.
+967	Orang yang melihat bersama saya
+968	Tambah koneksi
+969	Kirim tautan koneksi
+970	Saat penerima membuka tautan dan masuk untuk meminta, mereka baru bisa melihat setelah Anda terima. Tautan berlaku 7 hari.
+971	Buat tautan
+972	Diterima
+973	Ditolak
+974	Putuskan koneksi? Orang itu tidak lagi dapat melihat catatan Anda.
+975	Koneksi diputus
+976	Tautan untuk dikirim ke {0}
+977	Salin
+978	Tautan tersalin
+979	Koneksi AP Lesson Note
+980	{0} mengajak Anda melihat catatan AP Lesson Note bersama.
+981	Tidak dapat diproses. Silakan ketuk lagi
+982	Tautan koneksi sudah kedaluwarsa atau tidak ada. Silakan minta yang baru
+983	Ini tautan yang Anda buat. Penerima yang perlu membukanya
+984	Permintaan koneksi
+985	{0} mengajak Anda melihat catatan bersama
+986	Jika Anda mengirim permintaan sebagai {0}, Anda dapat melihat pelajaran, pernyataan masalah, mandalart, dan rencana tempur setelah pemain menerima. Hanya melihat, tidak bisa mengedit.
+987	Kirim permintaan
+988	Nanti
+989	Permintaan terkirim. Anda bisa melihat setelah pemain menerima
+990	Tidak dapat mengirim permintaan. Silakan minta tautan lagi
+991	Tidak ada pemain yang Anda ikuti. Buka tautan koneksi dari pemain dan mereka akan muncul di sini.
+992	Memuat…
+993	Pemain belum menerima. Catatan muncul setelah diterima.
+994	Pemain menolak permintaan.
+995	Koneksi telah berakhir.
+996	Hapus dari daftar
+997	Khusus · Yips: {0}{1}
+998	{0}/{1} sesi
+999	Belum ada catatan.
+1000	Melihat sebagai {0} · hanya membaca
+1001	Tujuan mandalart: {0} · Rencana tempur {1}
+1002	Catatan terbaru
+1003	Pribadi
+1004	Catatan pelajaran, pernyataan masalah, mandalart, rencana tempur, lebih banyak obrolan kru
+1005	Segera hadir
+1006	Keluarga
+1007	Orang tua melihat dan menyemangati catatan anak bersama
+1008	Pelatih · Akademi · Tim
+1009	Manajemen pemain, catatan pelajaran, bukti diagnosis Matrix, dan catatan kontribusi warisan
+1010	Paket saya sekarang
+1011	AP Lesson Note · Uji coba
+1012	Selama uji coba Anda bisa mencoba semua fitur gratis.
+1013	10 per hari
+1014	20 per hari
+1015	Usulan latihan
+1016	Semua paket
+1017	Belum ada pembayaran. Anda bisa memilih di sini saat paket dibuka.
+1018	Ubah
+1019	Email masuk
+1020	Cara masuk
+1021	Masuk dengan Google
+1022	Bahasa
+1023	Layar, jawaban kru, dan hasil pelajaran tampil dalam bahasa ini
+1024	Getaran
+1025	Getaran ringan saat menyimpan atau mencentang
+1026	Hubungi kami
+1027	Tanyakan dulu kepada kru atau Milo. Email kontak akan segera diumumkan.
+1028	Kirim email
+1029	Hapus akun
+1030	Hapus catatan dan akun saya
+1031	Ikut penelitian
+1032	Membantu menyempurnakan aturan latihan AP dengan catatan yang disamarkan. Aplikasi tetap sama tanpanya
+1033	Catatan pengguna di bawah 14 tahun tidak dipakai untuk penelitian.
+1034	Persetujuan wali
+1035	Di bawah 14 · status pemeriksaan wali dikonfirmasi oleh pelatih
+1036	Versi aplikasi
+1037	Profil
+1038	Gaya bicara kru
+1039	Hanya cara bicaranya yang berubah; aturan penyusunan dan keamanan tetap sama.
+1040	Fitur
+1041	Bantuan
+1042	Akun
+1043	Info · Ketentuan
+1044	Gaya bicara kru diubah
+1045	Nama yang ditampilkan di aplikasi
+1046	Pelatih dan orang tua yang terhubung juga akan melihat nama ini.
+1047	Menghapus akan menghilangkan semua catatan pelajaran, pernyataan masalah, pernyataan, mandalart dan rencana tempur, kartu latihan, obrolan, dan koneksi Anda, dan tidak dapat dibatalkan.
+1048	Poin pelajaran yang Anda tinggalkan di Pohon Warisan bersama tetap ada dengan nama disamarkan.
+1049	Untuk konfirmasi, ketik
+1050	HAPUS
+1051	di bawah
+1052	Silakan ketik 'HAPUS' dengan tepat.
+1053	Tidak dapat menghapus sekarang. Silakan muat ulang dan coba lagi.
+1054	Menghapus…
+1055	Akun dihapus
+1056	Tidak dapat menghapus. Silakan coba lagi sebentar lagi.
+1057	Silakan isi nama
+1058	Nama diubah
+1059	Bahasa diubah
+1060	Anda bergabung dalam penelitian
+1061	Ikut penelitian dimatikan
+1062	Bahasa bicara:
+1063	Faktor yang mencakup semuanya
+1064	Fondasi tengah
+1065	Pohon Warisan AP tempat pengetahuan golf terkumpul
+1066	{0} {1}, {2} poin pelajaran terkumpul
+1067	Pohon Warisan Golf AP, {0}, pertumbuhan {1}/32, {2} poin pelajaran unik terkumpul
+1068	· poin pelajaran terkumpul
+1069	Mental Focus adalah faktor yang dikenakan pada semua simpul. Mengikuti perhitungan AP yang ada.
+1070	Pelajaran yang terhubung dimuat dari data warisan aplikasi.
+1071	Lihat sumber
+1072	Buka pelajaran
+1073	Panduan Milo
+1074	Ke sana
+1075	Tutup panduan Milo
+1076	Halo, saya Logan, bagian catatan. Saya akan mengingat pelajaran hari ini untuk Anda.
+1077	Cukup satu pelajaran untuk memulai. Ceritakan dan saya akan menyusun 6 hari latihan bersama Anda.
+1078	Apa yang dikatakan pelatih, bagaimana bola terbang, apa yang Anda rasakan — ceritakan apa adanya dan saya catat semuanya.
+1079	Latihan di sini adalah dasar resep saya. Jika ada yang salah, perbaiki. Alasan perubahan dan setiap versi sebelumnya akan disimpan.

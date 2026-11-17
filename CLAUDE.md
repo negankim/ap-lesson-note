@@ -31,6 +31,8 @@
 
 - **AI 훈련 카드**(데릴의 훈련장, players/{uid}/trainings): 승인된 표준 템플릿(functions/training.js: 기초 확인·레슨 처방 비교·압박 상황 준비 순서 비교) + 규칙 + AI 개인화. 템플릿 선택·내부 Root 연결·결과 검토·다음 분기는 서버 규칙이 정하고 AI는 문구·설정만 채우며, 서버가 검증한 뒤에만 저장한다. 화면에는 R코드·가설 용어·확률을 쓰지 않는다(추천 이유는 쉬운 말). AI 원안(proposal)·수정(adjustments)·실제 수행(runs)·검토(reviews)를 따로 보존한다. 미측정(null)과 0을 구분, 추천과 실제 수행을 따로 센다. 수행 개선과 원인 지지는 따로 판단(조건 변화·개입 효과·작동 경로, 상태: 미검토·검토 중·잠정 지지·반증 관찰·판단 유보). Single→Composite→Random 자동 승급 없음.
 
+- **다국어**(대표 결정 2026-11-18, 미국·일본·중국·말레이시아·인도네시아): 언어 6개(ko·en·ja·zh·ms·id). 화면은 public/i18n.js가 한국어 문장을 문장표(public/i18n/{lang}.json)로 바꿔 보여 준다(입력값·data-noi18n·사용자 글은 그대로). 문장표 원본은 tools/i18n/keys.json(번호 고정, 새 문장은 끝에 추가) + {lang}.tsv, 단위 틀은 extra.json. 화면 문장을 바꾸거나 추가하면 `cd public && python3 ../tools/i18n_extract.py index.html app.js legacy-tree.js milo-help.js` → 새 번호를 각 tsv에 번역 → `python3 tools/i18n_build.py en ja zh ms id`. 화면 글자로 동작을 판단하지 않는다(data 속성 사용). JS에서 만든 안내·토스트·say는 T()를 거친다. AI 결과는 users.lang으로 서버가 그 언어로 쓰고(정해진 값·노드 코드는 한국어 그대로), 레코드 원문 언어는 src_lang으로 식별·저장, 원문은 바꾸지 않는다. 훈련 카드는 한국어로 검증 후 current만 번역(proposal 보존). 첫 로그인에 사는 나라(이후 고정): 보호자 동의 나이 = 전 국가 만 14세 미만 + 인도네시아·말레이시아 만 18세 이하(서버 ageOf와 app.js needsG 같은 규칙), 중국은 국외 이전·민감정보 별도 동의(xbConsent) 없으면 AI 불가. 약관·방침은 6개 언어 파일(privacy.{lang}.html·terms.{lang}.html)과 나라별 안내, 한국어본이 기준.
+
 ## 훈련 라이브러리 원칙
 - 핵심 훈련 내용은 코드가 아니라 Firestore `library` 컬렉션에 둔다. 코치진이 앱에서 고친다.
 - 수정은 항상 버전을 올리고(`rev`), 이전 내용을 `history` 에 남기고, `note` 에 이유를 적는다. 삭제 대신 `status: retired`.
