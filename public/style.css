@@ -637,3 +637,10 @@ body{background:linear-gradient(#eaf6fb,var(--bg) 340px)}
 /* 걷기 그림(가로가 넓음)과 대기 그림이 같은 크기·발 높이로 보이게: 4:5 상자, 아래 맞춤 */
 #v-home .station{width:clamp(70px,17%,124px)}
 #v-home .station .crew-go img{aspect-ratio:4/5;object-fit:contain;object-position:50% 100%}
+
+/* 스페셜 파트 · 입스 */
+.me-area.yips{border:1.5px solid #b85c3c;background:linear-gradient(180deg,#fff3ec,var(--surface))}
+.yips-badge{grid-row:1/3;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#b85c3c;color:#fff;font-weight:900;font-size:18px}
+.pill.yips{background:#b85c3c;color:#fff;border-color:#b85c3c}
+.yips-note{border-left:4px solid #b85c3c}
+.dw-step.sp i{border-color:#b85c3c;color:#b85c3c}.dw-step.sp.ok i{background:#b85c3c;color:#fff}

@@ -76,6 +76,16 @@ async function ageOf(uid) {
   return u.ageBand;
 }
 
+
+/* 스페셜 파트 · 입스(YIPS): 전체 에러코드로 따로 표시 (AI 판단 또는 본인 스테이트먼트·진술) */
+function markSpecial(r, statement, extraText) {
+  const y = statement && statement.special && statement.special.yips;
+  const fromStmt = !!(y && (y.status === "지금 있음"));
+  const fromText = /입스|yips/i.test(String(extraText || ""));
+  const fromAI = Array.isArray(r.special) && r.special.map(String).includes("YIPS");
+  r.special = fromStmt || fromText || fromAI ? ["YIPS"] : [];
+  return r;
+}
 exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", timeoutSeconds: 120 }, async (req) => {
   if (!req.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
   const d = req.data || {};
@@ -100,6 +110,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     r.mental = !!r.mental || r.mf.level === "낮음";
     if (!NODE.test(String(r.via2 || ""))) r.via2 = null;
     if (!NODE.test(String(r.via || ""))) r.via = null;
+    markSpecial(r, statement, d.text);
     /* 경쟁 가설(내부 기록, 화면 미표시) */
     const hy = r.hyp && typeof r.hyp === "object" ? r.hyp : {};
     r.hyp = { tech: String(hy.tech || "미확인").slice(0, 200), pressure: String(hy.pressure || "미확인").slice(0, 200), interaction: String(hy.interaction || "미확인").slice(0, 200), other: String(hy.other || "미확인").slice(0, 200), matrix: "v1.2" };
@@ -141,6 +152,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     const hy = r.hyp && typeof r.hyp === "object" ? r.hyp : {};
     r.hyp = { tech: String(hy.tech || "미확인").slice(0, 200), pressure: String(hy.pressure || "미확인").slice(0, 200), interaction: String(hy.interaction || "미확인").slice(0, 200), other: String(hy.other || "미확인").slice(0, 200), matrix: "v1.2" };
     r.source = "self";
+    markSpecial(r, statement, parts);
     return r;
   }
   if (d.task === "feedback") {

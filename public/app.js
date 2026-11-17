@@ -94,11 +94,12 @@ function resultHTML(r,coach,date,opts={}){
     ${nps.map(p=>`<div class="drill"><div class="t"><b>${esc(p.name)}</b><span class="pill gold">${isEditor?p.node+" "+esc(NODES[p.node].ko)+" · ":""}${esc((DOMAIN[p.domain]||DOMAIN.tech)[0])}</span></div><div class="feel">“${esc(p.point)}”</div>${p.how||p.dose?`<small>${esc([p.how,p.dose].filter(Boolean).join(" · "))}</small>`:""}<div><span class="pill">🌱 코치 확인 전</span></div></div>`).join("")}</div>`:"";
   return `<div class="result">
     <div class="rhead"><span class="eyebrow">${esc(md(date))} · ${esc(PNAME[r.pillar]||"")}</span><h2>${esc(r.title||"레슨 정리")}</h2>
-      <div class="meta">${opts.self||r.source==="self"?`<span class="pill">본인 진술</span>`:coach?`<span class="pill gold">출처 · ${esc(coach)}</span>`:`<span class="pill">코치 미기재</span>`}${isEditor?(node?`<span class="pill gold">${node} ${esc(NODES[node].ko)}</span>`:`<span class="pill warn">위치 미정</span>`):""}${r.confidence&&isEditor?`<span class="pill ${conf}">판정 ${esc(r.confidence)}</span>`:""}${r.mental?`<span class="pill warn">압박 상황에서 더 심함</span>`:""}</div></div>
+      <div class="meta">${opts.self||r.source==="self"?`<span class="pill">본인 진술</span>`:coach?`<span class="pill gold">출처 · ${esc(coach)}</span>`:`<span class="pill">코치 미기재</span>`}${isEditor?(node?`<span class="pill gold">${node} ${esc(NODES[node].ko)}</span>`:`<span class="pill warn">위치 미정</span>`):""}${r.confidence&&isEditor?`<span class="pill ${conf}">판정 ${esc(r.confidence)}</span>`:""}${r.mental?`<span class="pill warn">압박 상황에서 더 심함</span>`:""}${(r.special||[]).includes("YIPS")?`<span class="pill yips">스페셜 · 입스</span>`:""}</div></div>
     <div class="sec"><h4><i>1</i>문제</h4>
       <dl class="kv"><dt>현상</dt><dd>${esc(r.problem&&r.problem.observation)}</dd><dt>원인</dt><dd>${esc(r.problem&&r.problem.interpretation)}</dd></dl>
       ${basis?`<div><span class="pill">근거 · ${esc(basis)}</span></div>`:""}</div>
     ${npHTML}
+    ${(r.special||[]).includes("YIPS")?`<div class="notice yips-note">입스 신호가 보여요. 입스는 한 부분만 고치는 문제가 아니라서, 기술을 한꺼번에 바꾸지 말고 코치님과 단계적으로 다뤄요. 떨림·경련이 골프 밖에서도 계속되면 전문가와 상의해 주세요.</div>`:""}
     ${isEditor?`<div class="sec map"><h4><i>2</i>Matrix 위치 <span class="pill">코치 영역</span></h4>${mapSVG(node,r.via&&NODES[r.via]?r.via:null,r.mental,leaves)}<p>${esc(r.node_reason)}</p>${r.check?`<div class="check"><b>다음 레슨에서 확인</b> · ${esc(r.check)}</div>`:""}</div>`
       :r.check?`<div class="sec"><h4><i>2</i>확인할 것</h4><div class="check">${esc(r.check)}</div></div>`:""}
     ${opts.self||r.source==="self"?((r.lesson&&r.lesson.feels||[]).length?`<div class="sec"><h4><i>3</i>내가 말한 느낌</h4>${r.lesson.feels.map(f=>`<div class="feel">“${esc(f)}”</div>`).join("")}</div>`:""):`<div class="sec"><h4><i>3</i>레슨 정리</h4>${(r.lesson&&r.lesson.points||[]).length?`<ul>${r.lesson.points.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"<p class='hint'>정리된 포인트가 없습니다.</p>"}${(r.lesson&&r.lesson.feels||[]).map(f=>`<div class="feel">“${esc(f)}”</div>`).join("")}</div>`}
@@ -645,6 +646,7 @@ $("drawer").addEventListener("click",e=>{
   if(b.dataset.go==="lib"&&b.dataset.node!==undefined){libNode=b.dataset.node;document.querySelectorAll("#lib-node .chip").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===libNode))}
   show(b.dataset.go);
   const sec=b.dataset.sec;
+  if(sec==="me-special"){setTimeout(()=>$("me-special").scrollIntoView({behavior:"smooth",block:"start"}),80);return}
   if(sec==="tcard"){setTimeout(()=>$("tcard").scrollIntoView({behavior:"smooth",block:"start"}),60);return}
   if(sec==="mfold"){$("mfold").open=true;$("prof").hidden=true;$("prof-btn").click();setTimeout(()=>$("mfold").scrollIntoView({behavior:"smooth",block:"start"}),50);return}
   if(sec)setTimeout(()=>{const el=$(sec);if(el)(el.closest(".panel")||el).scrollIntoView({behavior:"smooth",block:"start"})},50);
@@ -802,6 +804,7 @@ function itemHTML(a,i,x){
   return `<div class="me-item"><div class="t-head"><b>${esc(i.l)}</b>${x.coach?`<span class="pill ok">코치 확인</span>`:`<span class="pill">자기평가</span>`}</div>${rate}${meas}</div>`;
 }
 function renderMe(){
+  renderYips();
   if(!$("me-bio"))return;const b=stmt.bio||{};
   $("me-bio").innerHTML=`<div class="panel"><div class="t-head"><span class="eyebrow"><b>B</b>기본 바이오</span><button class="btn sm" type="button" id="me-bio-edit">고치기</button></div>
     <div class="bio-grid">${BIO_SHOW.map(([k,l])=>`<div><small>${l}</small><b>${esc(b[k]||"—")}</b></div>`).join("")}</div>
@@ -818,7 +821,7 @@ $("v-me").addEventListener("click",e=>{
   if(e.target.id==="me-bio-edit"){const f=$("me-bio-form");f.hidden=!f.hidden;if(!f.hidden)f.innerHTML=bioFields(stmt.bio||{})+`<p class="status err" id="me-bio-err"></p><div class="actions"><button class="btn gold" type="submit">저장</button></div>`}
 });
 $("v-me").addEventListener("submit",async e=>{
-  e.preventDefault();const f=e.target;
+  const f=e.target;if(f.id==="yips-form")return;e.preventDefault();
   if(f.id==="me-bio-form"){const b=readBio(f),miss=bioMissing(b);if(miss.length){$("me-bio-err").textContent="아직 고르지 않았어요: "+miss.join(", ");return}stmt.bio=b}
   else{const k=f.dataset.form,a=AREAS.find(x=>x.k===k),o={};
     a.items.forEach(i=>{const v=a.rate===false?0:(slVal(f,`r-${k}-${i.k}`)||0);let m="",mn=null;
@@ -1065,8 +1068,8 @@ async function renderTMetrics(){
    저장은 레슨 기록과 같은 곳(players/{uid}/lessons, source:"self"). 근거는 '본인 진술'. 공동 레거시에는 올리지 않는다.
    나중: 목소리로 본인과 레슨자를 구분(speaker 필드 자리), 해결된 문제는 레거시로, 해법에 맞는 레슨자 추천. */
 const P_SHOTS=["드라이버","우드·유틸","아이언","어프로치","벙커","퍼트"];
-const P_MISS={swing:["왼쪽으로 출발","오른쪽으로 출발","왼쪽으로 휨","오른쪽으로 휨","뒤땅","탑볼","생크","거리가 안 나옴","거리가 들쑥날쑥","방향이 들쑥날쑥","탄도가 너무 높음","탄도가 너무 낮음"],
-  putt:["짧음","김","왼쪽으로 빠짐","오른쪽으로 빠짐","거리감이 들쑥날쑥","짧은 퍼트가 불안","라인을 못 읽음"]};
+const P_MISS={swing:["입스처럼 손이 멈추거나 튐","왼쪽으로 출발","오른쪽으로 출발","왼쪽으로 휨","오른쪽으로 휨","뒤땅","탑볼","생크","거리가 안 나옴","거리가 들쑥날쑥","방향이 들쑥날쑥","탄도가 너무 높음","탄도가 너무 낮음"],
+  putt:["입스처럼 손이 멈추거나 튐","짧음","김","왼쪽으로 빠짐","오른쪽으로 빠짐","거리감이 들쑥날쑥","짧은 퍼트가 불안","라인을 못 읽음"]};
 const P_WHEN=["연습장에서도","코스에서","시합·압박 상황","첫 홀·첫 샷","실수한 직후","피곤할 때","특정 거리·클럽에서"];
 const P_SINCE=["1주 안","1달쯤","3달쯤","6달쯤","1년 넘게"];
 let probDraft=null,probBusy=false;
@@ -1244,7 +1247,7 @@ function renderDataPanel(){
   const lessonRow=l=>`<div class="dp-line"><span>${esc(md(l.date))}</span><span>${esc(l.result.title)}</span></div>`;
   $("dp-list").innerHTML=
     row("01","나의 스테이트먼트",[b.years,b.handicap].filter(Boolean).map(esc).join(" · ")||"아직 비어 있어요",
-      `<div class="dp-bars">${areas.map(([n,v])=>`<div><span>${esc(n)}</span><i><i style="width:${v?v/5*100:0}%"></i></i><small>${v?v.toFixed(1):"—"}</small></div>`).join("")}</div>`,"me")+
+      `<p class="hint" style="margin:0">스페셜 · 입스: ${esc(yipsLine())}</p><div class="dp-bars">${areas.map(([n,v])=>`<div><span>${esc(n)}</span><i><i style="width:${v?v/5*100:0}%"></i></i><small>${v?v.toFixed(1):"—"}</small></div>`).join("")}</div>`,"me")+
     row("02","내 문제 진술",selfL[0]?esc(selfL[0].result.title):"아직 남긴 진술이 없어요",selfL.slice(0,3).map(lessonRow).join("")||`<p class="hint">루크에게 지금 겪는 문제를 골라서 알려 주세요.</p>`,"dx")+
     row("03","레슨 기록",coachL[0]?esc(md(coachL[0].date)+" · "+(coachL[0].coach||"코치 미기재")):"아직 레슨 기록이 없어요",coachL.slice(0,3).map(lessonRow).join("")||`<p class="hint">로건에게 코치님 말씀을 들려주세요.</p>`,"lesson")+
     row("04","만다라트 · 배틀플랜",mandala?(ss.length?`배틀플랜 ${fin}/${ss.length}회차`:"배틀플랜을 만들어 보세요"):"아직 만다라트가 없어요",
@@ -1274,7 +1277,8 @@ function renderTalk(){
 function renderDrawerStatus(){
   const b=stmt.bio||{},bioOk=!bioMissing(b).length,n=AREAS.filter(a=>areaDone(a)>0).length;
   const set=(id,ok,txt)=>{const el=$(id);if(!el)return;el.classList.toggle("ok",ok);el.querySelector("i").textContent=ok?"✓":el.querySelector("i").textContent.replace("✓",id==="dw-s1"?"1":"2");el.querySelector("em").textContent=txt};
-  set("dw-s1",bioOk,bioOk?"완료":"입력하기");set("dw-s2",n===AREAS.length,n===AREAS.length?"완료":`${n}/${AREAS.length}`);
+  set("dw-s1",bioOk,bioOk?"완료":"입력하기");
+  {const y=stmt.special&&stmt.special.yips,el=$("dw-s4");if(el){el.classList.toggle("ok",!!(y&&y.status));el.querySelector("em").textContent=y&&y.status?(y.status==="없음"?"없음":y.status):"선택"}}set("dw-s2",n===AREAS.length,n===AREAS.length?"완료":`${n}/${AREAS.length}`);
   $("dw-sub").textContent=[b.years,b.handicap].filter(Boolean).join(" · ");
 }
 $("talk-plus").addEventListener("click",()=>{const sh=$("talk-sheet"),open=sh.hidden;sh.hidden=!open;$("talk-plus").setAttribute("aria-expanded",open);$("talk-plus").textContent=open?"×":"+"});
@@ -1404,3 +1408,34 @@ function miloEnter(){clearTimeout(miloT);const img=$("milo-pop-img");if(!img)ret
   miloPlay([0,1,2,3,4,5,6,7],[400,...MILO_MS.slice(1),0],miloIdleLoop)}
 function miloStop(leaving){clearTimeout(miloT);miloBusy=false;const img=$("milo-pop-img");if(img)img.src=MILO_FR[leaving?0:7]}
 $("milo-spot").addEventListener("pointerenter",()=>{miloHover=true});$("milo-spot").addEventListener("pointerleave",()=>{miloHover=false});
+
+
+/* ===== 스페셜 파트 · 입스(YIPS) =====
+   입스는 6개 영역 중 하나가 아니라 전체 에러코드라 따로 기록·관리한다. 저장 statement.special.yips.
+   크루는 원인을 단정하지 않고, 기술을 급히 바꾸지 않으며, 코치와 단계적으로 다루도록 안내한다(서버 규칙). */
+const YIPS={status:["없음","예전에 있었음","지금 있음"],shots:["짧은 퍼트","긴 퍼트","칩·어프로치","벙커","드라이버","아이언"],
+  symptoms:["손·손목이 멈춤","갑자기 튀거나 찍힘","손이 떨림","백스윙이 안 떨어짐","몸이 굳음"],when:["연습장에서도","코스에서","시합·압박 상황","특정 거리에서"]};
+let yipsOpen=false;
+function yipsLine(){const y=stmt.special&&stmt.special.yips;if(!y||!y.status)return "아직 체크하지 않았어요";if(y.status==="없음")return "입스 없음";
+  return [y.status,(y.shots||[]).join("·"),y.severity?`심한 정도 ${y.severity}/5`:""].filter(Boolean).join(" · ")}
+function renderYips(){
+  const box=$("me-special");if(!box)return;const y=(stmt.special&&stmt.special.yips)||{};
+  box.innerHTML=`<div class="panel me-area yips${yipsOpen?" open":""}"><button type="button" class="me-head" data-yips aria-expanded="${yipsOpen}">
+      <span class="yips-badge" aria-hidden="true">S</span><span><b>스페셜 파트 · 입스</b><small>${esc(yipsLine())}</small></span><i class="bar"><i style="width:${y.status?100:0}%"></i></i></button>
+    ${yipsOpen?`<form class="me-form" id="yips-form">
+      <p class="notice" style="margin:0">입스는 한 영역의 문제가 아니라 스윙 전체에 나타나는 '에러'라서 따로 기록해요. 크루는 원인을 단정하지 않고, 코치님과 천천히 다루도록 도와요.</p>
+      <div class="fld"><small>입스를 겪은 적이 있나요?</small>${chipsHTML("y-status",YIPS.status,y.status?[y.status]:[])}</div>
+      <div class="fld"><small>어떤 샷에서요?</small>${chipsHTML("y-shots",YIPS.shots,y.shots||[],true)}</div>
+      <div class="fld"><small>어떻게 나타나요?</small>${chipsHTML("y-symptoms",YIPS.symptoms,y.symptoms||[],true)}</div>
+      <div class="fld"><small>언제 나타나요?</small>${chipsHTML("y-when",YIPS.when,y.when||[],true)}</div>
+      <div class="fld"><small>얼마나 자주요?</small>${slider("y-freq",{min:1,max:10,start:3,fmt:v=>`10번 중 ${v}번`,label:"입스 빈도"},y.freq??null)}</div>
+      <div class="fld"><small>얼마나 심한가요?</small>${slider("y-sev",{min:1,max:5,start:3,fmt:v=>v+" · "+["","조금 신경 쓰임","가끔 결과에 영향","자주 영향","샷이 두려움","거의 칠 수 없음"][v],label:"입스 심한 정도"},y.severity??null)}</div>
+      <p class="hint" style="margin:0">손이나 팔의 떨림·경련이 골프 밖에서도 계속되면 코치님과 의료 전문가에게 꼭 상의해 주세요.</p>
+      <div class="actions"><button class="btn gold" type="submit">저장</button></div></form>`:""}</div>`;
+}
+$("me-special").addEventListener("click",e=>{if(e.target.closest("[data-yips]")){yipsOpen=!yipsOpen;renderYips()}});
+$("me-special").addEventListener("submit",async e=>{e.preventDefault();const f=e.target;const st=picked(f,"y-status")[0]||"";
+  if(!st){toast("입스를 겪은 적이 있는지 먼저 골라 주세요");return}
+  const y=st==="없음"?{status:st}:{status:st,shots:picked(f,"y-shots"),symptoms:picked(f,"y-symptoms"),when:picked(f,"y-when"),freq:slVal(f,"y-freq"),severity:slVal(f,"y-sev")};
+  stmt.special={...(stmt.special||{}),yips:{...y,code:"YIPS",at:new Date().toISOString()}};
+  try{await saveStatement();yipsOpen=false;toast("저장했어요");renderYips()}catch(_){toast("저장하지 못했습니다")}});

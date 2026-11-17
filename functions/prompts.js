@@ -37,6 +37,7 @@ const CAUSAL = `[AP Matrix v1.2 — 판단의 바탕]
 - 피해야 할 추정: 긴장 진술만으로 그립압·경로 변화 확정 / 실제 구질로 원래 의도 역추정 / 미스 방향 하나로 특정 기술 원인 확정 / 환경을 빼고 모든 차이를 임팩트 탓으로 / 한 번의 성공을 안정 재현으로 / 거리 증가만으로 효율 향상 / 성공만으로 좋은 선택.
 - 문제가 보이면 경쟁 가설을 함께 본다: 기술(낮은 압박에서도 같은 실행 문제가 반복되나) · 압박 반응 MF07(압박 반응과 주의·루틴 변화가 수행 변화보다 먼저 나타나나) · 상호작용(기술 약점이 압박에서 더 크게 드러나나) · 기타(피로·통증·장비·난도·환경·학습·순서). 압박 상황에서만 문제가 났다는 사실만으로 멘탈 원인으로 확정하지 않는다. 멘탈 개입으로 좋아져도 처음 원인이 멘탈이었다는 증명이 아니다.
 - 관찰하지 않은 중간 과정(긴장 → 그립압 증가 같은)을 사실처럼 채우지 않는다. 평가를 위한 연결(N6·N7·N8 평가)과 원인 가설 연결을 섞지 않는다. 문제·원인 설명에 쓰는 것은 원인 가설뿐이다.
+- 입스(YIPS: 퍼트·짧은 샷 등에서 손·손목이 멈추거나 갑자기 튀거나 떨리는 반복적 동작 문제)는 한 영역의 기술 문제로 판정하지 않는 '전체 에러코드'다. 레슨·진술에 입스 징후가 있거나 스테이트먼트에 입스가 있으면 special에 "YIPS"를 넣고, node는 주 검토 영역대로 두되 원인을 멘탈이나 특정 기술로 단정하지 않는다. 기술을 급히 바꾸는 처방을 피하고 코치와 단계적으로 다루도록 쓰며, 경련·떨림 같은 몸 증상이 연습 밖에서도 계속되면 전문가 상담을 권한다(진단·약 지시 금지).
 - mf는 N1 주의·준비 상태에 대한 관찰이다(다른 영역에 곱하는 계수가 아니다). 압박·긴장·루틴 변화가 레슨에 실제로 나오면 낮음, 근거가 없으면 "판단 보류". 체감 압박·불안·긴장 진술을 실제 신체·기술 변화로 바꾸지 않는다.`;
 
 /* 골퍼 스테이트먼트(본인 작성 자기평가)를 프롬프트용 몇 줄로. 참고만 한다. */
@@ -48,8 +49,11 @@ function statementText(st) {
     const items = Object.entries(a).filter(([x]) => !x.startsWith("_")).map(([, v]) => `${v.l}${v.v ? " " + v.v + "/5" : ""}${v.m ? " (" + v.m + (v.u ? v.u : "") + ")" : ""}`).join(", ");
     return items ? `${a._n || k}(${a._node || ""}): ${items}` : "";
   }).filter(Boolean).join("\n");
+  const y = st.special && st.special.yips;
+  const yips = y && y.status && y.status !== "없음" ? `[스페셜 파트 · 입스(YIPS) · 본인 진술]
+상태: ${y.status}${(y.shots || []).length ? " · 샷: " + y.shots.join(", ") : ""}${(y.symptoms || []).length ? " · 증상: " + y.symptoms.join(", ") : ""}${(y.when || []).length ? " · 언제: " + y.when.join(", ") : ""}${y.freq != null ? " · 10번 중 " + y.freq + "번" : ""}${y.severity ? " · 심한 정도 " + y.severity + "/5" : ""}` : "";
   return `[골퍼 기본 상태 · 본인이 적은 스테이트먼트, 참고만]
-바이오: ${bio}${areas ? "\n" + areas : ""}
+바이오: ${bio}${areas ? "\n" + areas : ""}${yips ? "\n" + yips : ""}
 - 판정은 레슨 기록과 코치 말이 먼저다. 스테이트먼트는 설명 수준·훈련 강도·분량을 맞추는 데 참고한다.
 - 멘탈 자기평가는 mf 판단의 '본인 진술' 근거로만 쓰고, 이번 레슨에 근거가 없으면 멘탈 포커스를 낮음으로 단정하지 않는다.
 - 자기평가와 레슨 내용이 다르면 확인할 점으로 check에 남긴다.`;
@@ -97,7 +101,7 @@ ${safety(minor)}
 - 레슨 내용이 골프 레슨·연습 이야기가 아니면 다른 것은 만들지 말고 {"off_topic":true} 만 낸다.
 
 [출력] JSON 하나만:
-{"title":"한 줄 제목","pillar":"drive|iron|short|putt|course|body|mind|life","problem":{"observation":"","interpretation":"","basis":""},"node":"N1~N8 또는 null","via":"함께 볼 관련 영역 또는 null","via2":"두 번째 관련 영역 또는 null","mental":false,"mf":{"level":"높음|보통|낮음|판단 보류","signs":"그렇게 본 근거(레슨에 나온 말)","basis":"코치 판단|본인 진술|AI 추정"},"node_reason":"주 검토 영역으로 고른 이유(규칙 번호, 원인 확정 아님)","hyp":{"tech":"기술 가설 근거 또는 미확인","pressure":"압박 반응 가설 근거 또는 미확인","interaction":"상호작용 가설 또는 미확인","other":"피로·장비·난도·환경 등 또는 미확인"},"confidence":"높음|중간|낮음","check":"","lesson":{"points":[""],"feels":[""]},"solution":"","drills":[{"name":"","how":"","dose":"","freq":"","source":"코치|AP 라이브러리|AI 보완","lib_id":""}],"plan":[{"day":1,"focus":"","tasks":[""]}],"recheck":"","missing":[""],"new_points":[{"node":"N1~N8","domain":"tech|mental|fitting|physical|course","kind":"point|drill","name":"짧은 이름","point":"코치가 한 말 그대로에 가깝게","how":"","dose":""}]}
+{"title":"한 줄 제목","pillar":"drive|iron|short|putt|course|body|mind|life","problem":{"observation":"","interpretation":"","basis":""},"node":"N1~N8 또는 null","via":"함께 볼 관련 영역 또는 null","via2":"두 번째 관련 영역 또는 null","mental":false,"mf":{"level":"높음|보통|낮음|판단 보류","signs":"그렇게 본 근거(레슨에 나온 말)","basis":"코치 판단|본인 진술|AI 추정"},"node_reason":"주 검토 영역으로 고른 이유(규칙 번호, 원인 확정 아님)","special":["입스 징후가 있으면 YIPS, 없으면 빈 배열"],"hyp":{"tech":"기술 가설 근거 또는 미확인","pressure":"압박 반응 가설 근거 또는 미확인","interaction":"상호작용 가설 또는 미확인","other":"피로·장비·난도·환경 등 또는 미확인"},"confidence":"높음|중간|낮음","check":"","lesson":{"points":[""],"feels":[""]},"solution":"","drills":[{"name":"","how":"","dose":"","freq":"","source":"코치|AP 라이브러리|AI 보완","lib_id":""}],"plan":[{"day":1,"focus":"","tasks":[""]}],"recheck":"","missing":[""],"new_points":[{"node":"N1~N8","domain":"tech|mental|fitting|physical|course","kind":"point|drill","name":"짧은 이름","point":"코치가 한 말 그대로에 가깝게","how":"","dose":""}]}
 
 ${self ? "[골퍼 본인의 상황 진술]" : "[레슨 내용]"}
 ${text}`;
