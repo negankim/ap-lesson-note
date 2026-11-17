@@ -594,8 +594,5 @@ body{background:linear-gradient(#eaf6fb,var(--bg) 340px)}
 .dw{z-index:95}
 .dpanel{z-index:96}
 
-/* ===== 나무가 자라는 모습 (미리보기) ===== */
-.grow-cap{position:absolute;left:50%;top:0;transform:translateX(-50%);z-index:30;width:max-content;max-width:92%;text-align:center;font-size:12.5px;line-height:1.4;background:rgba(255,253,247,.92);border:1px solid var(--line);border-radius:999px;padding:6px 12px;box-shadow:0 2px 8px rgba(0,0,0,.08);transition:opacity .6s;pointer-events:none}
-.grow-cap .pill{font-size:11px;margin-right:4px}.grow-cap.dim{opacity:0}
-.grow-btn{position:absolute;left:50%;transform:translateX(-50%);top:40px;z-index:30;font:inherit;font-size:12px;font-weight:700;border:1px solid var(--line);border-radius:999px;background:rgba(255,253,247,.92);padding:6px 10px;cursor:pointer;color:var(--fg)}
+/* ===== 나무가 자라는 모습 ===== */
 .growing .ap-legacy-node{pointer-events:none}
