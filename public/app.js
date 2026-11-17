@@ -375,7 +375,7 @@ function renderChart(){renderMandala();renderActive();renderLegacy();renderList(
 const DOMAIN={tech:["기술 레슨","#c9a24a"],mental:["멘탈 훈련","#9b7fd4"],fitting:["클럽 피팅","#4f9bd9"],physical:["피지컬 트레이닝","#5fb36b"],course:["코스 매니지먼트","#3fb5a8"]};
 const STAGE_NAME=["지식의 뿌리","첫 기록","전해지는 가르침","이어지는 지식","쌓여가는 레거시","풍성해지는 기록","세대를 잇는 나무","살아 있는 골프 레거시"];
 let plazaTree=null,plazaStats=null;
-const NODE_DESC={N1:"모든 노드에 곱해지는 집중·루틴의 기반",N2:"샷 전에 그리는 머릿속 임팩트와 의도",N3:"페이스와 레버 — 공의 출발 방향",N4:"클럽 경로 — 공의 휘어짐",N5:"실제 임팩트 — 컨택·타점·탄도",N6:"재현성 — 같은 샷을 반복하는 힘",N7:"효율성 — 힘을 거리로 바꾸는 법",N8:"적응 — 코스와 실전에서 쓰는 법"};
+const NODE_DESC={N1:"주의·루틴 진입·압박 반응·리셋",N2:"샷 전에 그리는 머릿속 임팩트와 의도",N3:"페이스와 레버 — 공의 출발 방향",N4:"클럽 경로 — 공의 휘어짐",N5:"실제 임팩트 — 컨택·타점·탄도",N6:"재현성 — 같은 샷을 반복하는 힘",N7:"효율성 — 힘을 거리로 바꾸는 법",N8:"적응 — 코스와 실전에서 쓰는 법"};
 function treeData(st,{landing=false,points={}}={}){const nodes={};
   for(const n of Object.keys(NODES))nodes[n]={legacyPointCount:Math.max(0,Number(st&&st.nodes&&st.nodes[n])||0),
     description:NODES[n].ko+" — "+NODE_DESC[n]+(landing?". 누가 남긴 어떤 레슨인지는 로그인하면 볼 수 있어요.":""),
@@ -837,7 +837,7 @@ function tCardHTML(t){
 function tResultSummary(t){
   const run=(t.runs||[]).slice(-1)[0],cur=t.current||t.proposal;if(!run)return "";
   if(run.stopped)return `<p>${esc(md(run.at.slice(0,10)))} · ${esc(run.stopped)}(으)로 중단했어요. 완료나 실패로 세지 않아요.</p>`;
-  return `<div class="tc-res">${condsOf(cur).map(c=>{const r=run.results[c.key]||{};const f=r.perceived?T_FEEL.map(([k,l])=>`${l} ${r.perceived[k]===null?"미측정":r.perceived[k]}`).join(" · "):"";
+  return `<div class="tc-res">${condsOf(cur).map(c=>{const r=run.results[c.key]||{};const f=r.perceived?[...T_FEEL.map(([k,l])=>`${l} ${r.perceived[k]===null||r.perceived[k]===undefined?"미측정":r.perceived[k]}`),`상황 해석 ${r.perceived.appraisal||"미측정"}`].join(" · "):"";
     return `<div><b>${esc(condLabel(c,cur.setup))}</b><span>${r.made}/${r.tries}${r.err!==null&&r.err!==undefined?` · 오차 ${r.err}${esc(cur.setup.errUnit||"")}`:""}${r.routine!==null&&r.routine!==undefined?` · ${esc(c.track)} ${r.routine}`:""}</span>${f?`<small>${esc(f)}</small>`:""}</div>`}).join("")}</div>
   ${run.sameSetup===false?`<p class="hint">조건마다 거리·경사·클럽이 달랐다고 기록했어요.</p>`:""}`;
 }
@@ -860,12 +860,13 @@ function tEditHTML(t){
 }
 function tRunHTML(t){
   const cur=t.current||t.proposal,s=cur.setup,u=s.errUnit||T_UNIT[s.task]||"";
-  const feel=(k)=>T_FEEL.map(([f,l,h])=>`<div class="tr-feel"><span>${l}<small>${h}</small></span><div class="chips pchips" data-feel="${k}.${f}">${[0,1,2,3,4,5].map(n=>`<button type="button" class="chip" data-v="${n}" aria-pressed="false">${n}</button>`).join("")}<button type="button" class="chip" data-v="" aria-pressed="true">미측정</button></div></div>`).join("");
+  const feel=(k)=>T_FEEL.map(([f,l,h])=>`<div class="tr-feel"><span>${l}<small>${h}</small></span><div class="chips pchips" data-feel="${k}.${f}">${[0,1,2,3,4,5].map(n=>`<button type="button" class="chip" data-v="${n}" aria-pressed="false">${n}</button>`).join("")}<button type="button" class="chip" data-v="" aria-pressed="true">미측정</button></div></div>`).join("")
+    +`<div class="tr-feel"><span>상황을 어떻게 받아들였나<small>해 볼 만했다(도전) · 겁났다(위협) · 둘 다 · 별 느낌 없음</small></span><div class="chips pchips" data-feel="${k}.appraisal" data-text="1">${[["도전","해 볼 만했다"],["위협","겁났다"],["혼합","둘 다"],["중립","별 느낌 없음"]].map(([v,l])=>`<button type="button" class="chip" data-v="${v}" aria-pressed="false">${l}</button>`).join("")}<button type="button" class="chip" data-v="" aria-pressed="true">미측정</button></div></div>`;
   return `<form class="tc-run" id="tc-run">
     ${condsOf(cur).map((c,i)=>`<fieldset class="tr-c" data-k="${c.key}"><legend>${i+1}. ${esc(condLabel(c,s))}</legend>
       <div class="row3"><label class="fld">성공<input data-f="made" inputmode="numeric" required></label><label class="fld">시도<input data-f="tries" inputmode="numeric" value="${esc(s.reps)}"></label><label class="fld">목표 오차 평균 (${u}) <span class="hint">선택</span><input data-f="err" inputmode="decimal"></label></div>
       ${c.track?`<label class="fld">${esc(c.track)} <span class="hint">선택</span><input data-f="routine" inputmode="numeric"></label>`:""}
-      ${c.perceived?`<div class="fld">선수가 느낀 부담 (0 없음 ~ 5 매우 큼) <span class="hint">재지 않았으면 '미측정' 그대로</span>${feel(c.key)}</div>`:""}
+      ${c.perceived?`<div class="fld">선수가 느낀 부담 (0 없음 ~ 5 매우 큼, AP 운영 척도) <span class="hint">묻지 않았으면 '미측정' 그대로</span>${feel(c.key)}</div>`:""}
       <details><summary class="hint">각 시도 오차 적기 (선택)</summary><label class="fld">시도마다 오차 (${u}), 쉼표로<input data-f="errs" placeholder="예: 30, 45, 20"></label></details></fieldset>`).join("")}
     ${s.presentation==="Random"?`<label class="fld">실제로 한 순서와 상황<input id="tr-order" maxlength="200" placeholder="예: 평소 → 파세이브(롱퍼트) → 준비 순서 유지(숏퍼트)"></label>`:""}
     <label class="ck-line"><input type="checkbox" id="tr-same" checked> 모든 조건을 같은 거리·경사·클럽으로 했어요</label>
@@ -971,7 +972,7 @@ $("tcard").addEventListener("submit",async e=>{
       if(made===null||tries===null||!tries||Number.isNaN(made)||Number.isNaN(tries)||!Number.isInteger(made)||!Number.isInteger(tries)||made>tries){miss.push(name);continue}
       if(Number.isNaN(er)||Number.isNaN(routine)||(routine!==null&&routine>tries)||errs.some(x=>!Number.isFinite(x))){miss.push(name+" (숫자 확인)");continue}
       const r={made,tries,err:er,errs,routine};
-      const pf=fs.querySelectorAll("[data-feel]");if(pf.length){r.perceived={};pf.forEach(g2=>{const on=g2.querySelector('.chip[aria-pressed="true"]');const [,fk]=g2.dataset.feel.split(".");r.perceived[fk]=on&&on.dataset.v!==""?Number(on.dataset.v):null})}
+      const pf=fs.querySelectorAll("[data-feel]");if(pf.length){r.perceived={};pf.forEach(g2=>{const on=g2.querySelector('.chip[aria-pressed="true"]');const [,fk]=g2.dataset.feel.split(".");r.perceived[fk]=on&&on.dataset.v!==""?(g2.dataset.text?on.dataset.v:Number(on.dataset.v)):null})}
       results[k]=r}
     if(miss.length){err.textContent="성공 수와 시도 수를 확인해 주세요: "+miss.join(", ");return}
     const run={at:new Date().toISOString(),by:uid,role:myRole(),source:$("tr-src").value,sameSetup:$("tr-same").checked,

@@ -94,11 +94,15 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     }), 16000);
     /* 새 레슨 포인트는 서버가 보관해 둔다. 공동 레거시에는 이 보관본만 올라간다(브라우저가 보낸 값은 쓰지 않음). */
     const NODE = /^N[1-8]$/, DOM = ["tech", "mental", "fitting", "physical", "course"];
-    /* 멘탈 포커스: 기술 위치와 따로 곱해지는 계수. 화면은 기존처럼 mental 표시만 쓴다 */
+    /* mf = R1 주의·준비 상태 관찰(Matrix v1.2, 계수 아님). 화면은 기존처럼 mental 표시만 쓴다 */
     const MF = ["높음", "보통", "낮음", "판단 보류"];
     r.mf = r.mf && typeof r.mf === "object" ? { level: MF.includes(r.mf.level) ? r.mf.level : "판단 보류", signs: String(r.mf.signs || "").slice(0, 200), basis: String(r.mf.basis || "").slice(0, 20) } : { level: "판단 보류", signs: "", basis: "" };
     r.mental = !!r.mental || r.mf.level === "낮음";
     if (!NODE.test(String(r.via2 || ""))) r.via2 = null;
+    if (!NODE.test(String(r.via || ""))) r.via = null;
+    /* 경쟁 가설(내부 기록, 화면 미표시) */
+    const hy = r.hyp && typeof r.hyp === "object" ? r.hyp : {};
+    r.hyp = { tech: String(hy.tech || "미확인").slice(0, 200), pressure: String(hy.pressure || "미확인").slice(0, 200), interaction: String(hy.interaction || "미확인").slice(0, 200), other: String(hy.other || "미확인").slice(0, 200), matrix: "v1.2" };
     r.new_points = (Array.isArray(r.new_points) ? r.new_points : []).filter((p) => p && NODE.test(p.node) && (p.point || p.name)).slice(0, 5)
       .map((p) => ({ node: p.node, domain: DOM.includes(p.domain) ? p.domain : "tech", kind: p.kind === "drill" ? "drill" : "point",
         name: String(p.name || "").slice(0, 60), point: String(p.point || "").slice(0, 300), how: String(p.how || "").slice(0, 300), dose: String(p.dose || "").slice(0, 80) }));
