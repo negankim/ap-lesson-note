@@ -672,3 +672,6 @@ body{background:linear-gradient(#eaf6fb,var(--bg) 340px)}
 .dw-acct .dw-row small{margin-left:auto}
 .acct-row>.hint,.acct-row>span.hint{white-space:nowrap;flex:none}
 .acct-row.link{text-decoration:none}.acct-row.link i{font-style:normal;color:var(--muted);font-size:20px}
+.speak{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.speak select,.lang-sel{font:inherit;font-size:14px;padding:6px 8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.lang-pill{margin-top:4px;display:inline-block;font-size:12px}

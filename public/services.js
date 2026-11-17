@@ -37,7 +37,7 @@ function makeUser(u, role, extra = {}) {
   return {
     id: async () => u.uid,
     me: async () => ({ name: extra.nickname || u.displayName || u.email || "" }),
-    info: () => ({ email: u.email || "", provider: (u.providerData[0] && u.providerData[0].providerId) || "", google: u.displayName || "", nickname: extra.nickname || "", tone: extra.tone || "coach", research: !!extra.research }),
+    info: () => ({ email: u.email || "", provider: (u.providerData[0] && u.providerData[0].providerId) || "", google: u.displayName || "", nickname: extra.nickname || "", tone: extra.tone || "coach", research: !!extra.research, lang: extra.lang || "ko", country: extra.country || "" }),
     canEdit: async () => role === "coach" || role === "admin",
     role: () => role,
     profiles: async (ids) => {
@@ -55,9 +55,9 @@ function makeUser(u, role, extra = {}) {
 function makeDictation() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) return null;
-  let rec = null, h = { p: () => {}, f: () => {}, s: () => {} }, want = false;
+  let rec = null, h = { p: () => {}, f: () => {}, s: () => {} }, want = false, lang = "ko-KR";
   const boot = () => {
-    rec = new SR(); rec.lang = "ko-KR"; rec.continuous = true; rec.interimResults = true;
+    rec = new SR(); rec.lang = lang; rec.continuous = true; rec.interimResults = true;
     rec.onresult = (e) => {
       let interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -71,6 +71,8 @@ function makeDictation() {
     rec.onerror = (e) => { if (e.error === "not-allowed") { want = false; h.s({ state: "idle", reason: "not_granted" }); } };
   };
   return {
+    setLang: (l) => { lang = l || "ko-KR"; if (rec) { const was = want; want = false; try { rec.stop(); } catch (_) {} rec = null; want = was && false; } },
+    getLang: () => lang,
     onPartial: (f) => (h.p = f), onFinal: (f) => (h.f = f), onState: (f) => (h.s = f),
     start: () => new Promise((res, rej) => { try { if (!rec) boot(); want = true; rec.start(); res(); } catch (e) { rej({ code: "dismissed" }); } }),
     stop: () => new Promise((res) => { want = false; try { rec.stop(); } catch (_) {} res(); }),
@@ -116,18 +118,21 @@ document.querySelectorAll("[data-login]").forEach((b) => b.addEventListener("cli
 }));
 $("logout").addEventListener("click", () => signOut(auth).then(() => location.reload()));
 
+/* 보호자 동의가 필요한 나이: 모든 나라에서 만 14세 미만, 인도네시아·말레이시아는 만 18세 이하(teen)까지 */
+export const needsGuardian = (ageBand, country) => ageBand === "child" || (ageBand === "teen" && ["ID", "MY"].includes(country));
 /* 나이 확인과 보호자 동의 (만 14세 미만은 법정대리인 동의 필요 → 코치가 보호자와 통화로 확인 후 승인) */
 function makeConsent(u, role) {
   const ref = doc(fs, "users/" + u.uid);
   return {
-    status: async () => { const d = (await getDoc(ref)).data() || {}; return { ageBand: d.ageBand || null, guardianVerified: d.guardianVerified === true, staff: role === "coach" || role === "admin" }; },
-    submit: async ({ ageBand, guardian }) => {
-      if (ageBand === "child") await setDoc(doc(fs, "guardians/" + u.uid), { ...guardian, player: u.displayName || "", agreedAt: serverTimestamp() });
-      await updateDoc(ref, { ageBand, consentAt: serverTimestamp(), consentVer: "2026-11-17" });
+    status: async () => { const d = (await getDoc(ref)).data() || {}; return { ageBand: d.ageBand || null, country: d.country || "", guardianVerified: d.guardianVerified === true, guardianNeeded: needsGuardian(d.ageBand, d.country || "KR"), xb: d.xbConsent === true, staff: role === "coach" || role === "admin" }; },
+    submit: async ({ ageBand, country, lang, xb, guardian }) => {
+      const need = needsGuardian(ageBand, country);
+      if (need) await setDoc(doc(fs, "guardians/" + u.uid), { ...guardian, player: u.displayName || "", country, agreedAt: serverTimestamp() });
+      await updateDoc(ref, { ageBand, country, lang, guardianNeeded: need, ...(xb ? { xbConsent: true, xbAt: serverTimestamp() } : {}), consentAt: serverTimestamp(), consentVer: "2026-11-18" });
     },
     pending: async () => {
-      const s = await getDocs(query(collection(fs, "users"), where("ageBand", "==", "child")));
-      const list = s.docs.filter((d) => d.data().guardianVerified !== true);
+      const [a, b] = await Promise.all([getDocs(query(collection(fs, "users"), where("ageBand", "==", "child"))), getDocs(query(collection(fs, "users"), where("guardianNeeded", "==", true)))]);
+      const seen = new Set(), list = [...a.docs, ...b.docs].filter((d) => !seen.has(d.id) && seen.add(d.id) && d.data().guardianVerified !== true);
       return Promise.all(list.map(async (d) => { const g = await getDoc(doc(fs, "guardians/" + d.id)); return { uid: d.id, name: d.data().name || "", guardian: g.exists() ? g.data() : null }; }));
     },
     verify: (uid) => updateDoc(doc(fs, "users/" + uid), { guardianVerified: true, verifiedBy: u.uid, verifiedAt: serverTimestamp() }),
@@ -164,7 +169,7 @@ onAuthStateChanged(auth, async (u) => {
   let role = "player", extra = {};
   try {
     const d = await getDoc(ref);
-    if (d.exists()) { role = d.data().role || "player"; extra = { nickname: d.data().nickname || "", tone: d.data().tone || "coach", research: !!d.data().research }; await updateDoc(ref, { name: u.displayName || "", lastSeen: serverTimestamp() }); }
+    if (d.exists()) { role = d.data().role || "player"; extra = { nickname: d.data().nickname || "", tone: d.data().tone || "coach", research: !!d.data().research, lang: d.data().lang || "", country: d.data().country || "" }; await updateDoc(ref, { name: u.displayName || "", lastSeen: serverTimestamp() }); }
     else await setDoc(ref, { name: u.displayName || "", role: "player", createdAt: serverTimestamp(), lastSeen: serverTimestamp() });
   } catch (e) { console.warn("users doc", e); }
   await start({ db, account: httpsCallable(fn, "account", { timeout: 120000 }), user: makeUser(u, role, extra), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation(), consent: makeConsent(u, role), chat: makeChat(u), legacy: { ...legacy, add: httpsCallable(fn, "legacy", { timeout: 60000 }) }, seedFn: httpsCallable(fn, "seedLibrary", { timeout: 120000 }) });

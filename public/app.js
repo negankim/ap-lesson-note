@@ -79,6 +79,7 @@ function mapSVG(on,via,mf,leaves={}){
 }
 
 /* ===== result card (레슨 탭과 차트 상세에서 같이 씀) ===== */
+function langBadge(r){if(!r||!r.src_lang||!r.out_lang||r.src_lang===r.out_lang)return "";return `<span class="pill lang-pill" title="레코드 원문 언어">원문 ${esc(LANG_NAME[r.src_lang]||r.src_lang.toUpperCase())} → ${esc(LANG_NAME[r.out_lang]||r.out_lang)}</span>`}
 function resultHTML(r,coach,date,opts={}){
   const node=r.node&&NODES[r.node]?r.node:null;
   const conf={"높음":"ok","중간":"gold","낮음":"warn"}[r.confidence]||"";
@@ -97,7 +98,7 @@ function resultHTML(r,coach,date,opts={}){
     <p class="hint" style="margin:0">${esc(coach||"코치")}님이 이번 레슨에서 새로 준 포인트예요. 저장하면 AP 레거시 나무의 잎으로 쌓이고, 코치님이 확인하면 코치님 이름이 정식으로 남습니다.</p>
     ${nps.map(p=>`<div class="drill"><div class="t"><b>${esc(p.name)}</b><span class="pill gold">${isEditor?p.node+" "+esc(NODES[p.node].ko)+" · ":""}${esc((DOMAIN[p.domain]||DOMAIN.tech)[0])}</span></div><div class="feel">“${esc(p.point)}”</div>${p.how||p.dose?`<small>${esc([p.how,p.dose].filter(Boolean).join(" · "))}</small>`:""}<div><span class="pill">🌱 코치 확인 전</span></div></div>`).join("")}</div>`:"";
   return `<div class="result">
-    <div class="rhead"><span class="eyebrow">${esc(md(date))} · ${esc(PNAME[r.pillar]||"")}</span><h2>${esc(r.title||"레슨 정리")}</h2>
+    <div class="rhead"><span class="eyebrow">${esc(md(date))} · ${esc(PNAME[r.pillar]||"")}</span><h2>${esc(r.title||"레슨 정리")}</h2>${langBadge(r)}
       <div class="meta">${opts.self||r.source==="self"?`<span class="pill">본인 진술</span>`:coach?`<span class="pill gold">출처 · ${esc(coach)}</span>`:`<span class="pill">코치 미기재</span>`}${isEditor?(node?`<span class="pill gold">${node} ${esc(NODES[node].ko)}</span>`:`<span class="pill warn">위치 미정</span>`):""}${r.confidence&&isEditor?`<span class="pill ${conf}">판정 ${esc(r.confidence)}</span>`:""}${r.mental?`<span class="pill warn">압박 상황에서 더 심함</span>`:""}${(r.special||[]).includes("YIPS")?`<span class="pill yips">스페셜 · 입스</span>`:""}</div></div>
     <div class="sec"><h4><i>1</i>문제</h4>
       <dl class="kv"><dt>현상</dt><dd>${esc(r.problem&&r.problem.observation)}</dd><dt>원인</dt><dd>${esc(r.problem&&r.problem.interpretation)}</dd></dl>
@@ -666,32 +667,44 @@ export function start(services){
   ({db,user,ai,dict,seedFn,consent,chat,legacy,account}=services);
   return boot();
 }
-/* ===== 나이 확인 · 보호자 동의 ===== */
+/* ===== 나이 확인 · 보호자 동의 =====
+   보호자 동의: 모든 나라 만 14세 미만, 인도네시아·말레이시아는 만 18세 이하까지(서버 ageOf 와 같은 규칙) */
+const legalHref=(doc,l)=>doc+(l&&l!=="ko"&&LANG_NAME[l]?"."+l:"")+".html";
+const needsG=(a,c)=>a==="child"||(a==="teen"&&["ID","MY"].includes(c));
+const LANG_OPTS=[["ko","한국어","ko-KR"],["en","English","en-US"],["ja","日本語","ja-JP"],["zh","简体中文","zh-CN"],["ms","Bahasa Melayu","ms-MY"],["id","Bahasa Indonesia","id-ID"]];
+const LANG_NAME=Object.fromEntries(LANG_OPTS.map(x=>[x[0],x[1]]));
+const guessLang=()=>{const n=(navigator.language||"ko").toLowerCase().slice(0,2);return LANG_NAME[n]?n:"ko"};
+const guessCountry=()=>{const l=(navigator.language||"").toUpperCase(),m=l.split("-")[1];const map={KR:"KR",US:"US",JP:"JP",CN:"CN",MY:"MY",ID:"ID"};if(map[m])return map[m];return {KO:"KR",JA:"JP",ZH:"CN",MS:"MY",ID:"ID",IN:"ID"}[l.slice(0,2)]||"KR"};
 let consent=null;
 async function gate(){
   if(!consent)return true;
   let s;try{s=await consent.status()}catch(_){return true}
   if(s.staff){loadGuardQ();return true}
-  if(s.ageBand&&(s.ageBand!=="child"||s.guardianVerified))return true;
+  if(s.ageBand&&(!s.guardianNeeded||s.guardianVerified)&&(s.country!=="CN"||s.xb))return true;
   $("consent").hidden=false;document.body.style.overflow="hidden";
   const wait=()=>{$("cs-form").hidden=true;$("cs-wait").hidden=false;$("cs-h").textContent="거의 다 됐어요";say($("g-cs"),"보호자 확인이 끝나면 바로 같이 시작해요. 조금만 기다려 주세요.",{now:true,who:"logan",motion:"guide"})};
-  if(s.ageBand==="child"){wait();return false}
+  if(s.ageBand&&s.guardianNeeded&&!s.guardianVerified){wait();return false}
   say($("g-cs"),"반가워요, 로건이에요. 안전하게 쓰려고 나이만 먼저 여쭤볼게요.",{now:true,who:"logan"});
   return new Promise(done=>{
-    $("cs-form").addEventListener("change",()=>{$("cs-guard").hidden=($("cs-form").age.value!=="child")});
+    document.querySelectorAll('#cs-form a[href^="terms"],#cs-form a[href^="privacy"]').forEach(a=>{a.href=legalHref(a.getAttribute("href").startsWith("terms")?"terms":"privacy",guessLang())});
+    if(!$("cs-country").dataset.set){$("cs-country").value=guessCountry();$("cs-country").dataset.set=1}
+    const sync=()=>{const a=$("cs-form").age.value,c=$("cs-country").value;$("cs-guard").hidden=!needsG(a,c);$("cs-xb-row").hidden=c!=="CN"};sync();
+    $("cs-form").addEventListener("change",sync);
     $("cs-form").addEventListener("submit",async e=>{
       e.preventDefault();const err=$("cs-err");err.textContent="";
       const age=$("cs-form").age.value;
       if(!age){err.textContent="나이를 골라 주세요.";return}
       let guardian=null;
-      if(age==="child"){
+      const country=$("cs-country").value||"KR";
+      if(needsG(age,country)){
         guardian={name:$("cs-gname").value.trim(),relation:$("cs-grel").value,phone:$("cs-gphone").value.trim()};
         if(!guardian.name||!guardian.relation||!/^[0-9+\- ]{9,}$/.test(guardian.phone)){err.textContent="보호자 이름, 관계, 연락처를 모두 적어 주세요.";return}
         if(!$("cs-gok").checked){err.textContent="보호자 동의에 체크해 주세요.";return}
       }
+      if(country==="CN"&&!$("cs-xb").checked){err.textContent="중국에서 쓰려면 국외 이전·민감정보 동의가 필요해요.";return}
       if(!$("cs-ok").checked){err.textContent="안내 내용에 동의해 주세요.";return}
-      try{await consent.submit({ageBand:age,guardian})}catch(_){err.textContent="저장하지 못했습니다. 다시 눌러 주세요.";return}
-      if(age==="child"){wait();return}
+      try{await consent.submit({ageBand:age,country,lang:guessLang(),xb:country==="CN",guardian})}catch(_){err.textContent="저장하지 못했습니다. 다시 눌러 주세요.";return}
+      if(needsG(age,country)){wait();return}
       $("consent").hidden=true;document.body.style.overflow="";done(true);
     });
   });
@@ -710,7 +723,8 @@ $("guard-list").addEventListener("click",async e=>{
 async function boot(){
   if(!(await gate()))return;
   renderChart();
-  setupMic();
+  if(dict&&dict.setLang)dict.setLang(speakLang());
+  setupMic();fillSpeak();
   try{isEditor=!!(await user.canEdit())}catch(_){}
   setRole();
   uid=await user.id();
@@ -1086,7 +1100,7 @@ function renderProbForm(){
     <div class="fld"><span class="eyebrow"><b>4</b>얼마나 자주요?</span>${slider("p-freq",{min:1,max:10,start:5,fmt:v=>`10번 중 ${v}번`,label:"얼마나 자주"},null)}</div>
     <div class="fld"><span class="eyebrow"><b>5</b>얼마나 됐나요?</span>${slider("p-since",{min:0,max:4,start:1,fmt:v=>P_SINCE[v],label:"얼마나 됐나"},null)}</div>
     <div class="fld"><span class="eyebrow"><b>6</b>말로 덧붙이기 <span class="hint">선택</span></span>
-      <div class="row-mic"><textarea id="p-words" rows="2" maxlength="1500" placeholder="예: 연습장에선 괜찮은데 첫 홀 티샷만 오른쪽으로 밀려요"></textarea><button class="btn sm" type="button" id="p-mic" ${dict?"":"hidden"}>🎙 말하기</button></div></div>
+      <div class="row-mic"><textarea id="p-words" rows="2" maxlength="1500" placeholder="예: 연습장에선 괜찮은데 첫 홀 티샷만 오른쪽으로 밀려요"></textarea><button class="btn sm" type="button" id="p-mic" ${dict?"":"hidden"}>🎙 말하기</button></div>${dict?`<label class="speak">말하는 언어<select data-speak></select></label>`:""}</div>
     <p class="status" id="p-st" role="status"></p>
     <div class="actions"><button class="btn gold" type="submit" id="p-go">문제와 솔루션 보기</button></div>`;
 }
@@ -1560,7 +1574,7 @@ function renderSet(){
     <h3 class="acct-k">크루 말투</h3><div class="acct-list">${TONE_OPTS.map(([k,l,ex])=>`<button type="button" class="acct-row tone" data-tone="${k}" aria-pressed="${k===tone}"><span><b>${l}</b><small>“${ex}”</small></span><i class="tone-ck" aria-hidden="true">${k===tone?"✓":""}</i></button>`).join("")}</div>
     <p class="hint" style="margin-top:-4px">말하는 방식만 바뀌고, 정리 규칙과 안전 규칙은 그대로예요.</p>
     <h3 class="acct-k">기능</h3><div class="acct-list">
-      ${acctRow("언어","한국어",`<span class="hint">다른 언어 준비 중</span>`)}
+      ${acctRow("언어","화면과 크루의 답, 레슨 정리 결과가 이 언어로 나와요",`<select class="lang-sel" id="st-lang">${LANG_OPTS.map(([k,l])=>`<option value="${k}" ${k===(inf.lang||"ko")?"selected":""}>${l}</option>`).join("")}</select>`)}
       ${acctRow("진동","저장·체크할 때 살짝 떨림",`<label class="switch"><input type="checkbox" id="st-vib" ${prefGet("vib","1")==="1"?"checked":""}><i></i></label>`)}</div>
     <h3 class="acct-k">도움</h3><div class="acct-list">
       ${acctRow("문의하기",CONTACT_EMAIL?esc(CONTACT_EMAIL):"궁금한 점은 먼저 크루나 밀로에게 물어보세요. 문의 메일은 곧 안내해요.",CONTACT_EMAIL?`<a class="btn sm" href="mailto:${esc(CONTACT_EMAIL)}">메일 보내기</a>`:`<button class="btn sm" type="button" data-show="ask">오늘의 대화</button>`)}</div>
@@ -1571,8 +1585,8 @@ function renderSet(){
     <h3 class="acct-k">정보 · 약관</h3><div class="acct-list">
       ${acctRow("연구 참여","가린 기록으로 AP 훈련 규칙을 다듬는 데 보태요. 안 해도 똑같이 쓸 수 있어요",`<label class="switch"><input type="checkbox" id="st-res" ${inf.research?"checked":""} ${myAge==="child"?"disabled":""}><i></i></label>`)}
       ${myAge==="child"?`<p class="hint" style="margin:0 16px 10px">만 14세 미만 기록은 연구에 쓰지 않아요.</p>`:""}
-      <a class="acct-row link" href="privacy.html" target="_blank" rel="noopener"><span><b>개인정보 처리방침</b></span><i aria-hidden="true">›</i></a>
-      <a class="acct-row link" href="terms.html" target="_blank" rel="noopener"><span><b>이용약관</b></span><i aria-hidden="true">›</i></a>
+      <a class="acct-row link" href="${legalHref("privacy",inf.lang)}" target="_blank" rel="noopener"><span><b>개인정보 처리방침</b></span><i aria-hidden="true">›</i></a>
+      <a class="acct-row link" href="${legalHref("terms",inf.lang)}" target="_blank" rel="noopener"><span><b>이용약관</b></span><i aria-hidden="true">›</i></a>
       ${myAge==="child"?acctRow("보호자 동의","만 14세 미만 · 보호자 확인 상태는 코치님이 확인해요"):""}
       ${acctRow("앱 버전",APP_VER)}</div>`;
 }
@@ -1593,5 +1607,12 @@ $("set-box").addEventListener("click",async e=>{
 $("set-box").addEventListener("submit",async e=>{if(e.target.id!=="st-name-f")return;e.preventDefault();const v=$("st-name-i").value.trim();if(!v){toast("이름을 적어 주세요");return}
   try{await db.doc("users/"+uid).update({nickname:v});$("who").textContent=v;setMenuUser(v,user.role?user.role():"");toast("이름을 바꿨어요");buzz();renderSet()}catch(_){toast("저장하지 못했어요")}});
 $("set-box").addEventListener("change",async e=>{if(e.target.id==="st-vib"){prefSet("vib",e.target.checked?"1":"0");if(e.target.checked)buzz()}
+  if(e.target.id==="st-lang"){const v=e.target.value;try{await db.doc("users/"+uid).update({lang:v});prefSet("speak",(LANG_OPTS.find(x=>x[0]===v)||[])[2]||"ko-KR");toast("언어를 바꿨어요");setTimeout(()=>location.reload(),500)}catch(_){toast("저장하지 못했어요")}return}
   if(e.target.id==="st-res"){const on=e.target.checked;try{await db.doc("users/"+uid).update({research:on,researchAt:new Date().toISOString()});const i=user.info();user.info=()=>({...i,research:on});toast(on?"연구 참여에 동의했어요":"연구 참여를 껐어요")}catch(_){e.target.checked=!on;toast("저장하지 못했어요")}}});
 document.addEventListener("click",e=>{if(e.target.closest("#set-box [data-logout]"))$("logout").click()});
+
+/* 말하는 언어(받아쓰기): 레슨에서 코치가 쓰는 말이 다를 수 있어 따로 고른다. 기본은 앱 언어. 정리할 때 AI가 원문 언어를 다시 식별해 함께 저장한다 */
+function speakLang(){const i=(user&&user.info)?user.info():{};return prefGet("speak","")||(LANG_OPTS.find(x=>x[0]===(i.lang||"ko"))||LANG_OPTS[0])[2]}
+function fillSpeak(root=document){const cur=speakLang();root.querySelectorAll("[data-speak]").forEach(sel=>{if(!sel.options.length)sel.innerHTML=LANG_OPTS.map(([k,l,b])=>`<option value="${b}">${l}</option>`).join("");sel.value=cur})}
+document.addEventListener("change",e=>{const sel=e.target.closest&&e.target.closest("[data-speak]");if(!sel)return;prefSet("speak",sel.value);if(dict&&dict.setLang){dict.stop&&dict.stop().catch(()=>{});dict.setLang(sel.value)}fillSpeak();toast("말하는 언어: "+sel.options[sel.selectedIndex].text)});
+new MutationObserver(()=>{if(document.querySelector("[data-speak]:empty"))fillSpeak()}).observe(document.body,{childList:true,subtree:true});

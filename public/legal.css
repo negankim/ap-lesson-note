@@ -1,6 +1,7 @@
 :root{--fg:#1f2a1f;--muted:#6b6a5e;--line:#e4dfcf;--bg:#f7f3e8;--green:#2f5d3a;--gold:#9a7a2e}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+html:lang(ko) body{word-break:keep-all}
 .legal{max-width:720px;margin:0 auto;padding:20px 18px 60px}
 .back{display:inline-block;color:var(--green);text-decoration:none;font-size:14px;margin-bottom:12px}
 h1{font-size:26px;margin:4px 0 6px}
@@ -14,3 +15,8 @@ th{background:#efe9d8;font-weight:600}
 .tbd{color:var(--gold)}
 a{color:var(--green)}
 .foot{margin-top:36px}
+.langs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.langs a{font-size:13px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;text-decoration:none;color:var(--fg);background:#fff}
+.langs a[aria-current]{background:var(--green);border-color:var(--green);color:#fff}
+h3{font-size:16px;margin:18px 0 4px}
+.note{font-size:13px;color:var(--muted)}

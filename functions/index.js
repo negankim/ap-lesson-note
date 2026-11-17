@@ -78,7 +78,12 @@ async function ageOf(uid) {
   const u = me.exists ? me.data() : {};
   if (["coach", "admin"].includes(u.role)) return "adult";
   if (!u.ageBand) throw new HttpsError("failed-precondition", "age-required");
-  if (u.ageBand === "child" && u.guardianVerified !== true) throw new HttpsError("failed-precondition", "guardian-pending");
+  /* 보호자 동의: 모든 나라 만 14세 미만, 인도네시아·말레이시아는 만 18세 이하까지 (나라는 처음 로그인 때 한 번 정함) */
+  const country = u.country || "KR";
+  const needG = u.ageBand === "child" || (u.ageBand === "teen" && ["ID", "MY"].includes(country));
+  if (needG && u.guardianVerified !== true) throw new HttpsError("failed-precondition", "guardian-pending");
+  /* 중국: 국외 이전 별도 동의(PIPL) 없이는 AI(미국 처리)를 쓰지 않는다 */
+  if (country === "CN" && u.xbConsent !== true) throw new HttpsError("failed-precondition", "consent-required");
   return u.ageBand;
 }
 
@@ -87,10 +92,23 @@ async function ageOf(uid) {
 function markSpecial(r, statement, extraText) {
   const y = statement && statement.special && statement.special.yips;
   const fromStmt = !!(y && (y.status === "지금 있음"));
-  const fromText = /입스|yips/i.test(String(extraText || ""));
+  const fromText = /입스|yips|イップス|易普/i.test(String(extraText || ""));
   const fromAI = Array.isArray(r.special) && r.special.map(String).includes("YIPS");
   r.special = fromStmt || fromText || fromAI ? ["YIPS"] : [];
   return r;
+}
+/* 언어: 설정(users.lang)대로 사람이 읽는 문장을 쓴다. 정해진 값(enum)·노드 코드는 그대로 둔다.
+ * 레코드 원문 언어는 AI가 src_lang 으로 식별해 함께 저장한다. */
+const LANGS = { ko: "한국어", en: "English", ja: "日本語", zh: "简体中文", ms: "Bahasa Melayu", id: "Bahasa Indonesia" };
+const langOf = (v) => (LANGS[v] ? v : "ko");
+const langLine = (lang) => lang === "ko" ? "" : `\n\n[출력 언어] 사람이 읽는 모든 문장(제목·설명·요점·훈련 이름과 방법·답변·질문)은 ${LANGS[lang]}로 쓴다. 입력이 다른 언어여도 출력 언어는 ${LANGS[lang]}. JSON 키, 노드 코드(N1~N8), 이 지시문에서 정해 준 값(예: 높음·보통·낮음·판단 보류, 코치·AP 라이브러리·AI 보완, 코치 판단·본인 진술·AI 추정, 기록·AI 추정, tech·mental 등)은 번역하지 말고 그대로 쓴다. 코치 이름·고유명사는 원래대로 둔다.`;
+const SRC_LINE = `\n\n[원문 언어] 출력 JSON 맨 위에 "src_lang" 키를 넣는다: 입력 원문(레슨 기록·진술)의 주된 언어 코드(ko, en, ja, zh, ms, id 중 하나, 그 밖이면 해당 ISO 639-1 두 글자). 여러 언어가 섞이면 가장 많은 쪽.`;
+const cleanLang = (v) => (/^[a-z]{2}$/.test(String(v || "")) ? String(v) : "");
+async function translateCard(card, setup, lang) {
+  if (lang === "ko") return null;
+  const src = { goal: card.goal, drill: card.drill, why: card.why, steps: card.steps, checks: card.checks, unknowns: card.unknowns, success: setup.success };
+  const out = await callClaude(MODEL.feedback, `다음 JSON의 값(문장)만 ${LANGS[lang]}로 자연스럽게 옮긴다. 키·배열 길이·숫자·단위는 그대로. 골프 용어는 그 언어에서 흔히 쓰는 말로. 설명 없이 JSON만 출력.\n\n${JSON.stringify(src)}`, 3000);
+  return out && typeof out === "object" ? out : null;
 }
 exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", timeoutSeconds: 120 }, async (req) => {
   if (!req.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
@@ -99,8 +117,9 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
   let statement = null;
   try { const sd = await db.doc(`players/${req.auth.uid}/statement/current`).get(); statement = sd.exists ? sd.data() : null; } catch (_) {}
   /* 크루 말투 (설정): 내용·판정 규칙은 그대로, 말하는 방식만 바꾼다 */
-  let toneLine = "";
-  try { const ud = await db.doc(`users/${req.auth.uid}`).get(); toneLine = TONES[ud.exists && ud.data().tone] || ""; } catch (_) {}
+  let toneLine = "", lang = "ko";
+  try { const ud = await db.doc(`users/${req.auth.uid}`).get(); const ux = ud.exists ? ud.data() : {}; toneLine = TONES[ux.tone] || ""; lang = langOf(ux.lang); } catch (_) {}
+  const LL = langLine(lang);
   if (d.task === "organize") {
     const text = String(d.text || "").slice(0, 12000);
     if (text.length < 20) throw new HttpsError("invalid-argument", "레슨 내용이 너무 짧습니다.");
@@ -110,7 +129,8 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     const coach = String(d.coach || "").slice(0, 40);
     const r = await callClaude(MODEL.organize, organizePrompt({
       text, coach, profile: d.profile || {}, history: (d.history || []).slice(0, 3), lib, minor, statement,
-    }), 16000);
+    }) + SRC_LINE + LL, 16000);
+    r.src_lang = cleanLang(r.src_lang); r.out_lang = lang;
     /* 새 레슨 포인트는 서버가 보관해 둔다. 공동 레거시에는 이 보관본만 올라간다(브라우저가 보낸 값은 쓰지 않음). */
     const NODE = /^N[1-8]$/, DOM = ["tech", "mental", "fitting", "physical", "course"];
     /* mf = R1 주의·준비 상태 관찰(Matrix v1.2, 계수 아님). 화면은 기존처럼 mental 표시만 쓴다 */
@@ -126,7 +146,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     r.new_points = (Array.isArray(r.new_points) ? r.new_points : []).filter((p) => p && NODE.test(p.node) && (p.point || p.name)).slice(0, 5)
       .map((p) => ({ node: p.node, domain: DOM.includes(p.domain) ? p.domain : "tech", kind: p.kind === "drill" ? "drill" : "point",
         name: String(p.name || "").slice(0, 60), point: String(p.point || "").slice(0, 300), how: String(p.how || "").slice(0, 300), dose: String(p.dose || "").slice(0, 80) }));
-    const dref = await db.collection("players/" + req.auth.uid + "/drafts").add({ coach, new_points: r.new_points, at: Date.now() });
+    const dref = await db.collection("players/" + req.auth.uid + "/drafts").add({ coach, new_points: r.new_points, lang, src_lang: r.src_lang, at: Date.now() });
     r.draft_id = dref.id;
     return r;
   }
@@ -148,7 +168,8 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     const lib = libSnap.docs.map((x) => ({ id: x.id, ...x.data() }));
     const r = await callClaude(MODEL.solve, organizePrompt({
       text: parts, coach: "", profile: d.profile || {}, history: (d.history || []).slice(0, 3), lib, minor, statement, self: true,
-    }), 16000);
+    }) + SRC_LINE + LL, 16000);
+    if (r && typeof r === "object") { r.src_lang = s.words ? cleanLang(r.src_lang) : ""; r.out_lang = lang; }
     if (r && r.off_topic) return r;
     const NODE = /^N[1-8]$/, MF = ["높음", "보통", "낮음", "판단 보류"];
     r.mf = r.mf && typeof r.mf === "object" ? { level: MF.includes(r.mf.level) ? r.mf.level : "판단 보류", signs: String(r.mf.signs || "").slice(0, 200), basis: "본인 진술" } : { level: "판단 보류", signs: "", basis: "본인 진술" };
@@ -168,7 +189,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     await countUse(req.auth.uid, "feedback");
     return callClaude(MODEL.feedback, feedbackPrompt({
       lesson: d.lesson || {}, verdict: String(d.verdict || ""), text: String(d.text || "").slice(0, 300), minor, statement,
-    }) + toneLine, 2000);
+    }) + toneLine + LL, 2000);
   }
   if (d.task === "chat") {
     const q = String(d.text || "").trim().slice(0, 400);
@@ -187,7 +208,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     const r = await callClaude(MODEL.chat, chatPrompt({
       question: q, lessons, profile: pf.exists ? pf.data() : {}, history, minor, statement,
       today: new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10),
-    }) + toneLine, 1500);
+    }) + toneLine + LL, 1500);
     const who = ["logan", "rook", "daryl", "paco"].includes(r.who) ? r.who : "logan";
     const sources = (Array.isArray(r.sources) ? r.sources : []).map((s) => lessons[Number(String(s).replace(/\D/g, "")) - 1])
       .filter(Boolean).slice(0, 3).map((l) => ({ id: l.id, date: l.date || "", coach: l.coach || "", title: (l.result && l.result.title) || "" }));
@@ -226,6 +247,20 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     }
     if (problems.length) { console.error("train validate failed", problems); throw new HttpsError("internal", "train-invalid"); }
     const doc = TR.buildDoc({ out, pick, lessons, parent, model: MODEL.train, uid: req.auth.uid, history: all });
+    /* 검증은 한국어 원안으로 하고, 다른 언어면 지금 적용본(current)의 화면 문장만 옮긴다 */
+    if (lang !== "ko" && doc.current) {
+      try {
+        const cur = JSON.parse(JSON.stringify(doc.current)), card = cur.card || {}, setup = cur.setup || {};
+        const tr = await translateCard(card, setup, lang);
+        if (tr) {
+          ["goal", "drill", "why"].forEach((k) => { if (typeof tr[k] === "string" && tr[k]) card[k] = tr[k].slice(0, 400); });
+          ["steps", "checks", "unknowns"].forEach((k) => { if (Array.isArray(tr[k]) && Array.isArray(card[k]) && tr[k].length === card[k].length) card[k] = tr[k].map((x) => String(x).slice(0, 300)); });
+          if (typeof tr.success === "string" && tr.success) setup.success = tr.success.slice(0, 120);
+          doc.current = { ...cur, card, setup };
+        }
+      } catch (e) { console.warn("train translate", e.message); }
+      doc.lang = lang; // proposal(AI 원안·검증본)은 한국어 그대로 보존
+    }
     const ref = await db.collection(base + "/trainings").add(doc);
     if (parent) await db.doc(base + "/trainings/" + parent.id).update({ nextId: ref.id });
     return { id: ref.id };
@@ -274,7 +309,7 @@ async function addToLegacy(uid, lessonId) {
   const ds = await dref.get();
   if (!ds.exists || ds.data().usedBy) { await lref.update({ legacyAt: Date.now(), legacyAdded: 0 }); return { added: 0, echoed: 0 }; }
   const draft = ds.data(), pts = draft.new_points || [], coach = String(draft.coach || "").trim();
-  const src = { coach: coach || "코치 미기재", player: playerLabel(us.exists ? us.data() : {}), date: L.date || "", at: Date.now() };
+  const src = { coach: coach || "코치 미기재", player: playerLabel(us.exists ? us.data() : {}), date: L.date || "", lang: draft.lang || "ko", at: Date.now() };
   let added = 0, echoed = 0;
   await db.runTransaction(async (t) => {
     const stRef = db.doc("legacy/stats");
@@ -290,7 +325,7 @@ async function addToLegacy(uid, lessonId) {
         t.update(refs[i], { echoes: inc(1), sources: admin.firestore.FieldValue.arrayUnion(src), updatedAt: Date.now() });
       } else {
         added++;
-        t.set(refs[i], { ...p, coach: src.coach, sources: [src], echoes: 1, confirmed: false, createdAt: Date.now(), updatedAt: Date.now() });
+        t.set(refs[i], { ...p, lang: draft.lang || "ko", coach: src.coach, sources: [src], echoes: 1, confirmed: false, createdAt: Date.now(), updatedAt: Date.now() });
         st["nodes." + p.node] = inc(1);
         st["domains." + p.domain] = inc(1);
       }

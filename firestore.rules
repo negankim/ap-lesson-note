@@ -24,7 +24,8 @@ service cloud.firestore {
                       && !('guardianVerified' in request.resource.data);
       allow update: if isAdmin()
                     || (signedIn() && request.auth.uid == uid && same('role') && same('guardianVerified')
-                        && same('verifiedBy') && (resource.data.get('ageBand', null) == null || same('ageBand')))
+                        && same('verifiedBy') && (resource.data.get('ageBand', null) == null || same('ageBand'))
+                        && (resource.data.get('country', null) == null || same('country')))
                     || (isStaff() && request.resource.data.diff(resource.data).affectedKeys()
                         .hasOnly(['guardianVerified', 'verifiedBy', 'verifiedAt']));
     }
