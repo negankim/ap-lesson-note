@@ -396,7 +396,7 @@ export function mountPlaza(el,st,{landing=false}={}){
   const go=()=>{if(!window.APLegacyTree)return setTimeout(go,120);
     const t=new APLegacyTree(el,{atlasUrl:"img/legacy-tree-atlas-light.webp",data:treeData(st,{landing}),
       onNodeSelect:({nodeId})=>{if(!landing)loadNodePoints(nodeId)}});
-    const n=landing?$("lp-tree-n"):$("plaza-n");if(n)n.textContent=statLine(st);
+    const n=landing?$("lp-tree-n"):$("plaza-n");if(n){n.textContent="";n.hidden=true}
     if(!landing){plazaTree=t;const d=el.querySelector(".ap-legacy-detail"),slot=$("plaza-detail");if(d&&slot)slot.append(d)}
     setTimeout(()=>growTour(t,el,()=>treeData(landing?st:(plazaStats||st),{landing,points:landing?{}:plazaPoints})),500)};
   go();
@@ -408,14 +408,14 @@ async function loadNodePoints(n){
   plazaPoints[n]=ps.map(p=>{const d=(DOMAIN[p.domain]||DOMAIN.tech)[0],src=(p.sources||[]);const s0=src[0]||{};
     const more=src.length>1?` 외 ${src.length-1}곳에서 이어짐`:"";
     return {id:p.id,title:`[${d}] ${p.name||"레슨 포인트"} — “${p.point}”`,coach:`${s0.coach||p.coach||"코치 미기재"} · ${s0.player||"선수"}${more} · ${p.confirmed?"코치 확인":"코치 확인 전"}`,date:md(s0.date||"")}});
-  if(plazaTree)plazaTree.update(treeData(plazaStats,{points:plazaPoints}));
+  if(plazaTree)plazaTree.update({...treeData(plazaStats,{points:plazaPoints}),stageOverride:31});
 }
 async function openPlaza(){
   if(!legacy)return;
   const st=await legacy.stats();plazaStats=st;for(const k in plazaPoints)delete plazaPoints[k];
-  if(!plazaTree)mountPlaza($("plaza-tree"),st);else{plazaTree.update(treeData(st));$("plaza-n").textContent=statLine(st)}
+  if(!plazaTree)mountPlaza($("plaza-tree"),st);else plazaTree.update({...treeData(st),stageOverride:31})
   const th=window.APLegacyTree?window.APLegacyTree.thresholds:[0],t=Number(st.total)||0;let k=0;th.forEach((v,i)=>{if(t>=v)k=i});
-  if(!$("g-plaza").dataset.said||!/NEW/.test($("g-plaza").dataset.said))say($("g-plaza"),`지금 나무는 '${STAGE_NAME[Math.floor(k/4)]}' (성장 ${k+1}/32)이에요. 열매를 누르면 그 영역에 쌓인 레슨 포인트와 누가 남겼는지 볼 수 있어요.`,{who:"logan"});
+  if(!$("g-plaza").dataset.said||!/NEW/.test($("g-plaza").dataset.said))say($("g-plaza"),"열매를 누르면 그 영역에 쌓인 레슨 포인트와 누가 남겼는지 볼 수 있어요.",{who:"logan"});
 }
 const normName=s=>String(s||"").replace(/\s+/g,"").toLowerCase();
 async function loadCoaches(){
@@ -1279,14 +1279,15 @@ $("talk-sheet").addEventListener("click",e=>{const b=e.target.closest("[data-tk]
 
 
 /* ===== 레거시 나무가 자라는 모습 =====
-   화면이 열리면 설명·버튼 없이 1단계부터 32단계까지 저절로 자란 뒤, 실제 우리 나무 단계로 조용히 돌아온다.
-   (실제 숫자는 나무 아래 문장과 열매에서 보인다. 자라는 동안 열매는 누를 수 없다.) */
+   화면이 열리면 설명·버튼 없이 1단계부터 32단계까지 저절로 자라고, 다 자란 나무로 남는다(대표 결정).
+   나무 모양은 보여 주기용이고, 열매 크기·밝기와 열매를 눌렀을 때의 포인트·출처는 실제 기록 그대로다. */
 function growTour(tree,el,realData){
-  if(!tree||!el||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  if(!tree||!el)return;
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches){tree.update({...realData(),stageOverride:31});return}
   const th=(window.APLegacyTree&&window.APLegacyTree.thresholds)||[];
   const demo=s=>{const f=s/31,nodes={};["N1","N2","N3","N4","N5","N6","N7","N8"].forEach((n,i)=>nodes[n]={legacyPointCount:Math.round(f*f*80*(.55+.45*((i*37)%10)/10))});
     return {nodes,totalLegacyPointCount:th[s]||0,stageOverride:s}};
   el.classList.add("growing");let s=0;
   const timer=setInterval(()=>{tree.update(demo(s));
-    if(s>=31){clearInterval(timer);setTimeout(()=>{el.classList.remove("growing");tree.update(realData())},2400);return}s++},190);
+    if(s>=31){clearInterval(timer);setTimeout(()=>{el.classList.remove("growing");tree.update({...realData(),stageOverride:31})},1200);return}s++},190);
 }
