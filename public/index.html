@@ -134,10 +134,15 @@
       <div class="floor" aria-hidden="true"></div>
       <div class="scene-tree" id="plaza-tree"></div>
       <button class="milo-q q-tree" type="button" data-milo-help="tree" aria-label="레거시 나무 도움말">?</button>
-      <div class="station st-logan"><button class="crew-go" type="button" data-show="lesson" aria-label="로건 · 레슨 기록으로 가기"><img src="img/crew3d/logan-idle.webp" alt="" width="120" height="200"><span class="plate"><b>로건</b>레슨 기록</span></button><button class="milo-q" type="button" data-milo-help="logan" aria-label="로건 도움말">?</button></div>
-      <div class="station st-rook"><button class="crew-go" type="button" data-show="dx" aria-label="루크 · 내 문제 진술로 가기"><img src="img/crew3d/rook-idle.webp" alt="" width="120" height="200"><span class="plate"><b>루크</b>내 문제 진술</span></button><button class="milo-q" type="button" data-milo-help="rook" aria-label="루크 도움말">?</button></div>
-      <div class="station st-daryl"><button class="crew-go" type="button" data-show="train" aria-label="데릴 · 훈련장으로 가기"><img src="img/crew3d/daryl-idle.webp" alt="" width="120" height="200"><span class="plate"><b>데릴</b>훈련장</span></button><button class="milo-q" type="button" data-milo-help="daryl" aria-label="데릴 도움말">?</button></div>
-      <div class="station st-paco"><button class="crew-go" type="button" data-show="feel" aria-label="파코 · 감각과 실전으로 가기"><img src="img/crew3d/paco-idle.webp" alt="" width="120" height="200"><span class="plate"><b>파코</b>감각 · 실전</span></button><button class="milo-q" type="button" data-milo-help="paco" aria-label="파코 도움말">?</button></div>
+      <div class="crew-pop" id="crew-pop" role="dialog" aria-modal="false" aria-labelledby="crew-pop-h" hidden>
+        <img id="crew-pop-img" src="" alt="" width="84" height="140">
+        <div class="cp-body"><b id="crew-pop-h"></b><p id="crew-pop-m"></p><p class="hint" id="crew-pop-a"></p>
+          <div class="actions"><button class="btn gold sm" type="button" id="crew-pop-go">들어가기</button><button class="btn sm" type="button" id="crew-pop-x">닫기</button></div></div>
+      </div>
+      <div class="station st-logan"><button class="crew-go" type="button" data-crew="logan" aria-haspopup="dialog" aria-label="로건 소개 보기"><img src="img/crew3d/logan-idle.webp" alt="" width="120" height="200"><span class="plate"><b>로건</b>레슨 기록</span></button></div>
+      <div class="station st-rook"><button class="crew-go" type="button" data-crew="rook" aria-haspopup="dialog" aria-label="루크 소개 보기"><img src="img/crew3d/rook-idle.webp" alt="" width="120" height="200"><span class="plate"><b>루크</b>내 문제 진술</span></button></div>
+      <div class="station st-daryl"><button class="crew-go" type="button" data-crew="daryl" aria-haspopup="dialog" aria-label="데릴 소개 보기"><img src="img/crew3d/daryl-idle.webp" alt="" width="120" height="200"><span class="plate"><b>데릴</b>훈련장</span></button></div>
+      <div class="station st-paco"><button class="crew-go" type="button" data-crew="paco" aria-haspopup="dialog" aria-label="파코 소개 보기"><img src="img/crew3d/paco-idle.webp" alt="" width="120" height="200"><span class="plate"><b>파코</b>감각 · 실전</span></button></div>
     </div>
     <p class="plaza-n" id="plaza-n"></p>
     <div id="plaza-detail"></div>

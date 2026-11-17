@@ -37,6 +37,7 @@ let profile={level:"A",goal:""},lessons=[],draft=null,pillarFilter=null,openId=n
 const VIEWS=["home","lesson","dx","train","feel","me","ask","lib"],ALIAS={today:"home",plaza:"home",chart:"dx"};
 function show(tab){
   if(typeof crewStop==="function")crewStop();
+  if(typeof crewPopClose==="function")crewPopClose();
   tab=ALIAS[tab]||tab;if(!VIEWS.includes(tab))tab="home";
   if(tab==="lib"&&!isEditor)tab="home";
   for(const v of VIEWS)$("v-"+v).hidden=tab!==v;
@@ -1314,8 +1315,8 @@ function crewWalk(){
   if(reduce||WALK.on)return;WALK.on=true;
   sts.forEach((st,i)=>{
     const img=st.querySelector(".crew-go img"),id=(img.src.match(/crew3d\/(\w+)-/)||[])[1];
-    if(!st.dataset.bound){st.dataset.bound="1";["pointerenter","focusin"].forEach(ev=>st.addEventListener(ev,()=>{st.dataset.hold="1";st.classList.remove("walking")}));["pointerleave","focusout"].forEach(ev=>st.addEventListener(ev,()=>{delete st.dataset.hold}))}
-    const held=()=>!!st.dataset.hold;
+    if(!st.dataset.bound){st.dataset.bound="1";st.addEventListener("pointerenter",e=>{if(e.pointerType==="mouse"){st.dataset.hold="1";crewFreeze(st)}});st.addEventListener("pointerleave",()=>{delete st.dataset.hold})}
+    const held=()=>!!st.dataset.hold||!!st.dataset.pin;
     const rest=()=>{if(!WALK.on)return;st.classList.remove("walking");
       if(Math.random()<.35&&id){img.src=`img/crew3d/${id}-greet.webp`;WALK.timers.push(setTimeout(()=>{img.src=`img/crew3d/${id}-idle.webp`},1800))}
       WALK.timers.push(setTimeout(go,2500+Math.random()*4500))};
@@ -1325,4 +1326,28 @@ function crewWalk(){
     WALK.timers.push(setTimeout(go,800+i*900));
   });
 }
+/* 걷던 자리에서 바로 멈춘다 (지금 그려진 위치로 고정) */
+function crewFreeze(st){const sc=$("scene"),cs=getComputedStyle(st),W=sc.clientWidth,H=sc.clientHeight;
+  const x=parseFloat(cs.left)/W*100,y=parseFloat(cs.bottom)/H*100;st.style.transitionDuration="0s";st.style.left=x+"%";st.style.bottom=y+"%";st.dataset.x=x;st.dataset.y=y;st.classList.remove("walking")}
 function crewStop(){WALK.on=false;WALK.timers.forEach(clearTimeout);WALK.timers=[];document.querySelectorAll("#v-home .station").forEach(st=>{st.classList.remove("walking");st.style.transitionDuration="0s"})}
+
+
+/* ===== 광장 크루를 누르면 소개가 나온다 (? 없이) =====
+   이름 → 무엇을 하는 곳 → 할 수 있는 일, 그리고 '들어가기'. 보는 동안 그 크루는 걷기를 멈춘다. */
+const CREW_VIEW={logan:"lesson",rook:"dx",daryl:"train",paco:"feel"};
+let popCrew=null;
+function crewPop(id,st){
+  const h=MILO_HELP[id];if(!h)return;const pop=$("crew-pop");
+  document.querySelectorAll("#v-home .station").forEach(x=>{delete x.dataset.pin});if(st){st.dataset.pin="1";crewFreeze(st)}
+  popCrew=id;$("crew-pop-img").src=`img/crew3d/${id}-greet.webp`;$("crew-pop-h").textContent=h.title;$("crew-pop-m").textContent=h.meaning;$("crew-pop-a").textContent=h.action||"";
+  $("crew-pop-go").textContent=h.goLabel||"들어가기";pop.hidden=false;requestAnimationFrame(()=>pop.classList.add("on"));$("crew-pop-go").focus({preventScroll:true});
+}
+function crewPopClose(){const pop=$("crew-pop");if(pop.hidden)return;pop.classList.remove("on");pop.hidden=true;document.querySelectorAll("#v-home .station").forEach(x=>{delete x.dataset.pin});
+  const st=popCrew&&document.querySelector(`#v-home .crew-go[data-crew="${popCrew}"]`);popCrew=null;if(st)st.focus({preventScroll:true})}
+$("v-home").addEventListener("click",e=>{
+  const b=e.target.closest(".crew-go[data-crew]");if(b){e.stopPropagation();crewPop(b.dataset.crew,b.closest(".station"));return}
+  if(e.target.closest("#crew-pop-go")){const v=CREW_VIEW[popCrew];crewPopClose();if(v)show(v);return}
+  if(e.target.closest("#crew-pop-x")){crewPopClose();return}
+  if(!e.target.closest("#crew-pop"))crewPopClose();
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")crewPopClose()});
