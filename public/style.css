@@ -624,9 +624,9 @@ body{background:linear-gradient(#eaf6fb,var(--bg) 340px)}
 #v-home .station.framed .crew-go img{animation:none!important}
 
 /* 광장의 밀로: 구덩이에서 쏙 (그림 8장) */
-.milo-spot{position:absolute;left:1%;bottom:1%;z-index:45;width:clamp(86px,24%,130px);border:0;background:none;padding:0;cursor:pointer;font:inherit;color:inherit;display:grid;justify-items:center}
+.milo-spot{position:absolute;left:1%;bottom:1%;z-index:45;width:clamp(68px,18%,100px);border:0;background:none;padding:0;cursor:pointer;font:inherit;color:inherit;display:grid;justify-items:center}
 .milo-spot img{width:100%;height:auto;aspect-ratio:260/235;filter:drop-shadow(0 4px 4px rgba(40,60,30,.25))}
-.milo-spot .plate{margin-top:-6px;padding:1px 6px;font-size:9.5px;border-radius:9px}
+.milo-spot .plate{margin-top:-1px;padding:1px 6px;font-size:9.5px;border-radius:9px}
 .milo-spot .plate b{font-size:11px}
 .milo-spot:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:12px}
 .milo-pop .chips{display:flex;flex-wrap:wrap;gap:6px}.milo-pop .chip{font-size:13px}

@@ -1388,15 +1388,17 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")miloPopClose()});
    광장에 들어오면 1→8을 한 번 재생하고 8번(가장자리에 손 얹고 웃기)에서 기다린다.
    가끔(20~40초) 쏙 들어갔다(역순) 다시 나온다. 메뉴가 열렸거나 손을 대고 있을 때, 화면 밖일 때는 하지 않는다. 동작 줄이기면 8번 정지. */
 const MILO_FR=Array.from({length:8},(_,i)=>`img/milo/milo-pop-${String(i+1).padStart(2,"0")}.webp`);
-const MILO_MS=[180,100,110,110,100,100,140];
+const MILO_IN=Array.from({length:8},(_,i)=>`img/milo/milo-in-${String(i+1).padStart(2,"0")}.webp`); // 퇴장(쏙 숨기): 1=등장 8번, 8=빈 구덩이
+const MILO_MS=[180,100,110,110,100,100,140],MILO_IN_MS=[150,220,130,90,100,100,150];
 let miloT=null,miloBusy=false,miloHover=false;
-MILO_FR.forEach(u=>{const im=new Image();im.src=u});
-function miloPlay(seq,ms,done){const img=$("milo-pop-img");if(!img)return;miloBusy=true;let i=0;
-  const step=()=>{img.src=MILO_FR[seq[i]];const d=ms[i]||110;i++;if(i<seq.length)miloT=setTimeout(step,d);else{miloBusy=false;done&&done()}};step()}
+[...MILO_FR,...MILO_IN].forEach(u=>{const im=new Image();im.src=u});
+function miloPlay(seq,ms,done,set){const img=$("milo-pop-img");if(!img)return;const F=set||MILO_FR;miloBusy=true;let i=0;
+  const step=()=>{img.src=F[seq[i]];const d=ms[i]||110;i++;if(i<seq.length)miloT=setTimeout(step,d);else{miloBusy=false;done&&done()}};step()}
 function miloIdleLoop(){clearTimeout(miloT);miloT=setTimeout(()=>{
   const busy=!$("milo-pop").hidden||miloHover||document.hidden||$("v-home").hidden||!WALK.seen;
   if(busy){miloIdleLoop();return}
-  miloPlay([7,6,5,4,3,2,1,0],[90,90,90,90,90,90,90,1100],()=>miloPlay([0,1,2,3,4,5,6,7],[...MILO_MS,0],miloIdleLoop))},20000+Math.random()*20000)}
+  /* 손 인사 → 쏙 숨기 → 흙 덮기 → 빈 구덩이 잠깐 → 다시 쏙 등장 */
+  miloPlay([0,1,2,3,4,5,6,7],[...MILO_IN_MS,1400],()=>miloPlay([0,1,2,3,4,5,6,7],[...MILO_MS,0],miloIdleLoop),MILO_IN)},20000+Math.random()*20000)}
 function miloEnter(){clearTimeout(miloT);const img=$("milo-pop-img");if(!img)return;
   if(matchMedia("(prefers-reduced-motion: reduce)").matches){img.src=MILO_FR[7];return}
   miloPlay([0,1,2,3,4,5,6,7],[400,...MILO_MS.slice(1),0],miloIdleLoop)}
