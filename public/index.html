@@ -134,6 +134,24 @@
       <div class="floor" aria-hidden="true"></div>
       <div class="scene-tree" id="plaza-tree"></div>
       <button class="milo-q q-tree" type="button" data-milo-help="tree" aria-label="레거시 나무 도움말">?</button>
+      <!-- 두더지 밀로: 광장 구석 굴에서 고개를 내밀고 있다. 누르면 무엇이 궁금한지 고른다 -->
+      <button class="milo-spot" type="button" id="milo-spot" aria-haspopup="dialog" aria-label="밀로에게 도움말 묻기"><span class="ms-hole" aria-hidden="true"></span><img src="img/milo.webp" alt="" width="66" height="80"><span class="ms-lip" aria-hidden="true"></span><span class="plate"><b>밀로</b>궁금하면 눌러</span></button>
+      <div class="crew-pop milo-pop" id="milo-pop" role="dialog" aria-labelledby="milo-pop-h" hidden>
+        <img src="img/milo.webp" alt="" width="66" height="80">
+        <div class="cp-body"><b id="milo-pop-h">밀로예요. 뭐가 궁금해?</b>
+          <div class="chips" id="milo-pop-list">
+            <button type="button" class="chip" data-mh="tree">레거시 나무</button>
+            <button type="button" class="chip" data-mh="logan">로건 · 레슨 기록</button>
+            <button type="button" class="chip" data-mh="rook">루크 · 내 문제 진술</button>
+            <button type="button" class="chip" data-mh="daryl">데릴 · 훈련장</button>
+            <button type="button" class="chip" data-mh="paco">파코 · 감각·실전</button>
+            <button type="button" class="chip" data-mh="ask">오늘의 대화</button>
+            <button type="button" class="chip" data-mh="me">나의 스테이트먼트</button>
+            <button type="button" class="chip" data-mh="data">나의 데이터</button>
+          </div>
+          <div class="mh-detail" id="milo-pop-d" hidden></div>
+          <div class="actions"><button class="btn sm" type="button" id="milo-pop-x">닫기</button></div></div>
+      </div>
       <div class="crew-pop" id="crew-pop" role="dialog" aria-modal="false" aria-labelledby="crew-pop-h" hidden>
         <img id="crew-pop-img" src="" alt="" width="84" height="140">
         <div class="cp-body"><b id="crew-pop-h"></b><p id="crew-pop-m"></p><p class="hint" id="crew-pop-a"></p>

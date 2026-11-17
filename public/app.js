@@ -38,6 +38,7 @@ const VIEWS=["home","lesson","dx","train","feel","me","ask","lib"],ALIAS={today:
 function show(tab){
   if(typeof crewStop==="function")crewStop();
   if(typeof crewPopClose==="function")crewPopClose();
+  if(typeof miloPopClose==="function")miloPopClose();
   tab=ALIAS[tab]||tab;if(!VIEWS.includes(tab))tab="home";
   if(tab==="lib"&&!isEditor)tab="home";
   for(const v of VIEWS)$("v-"+v).hidden=tab!==v;
@@ -1312,7 +1313,7 @@ function floorPoint(self){ // 바닥 타원 안의 한 점 (left %, bottom %) �
   const others=[...document.querySelectorAll("#v-home .station")].filter(x=>x!==self).map(x=>({x:+x.dataset.x,y:+x.dataset.y}));
   for(let k=0;k<40;k++){const x=6+Math.random()*80,y=3+Math.random()*30;
     const cx=(x+7-50)/46,cy=(y-18)/17;if(cx*cx+cy*cy>1)continue;if(Math.abs(x+7-50)<11&&y>22)continue;
-    if(others.some(o=>Math.abs(o.x-x)<17&&Math.abs(o.y-y)<12))continue;return {x,y}}
+    if(others.some(o=>Math.abs(o.x-x)<17&&Math.abs(o.y-y)<12))continue;if(x<20&&y<14)continue;return {x,y}}
   return {x:10+Math.random()*70,y:6+Math.random()*12};
 }
 function placeStation(st,pt,dur){st.style.transitionDuration=dur+"s";st.style.left=pt.x+"%";st.style.bottom=pt.y+"%";
@@ -1349,7 +1350,7 @@ let popCrew=null;
 function crewPop(id,st){
   const h=MILO_HELP[id];if(!h)return;const pop=$("crew-pop");
   document.querySelectorAll("#v-home .station").forEach(x=>{delete x.dataset.pin});if(st){st.dataset.pin="1";crewFreeze(st)}
-  popCrew=id;$("crew-pop-img").src=`img/crew3d/${id}-greet.webp`;$("crew-pop-h").textContent=h.title;$("crew-pop-m").textContent=h.meaning;$("crew-pop-a").textContent=h.action||"";
+  miloPopClose();popCrew=id;$("crew-pop-img").src=`img/crew3d/${id}-greet.webp`;$("crew-pop-h").textContent=h.title;$("crew-pop-m").textContent=h.meaning;$("crew-pop-a").textContent=h.action||"";
   $("crew-pop-go").textContent=h.goLabel||"들어가기";pop.hidden=false;requestAnimationFrame(()=>pop.classList.add("on"));$("crew-pop-go").focus({preventScroll:true});
 }
 function crewPopClose(){const pop=$("crew-pop");if(pop.hidden)return;pop.classList.remove("on");pop.hidden=true;document.querySelectorAll("#v-home .station").forEach(x=>{delete x.dataset.pin});
@@ -1361,3 +1362,20 @@ $("v-home").addEventListener("click",e=>{
   if(!e.target.closest("#crew-pop"))crewPopClose();
 });
 document.addEventListener("keydown",e=>{if(e.key==="Escape")crewPopClose()});
+
+
+/* ===== 광장의 밀로 (도움말 안내) =====
+   크루 옆 ?를 없앤 대신, 광장 구석 굴의 밀로를 누르면 궁금한 것을 골라 설명을 듣는다. 밀로는 걸어 다니지 않는다. */
+MILO_HELP.data={title:"나의 데이터",meaning:"화면 오른쪽 가장자리의 금색 '내 데이터' 탭이야. 누르거나 왼쪽으로 밀면 펼쳐져.",action:"레슨 기록 수, 문제 진술, 배틀플랜 진행, 스테이트먼트를 한눈에 보고 각 방으로 바로 갈 수 있어.",goLabel:"열어 보기",onGo:()=>dpOpen()};
+function miloPopClose(){const p=$("milo-pop");if(!p||p.hidden)return;p.classList.remove("on");p.hidden=true;$("milo-pop-d").hidden=true;p.querySelectorAll("[data-mh]").forEach(x=>x.removeAttribute("aria-pressed"))}
+$("milo-spot").addEventListener("click",e=>{e.stopPropagation();crewPopClose();const p=$("milo-pop");if(!p.hidden){miloPopClose();return}p.hidden=false;requestAnimationFrame(()=>p.classList.add("on"))});
+$("milo-pop").addEventListener("click",e=>{
+  if(e.target.closest("#milo-pop-x")){e.stopPropagation();miloPopClose();return}
+  const c=e.target.closest("[data-mh]");if(c){const k=c.dataset.mh,h=MILO_HELP[k];if(!h)return;
+    $("milo-pop").querySelectorAll("[data-mh]").forEach(x=>x.setAttribute("aria-pressed",x===c));
+    const d=$("milo-pop-d");d.hidden=false;d.innerHTML=`<b>${esc(h.title)}</b><p>${esc(h.meaning)}</p>${h.action?`<p class="hint">${esc(h.action)}</p>`:""}${h.onGo?`<button class="btn gold sm" type="button" id="milo-pop-go">${esc(h.goLabel||"가 보기")}</button>`:""}`;
+    d.dataset.k=k;return}
+  if(e.target.closest("#milo-pop-go")){const h=MILO_HELP[$("milo-pop-d").dataset.k];miloPopClose();if(h&&h.onGo)h.onGo()}
+});
+$("v-home").addEventListener("click",e=>{if(!e.target.closest("#milo-pop")&&!e.target.closest("#milo-spot"))miloPopClose()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")miloPopClose()});
