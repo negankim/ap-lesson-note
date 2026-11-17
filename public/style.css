@@ -380,14 +380,14 @@ body{background:linear-gradient(#eaf6fb,var(--bg) 340px)}
 .sun{position:absolute;right:8%;top:5%;width:34%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fffbe6 0 22%,rgba(255,236,170,.75) 34%,rgba(255,226,140,0) 70%);filter:blur(1px)}
 .cloud{position:absolute;height:9%;aspect-ratio:3.2;border-radius:999px;background:radial-gradient(ellipse at 40% 60%,#fff 0 45%,rgba(255,255,255,0) 72%);opacity:.9}
 .cloud.c1{left:6%;top:10%;width:30%}.cloud.c2{left:52%;top:20%;width:22%;opacity:.7}.cloud.c3{left:24%;top:30%;width:18%;opacity:.55}
-.hills{position:absolute;left:0;right:0;top:44%;height:26%;width:100%;z-index:1;pointer-events:none}
-.floor{position:absolute;left:-5%;right:-5%;bottom:0;height:34%;z-index:1;background:linear-gradient(#74b257,#68a64d 30%,#5d9a45);pointer-events:none}
-.floor::after{content:"";position:absolute;left:50%;top:22%;width:78%;height:62%;transform:translateX(-50%);border-radius:50%;
+.hills{position:absolute;left:0;right:0;top:36%;height:26%;width:100%;z-index:1;pointer-events:none}
+.floor{position:absolute;left:-5%;right:-5%;bottom:0;height:40%;z-index:1;background:linear-gradient(#74b257,#68a64d 30%,#5d9a45);pointer-events:none}
+.floor::after{content:"";position:absolute;left:50%;top:28%;width:90%;height:62%;transform:translateX(-50%);border-radius:50%;
   background:radial-gradient(ellipse at 50% 40%,#f3efe4 0 40%,#e2dccb 62%,#cfc8b4 74%,rgba(207,200,180,0) 76%);box-shadow:inset 0 -6px 14px rgba(110,96,70,.25)}
-.scene-tree{position:absolute;left:50%;top:3%;width:min(86%,560px);transform:translateX(-50%);z-index:3}
+.scene-tree{position:absolute;left:50%;top:11%;width:min(90%,580px);transform:translateX(-50%);z-index:3}
 .q-tree{position:absolute;right:4%;top:4%;z-index:6}
 .station{position:absolute;z-index:4;width:23%;display:flex;flex-direction:column;align-items:center}
-.st-logan{left:2%;bottom:20%}.st-rook{left:20%;bottom:3%}.st-daryl{right:20%;bottom:3%}.st-paco{right:2%;bottom:20%}
+.st-logan{left:0;bottom:25%}.st-rook{left:16%;bottom:3%}.st-daryl{right:16%;bottom:3%}.st-paco{right:0;bottom:25%}
 @media (min-width:640px){.station{width:17%}.st-logan{left:4%;bottom:22%}.st-rook{left:18%;bottom:4%}.st-daryl{right:18%;bottom:4%}.st-paco{right:4%;bottom:22%}}
 .station .milo-q{position:absolute;top:0;right:-2px}
 .crew-go{display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:none;padding:0;cursor:pointer;font:inherit;color:inherit;width:100%}
