@@ -1296,7 +1296,11 @@ function renderTalk(){
   const d=new Date();$("talk-date").textContent=(window.AP_LANG&&window.AP_LANG!=="ko")?d.toLocaleDateString({en:"en-US",ja:"ja-JP",zh:"zh-CN",ms:"ms-MY",id:"id-ID"}[window.AP_LANG]||"en-US",{month:"long",day:"numeric",weekday:"long"}):`${d.getMonth()+1}월 ${d.getDate()}일 ${"일월화수목금토"[d.getDay()]}요일`;
   const name=($("who").textContent||"").trim();const nm=name&&name!=="내 기록"&&name!=="연결 중"?((window.AP_LANG||"ko")!=="ko"?" "+name:name+"님"):"";
   const ss=(mandala&&mandala.sessions)||[],nx=ss.find(x=>x.done.length<x.items.length);
-  const line2=!lessons.length?"오늘 받은 레슨이나 지금 겪는 문제부터 남겨 볼까요?":nx?`오늘은 배틀플랜 ${nx.n}회차가 기다리고 있어요. 무엇부터 해 볼까요?`:"오늘은 무엇을 남겨 볼까요?";
+  /* 크루 말투(설정)에 따라 첫 인사도 다르게 */
+  const tone=(user&&user.info&&user.info().tone)||"coach";
+  const line2=tone==="friend"?(!lessons.length?"오늘도 반가워요! 받은 레슨이나 고민부터 편하게 남겨 봐요.":nx?`오늘은 배틀플랜 ${nx.n}회차 하는 날이에요! 같이 해 봐요.`:"오늘은 뭐 남겨 볼까요? 편하게 말해 줘요!")
+    :tone==="direct"?(!lessons.length?"레슨이나 문제부터 남기세요.":nx?`오늘: 배틀플랜 ${nx.n}회차.`:"오늘 남길 것을 고르세요.")
+    :(!lessons.length?"오늘 받은 레슨이나 지금 겪는 문제부터 남겨 볼까요?":nx?`오늘은 배틀플랜 ${nx.n}회차가 기다리고 있어요. 무엇부터 해 볼까요?`:"오늘은 무엇을 남겨 볼까요?");
   $("talk-hi").innerHTML=`<p>안녕하세요${nm?", "+esc(nm):""}.</p><p>${esc(line2)}</p>`;
 }
 function renderDrawerStatus(){

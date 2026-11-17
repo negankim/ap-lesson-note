@@ -51,10 +51,13 @@ async function callClaude(model, prompt, maxTokens) {
   }
 }
 
+/* 크루 말투(설정): 사람에게 보이는 문장의 말하는 방식만 바꾼다. 앞의 문체 지시보다 이 말투가 먼저이고, 내용·판정·안전 규칙은 그대로.
+ * 세 말투가 한눈에 다르게 들리도록 문장 길이·시작·끝맺음을 정해 준다(다른 언어로 쓸 때도 그 언어로 같은 느낌). */
+const TONE_BASE = "\n\n[말투 · 사람이 읽는 문장 전부에 적용, 앞의 문체 지시보다 우선. 내용·판정 규칙·안전 규칙·JSON 형식은 그대로]\n";
 const TONES = {
-  coach: "",
-  friend: "\n\n[말투] 친구처럼 다정하고 편하게 말한다(반말 아닌 부드러운 존댓말, 응원 한마디). 내용·판정 규칙·안전 규칙은 그대로.",
-  direct: "\n\n[말투] 짧고 직설적으로 말한다. 할 일부터 먼저, 꾸밈말은 뺀다. 내용·판정 규칙·안전 규칙은 그대로.",
+  coach: TONE_BASE + "코치형: 차분한 코치처럼 존댓말. '왜 → 무엇을 → 얼마나' 순서로, 근거를 짧게 붙이고 할 일을 분명히. 칭찬은 담백하게 한마디. 예) \"출발 방향이 오른쪽이라 페이스부터 봐요. 게이트 10개, 성공 수를 세 주세요.\"",
+  friend: TONE_BASE + "친구형: 친한 선배처럼 다정한 존댓말(반말 금지). 첫 문장은 공감이나 반가움('괜찮아요!', '좋아요, 잘 왔어요'), 마지막은 응원 한마디와 느낌표. 어려운 말은 풀어서, 문장은 부드럽게. 예) \"어제 못 했어도 괜찮아요! 오늘은 게이트 10개만 같이 해 봐요. 하나씩 성공 세다 보면 금방 감 와요!\"",
+  direct: TONE_BASE + "직설형: 결론과 할 일부터. 한 문장은 짧게(15자 안팎), 인사·공감·꾸밈말·느낌표 없음. 명사형으로 끝내도 됨. 답은 최대 3문장. 예) \"원인 후보: 페이스 열림. 게이트 10개. 성공 수 기록.\"",
 };
 
 async function countUse(uid, task) {
@@ -129,7 +132,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     const coach = String(d.coach || "").slice(0, 40);
     const r = await callClaude(MODEL.organize, organizePrompt({
       text, coach, profile: d.profile || {}, history: (d.history || []).slice(0, 3), lib, minor, statement,
-    }) + SRC_LINE + LL, 16000);
+    }) + SRC_LINE + toneLine + LL, 16000);
     r.src_lang = cleanLang(r.src_lang); r.out_lang = lang;
     /* 새 레슨 포인트는 서버가 보관해 둔다. 공동 레거시에는 이 보관본만 올라간다(브라우저가 보낸 값은 쓰지 않음). */
     const NODE = /^N[1-8]$/, DOM = ["tech", "mental", "fitting", "physical", "course"];
@@ -168,7 +171,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     const lib = libSnap.docs.map((x) => ({ id: x.id, ...x.data() }));
     const r = await callClaude(MODEL.solve, organizePrompt({
       text: parts, coach: "", profile: d.profile || {}, history: (d.history || []).slice(0, 3), lib, minor, statement, self: true,
-    }) + SRC_LINE + LL, 16000);
+    }) + SRC_LINE + toneLine + LL, 16000);
     if (r && typeof r === "object") { r.src_lang = s.words ? cleanLang(r.src_lang) : ""; r.out_lang = lang; }
     if (r && r.off_topic) return r;
     const NODE = /^N[1-8]$/, MF = ["높음", "보통", "낮음", "판단 보류"];
@@ -238,7 +241,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     }
     await countUse(req.auth.uid, "train");
     const pick = TR.choose({ lessons, parent });
-    const prompt = TR.trainPrompt({ pick, lessons, prior: all.slice(0, 3), parent, statementText: statementText(statement), safety, minor });
+    const prompt = TR.trainPrompt({ pick, lessons, prior: all.slice(0, 3), parent, statementText: statementText(statement), safety, minor }) + toneLine.replace('사람이 읽는 문장 전부', 'card 문장').replace(/JSON 형식은 그대로/, 'JSON 형식·card 금지어 규칙은 그대로');
     let out = await TR_call(prompt), problems = TR.validate(out, { pick, lessons });
     if (problems.length) {
       console.warn("train validate retry", problems);
