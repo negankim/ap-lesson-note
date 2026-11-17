@@ -1470,7 +1470,7 @@ $("me-special").addEventListener("submit",async e=>{e.preventDefault();const f=e
    구독: 파일럿 동안 무료. 플랜과 가격은 대표 확정 전이라 '곧 열려요'.
    설정: 이름(앱 안에서 보이는 이름), 크루 말투(서버가 대화·피드백에 반영), 진동, 계정 삭제(서버 account 함수). */
 const APP_VER="2026-11-18";
-const CONTACT_EMAIL=""; // 문의 메일 주소: 대표 확인 후 넣는다
+const CONTACT_EMAIL="negankim@ap-legacy.com";
 const LINK_ROLES=[["coach","코치님"],["parent","부모님·보호자"],["family","가족·친구"]];
 const TONE_OPTS=[["coach","코치형","오늘은 출발 방향부터 확인해요. 게이트 10개, 성공 수를 세 주세요."],["friend","친구형","어제 못 했어도 괜찮아요! 오늘 같이 게이트 10개만 해 봐요."],["direct","직설형","게이트 10개. 성공 수 기록. 끝."]];
 let viewers=[],watching=[],myAge=null,watchSel=null;
