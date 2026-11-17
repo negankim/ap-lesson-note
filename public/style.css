@@ -621,3 +621,4 @@ body{background:linear-gradient(#eaf6fb,var(--bg) 340px)}
 .crew-pop.on{transform:none;opacity:1}
 .crew-pop img{width:72px;height:120px;object-fit:contain}
 .cp-body{display:grid;gap:4px}.cp-body b{font-size:17px}.cp-body p{margin:0;font-size:14px;line-height:1.5}.cp-body .actions{margin-top:4px}
+#v-home .station.framed .crew-go img{animation:none!important}
