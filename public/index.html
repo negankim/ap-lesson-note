@@ -257,21 +257,35 @@
   </section>
 
   <!-- ===== 크루에게 묻기 ===== -->
-  <section id="v-ask" class="wrap room" style="gap:16px" hidden>
-    <header class="room-head">
-      <div class="room-av group"><img src="img/crew3d/logan-explain.webp" alt="" width="60" height="100"><img src="img/crew3d/paco-explain.webp" alt="" width="60" height="100"></div>
-      <div><p class="room-k">AP 크루</p><h1>크루에게 묻기</h1><p class="lead">내 레슨 기록을 근거로 답합니다. 기록에 없는 건 'AI 추정'으로 알려 드려요.</p></div>
-      <button class="milo-q" type="button" data-milo-help="ask" aria-label="크루에게 묻기 도움말">?</button>
-    </header>
-    <div class="panel chat">
-      <div class="chat-log" id="chat-log" aria-live="polite"></div>
-      <div class="chips" id="chat-sug" aria-label="추천 질문"></div>
-      <form class="chat-in" id="chat-form">
-        <label class="sr" for="chat-t">AP 크루에게 묻기</label>
-        <input id="chat-t" maxlength="400" autocomplete="off" placeholder="예: 지난 레슨에서 코치님이 뭐라고 하셨죠?">
-        <button class="btn gold" type="submit" id="chat-go">묻기</button>
-      </form>
+  <!-- ===== 오늘의 대화 (로그인 후 첫 화면): 인사 → 기록 카드 2개 → 아래 입력창에서 바로 기록·질문 ===== -->
+  <section id="v-ask" class="wrap talk" hidden>
+    <div class="talk-top">
+      <div class="talk-av"><img id="talk-av" src="img/crew3d/logan-greet.webp" alt="" width="96" height="160"><i class="talk-dot" aria-hidden="true"></i></div>
+      <span class="talk-name">AP 크루 <button class="milo-q sm" type="button" data-milo-help="ask" aria-label="오늘의 대화 도움말">?</button></span>
+      <p class="talk-date" id="talk-date"></p>
+    </div>
+    <div class="talk-hi" id="talk-hi"></div>
+    <div class="talk-cards">
+      <button class="tk-card" type="button" data-show="lesson"><img src="img/crew3d/logan-point.webp" alt="" width="72" height="120"><small>레슨 레코드 · 로건</small><b>레슨 기록하기</b><span>코치 이름과 레슨을 말이나 글로 남기면 문제·솔루션·훈련으로 정리돼요</span><i>시작하기 ›</i></button>
+      <button class="tk-card" type="button" data-show="dx"><img src="img/crew3d/rook-point.webp" alt="" width="72" height="120"><small>내 문제 진술 · 루크</small><b>지금 내 문제 말하기</b><span>고르기만 해도 솔루션과 훈련 방법, 배틀플랜까지 나와요</span><i>시작하기 ›</i></button>
+    </div>
+    <button class="talk-plaza" type="button" data-show="home">닫고 광장 보기 ›</button>
+    <div class="chat-log" id="chat-log" aria-live="polite"></div>
+    <div class="chips" id="chat-sug" aria-label="추천 질문"></div>
+    <div class="talk-dock">
       <p class="hint" id="chat-use">하루 10번까지 물을 수 있어요.</p>
+      <div class="talk-sheet" id="talk-sheet" hidden>
+        <button type="button" data-tk="rec"><img src="img/crew3d/logan-idle.webp" alt="" width="30" height="50">레슨 녹음 · 기록하기</button>
+        <button type="button" data-tk="dx"><img src="img/crew3d/rook-idle.webp" alt="" width="30" height="50">내 문제 말하기</button>
+        <button type="button" data-tk="feel"><img src="img/crew3d/paco-idle.webp" alt="" width="30" height="50">연습 느낌 남기기</button>
+        <button type="button" data-tk="train"><img src="img/crew3d/daryl-idle.webp" alt="" width="30" height="50">오늘 할 훈련 보기</button>
+      </div>
+      <form class="talk-in" id="chat-form">
+        <button class="talk-plus" type="button" id="talk-plus" aria-expanded="false" aria-controls="talk-sheet" aria-label="기록 메뉴 열기">+</button>
+        <label class="sr" for="chat-t">크루에게 말하기</label>
+        <input id="chat-t" maxlength="400" autocomplete="off" placeholder="크루에게 말하기">
+        <button class="talk-send" type="submit" id="chat-go" aria-label="보내기">↑</button>
+      </form>
     </div>
   </section>
 
@@ -319,17 +333,30 @@
   <div class="dw-bg" data-close></div>
   <nav class="dw-panel" aria-label="메뉴">
     <div class="dw-head">
-      <div class="dw-av"><i class="ap-mono" aria-hidden="true"></i></div>
-      <div class="dw-who"><b id="dw-name">내 기록</b><span class="pill gold" id="dw-role">선수</span></div>
+      <div class="dw-av"><img src="img/crew3d/logan-idle.webp" alt="" width="54" height="90"></div>
+      <div class="dw-who"><b id="dw-name">내 기록</b><span class="dw-sub" id="dw-sub"></span><span class="pill gold" id="dw-role">선수</span></div>
       <button class="dw-x" type="button" data-close aria-label="메뉴 닫기">‹</button>
     </div>
-    <button class="dw-main" type="button" data-go="home"><img class="dw-img" src="img/icons3d/flag.webp" alt="" width="34" height="34">광장 · 레거시 나무</button>
-    <button class="dw-main" type="button" data-go="lesson"><img class="dw-img" src="img/crew3d/logan-idle.webp" alt="" width="34" height="34">레슨 기록 <small>로건</small></button>
-    <button class="dw-main" type="button" data-go="dx"><img class="dw-img" src="img/crew3d/rook-idle.webp" alt="" width="34" height="34">내 문제 진술 <small>루크</small></button>
-    <button class="dw-main" type="button" data-go="train"><img class="dw-img" src="img/crew3d/daryl-idle.webp" alt="" width="34" height="34">훈련장 <small>데릴</small></button>
-    <button class="dw-main" type="button" data-go="feel"><img class="dw-img" src="img/crew3d/paco-idle.webp" alt="" width="34" height="34">감각 · 실전 <small>파코</small></button>
-    <button class="dw-main" type="button" data-go="me"><img class="dw-img" src="img/icons3d/glove.webp" alt="" width="34" height="34">나의 스테이트먼트</button>
-    <button class="dw-main" type="button" data-go="ask"><img class="dw-img" src="img/icons3d/bulb.webp" alt="" width="34" height="34">크루에게 묻기</button>
+    <button class="dw-talk" type="button" data-go="ask"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><b>오늘의 대화</b><img src="img/crew3d/logan-point.webp" alt="" width="44" height="74"></button>
+    <details class="dw-sec" open>
+      <summary><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 13l2 2 4-4"/></svg>진단</summary>
+      <div class="dw-card">
+        <small>진단 · 나의 스테이트먼트</small><b>나는 어떤 골퍼일까?</b>
+        <button type="button" class="dw-step" data-go="me" id="dw-s1"><i>1</i>기본 바이오<em></em></button>
+        <button type="button" class="dw-step" data-go="me" id="dw-s2"><i>2</i>6개 영역 스테이트먼트<em></em></button>
+        <div class="dw-step lock"><i>3</i>멘탈 테스트<em>🔒 준비 중</em></div>
+        <button type="button" class="dw-wide" data-dp-open>결과는 나의 데이터에서</button>
+      </div>
+      <button type="button" class="dw-row" data-go="dx"><img src="img/crew3d/rook-idle.webp" alt="" width="28" height="46">내 문제 진술<small>루크</small></button>
+    </details>
+    <button type="button" class="dw-sec-row" data-go="lesson"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/></svg>기록<small>레슨 레코드 · 로건</small></button>
+    <details class="dw-sec" open>
+      <summary><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>훈련</summary>
+      <button type="button" class="dw-row" data-go="train"><img src="img/icons3d/flag.webp" alt="" width="30" height="30">만다라트 · 배틀플랜<small>데릴</small></button>
+      <button type="button" class="dw-row" data-go="train" data-sec="tcard"><img src="img/icons3d/bulb.webp" alt="" width="30" height="30">오늘의 훈련 제안</button>
+      <button type="button" class="dw-row" data-go="feel"><img src="img/crew3d/paco-idle.webp" alt="" width="28" height="46">감각 · 실전 느낌<small>파코</small></button>
+    </details>
+    <button type="button" class="dw-sec-row" data-go="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-7M12 14c-4 0-6-3-6-6a6 6 0 0 1 12 0c0 3-2 6-6 6z"/></svg>광장<small>AP 레거시 나무</small></button>
     <details class="dw-grp" id="dw-lib" hidden>
       <summary><img class="dw-img" src="img/icons3d/bag.webp" alt="" width="34" height="34">훈련 라이브러리 <small>코치</small></summary>
       <button type="button" data-go="lib" data-node="">전체 보기</button>
@@ -342,6 +369,7 @@
     </details>
     <details class="dw-grp">
       <summary><img class="dw-img" src="img/icons3d/cart.webp" alt="" width="34" height="34">내 계정</summary>
+      <button type="button" data-go="me">나의 스테이트먼트</button>
       <button type="button" data-go="train" data-sec="mfold">목표 바꾸기</button>
       <button type="button" data-logout>로그아웃</button>
     </details>

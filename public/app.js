@@ -45,7 +45,7 @@ function show(tab){
   if(tab==="dx"){renderProbForm();renderProbList();chartSay();$("coach-zone").hidden=!isEditor;if(isEditor)renderDx()}
   if(tab==="train"){renderMandala();renderActive();renderTrain();renderMandalaAP();renderPlan()}
   if(tab==="feel"){renderToday();renderFeelHist()}
-  if(tab==="ask")renderSug();
+  if(tab==="ask"){renderSug();renderTalk()}
   if(tab==="train")renderTCard();
   if(tab==="lib")renderTMetrics();
   if(tab==="me")renderMe();
@@ -298,8 +298,7 @@ function crewHTML(m){
 const meHTML=m=>`<div class="msg me"><p>${esc(m.text)}</p></div>`;
 function renderChat(){
   const log=$("chat-log");
-  log.innerHTML=chatLog.length?chatLog.map(m=>m.role==="user"?meHTML(m):crewHTML(m)).join(""):`<div class="guide" id="g-chat0"></div>`;
-  if(!chatLog.length)say($("g-chat0"),lessons.length?"궁금한 걸 물어보세요. 저장된 레슨 기록을 보고, 맞는 친구가 답해 드릴게요.":"레슨을 하나 정리하면 그 기록으로 답해 드릴 수 있어요. 지금은 앱 쓰는 법을 물어봐도 돼요.",{who:"logan"});
+  log.innerHTML=chatLog.map(m=>m.role==="user"?meHTML(m):crewHTML(m)).join(""); // 비어 있으면 첫 화면 인사가 대신한다
   renderUse();
 }
 function renderUse(){const u=usedToday();$("chat-use").textContent=`오늘 ${u}/${LIMIT_CHAT}번 물었어요.`;$("chat-go").disabled=chatBusy||u>=LIMIT_CHAT}
@@ -628,18 +627,20 @@ document.querySelectorAll(".lp-mate[data-crew]").forEach(b=>b.addEventListener("
 }));
 
 /* ===== 메뉴 (왼쪽 서랍) ===== */
-function openMenu(){$("drawer").hidden=false;$("menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden"}
+function openMenu(){renderDrawerStatus();$("drawer").hidden=false;$("menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden"}
 function closeMenu(){$("drawer").hidden=true;$("menu").setAttribute("aria-expanded","false");document.body.style.overflow=""}
 $("menu").addEventListener("click",openMenu);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("drawer").hidden)closeMenu()});
 $("drawer").addEventListener("click",e=>{
   if(e.target.closest("[data-close]")){closeMenu();return}
+  if(e.target.closest("[data-dp-open]")){closeMenu();setTimeout(dpOpen,120);return}
   if(e.target.closest("[data-logout]")){closeMenu();$("logout").click();return}
   const b=e.target.closest("[data-go]");if(!b)return;
   closeMenu();
   if(b.dataset.go==="lib"&&b.dataset.node!==undefined){libNode=b.dataset.node;document.querySelectorAll("#lib-node .chip").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===libNode))}
   show(b.dataset.go);
   const sec=b.dataset.sec;
+  if(sec==="tcard"){setTimeout(()=>$("tcard").scrollIntoView({behavior:"smooth",block:"start"}),60);return}
   if(sec==="mfold"){$("mfold").open=true;$("prof").hidden=true;$("prof-btn").click();setTimeout(()=>$("mfold").scrollIntoView({behavior:"smooth",block:"start"}),50);return}
   if(sec)setTimeout(()=>{const el=$(sec);if(el)(el.closest(".panel")||el).scrollIntoView({behavior:"smooth",block:"start"})},50);
 });
@@ -713,7 +714,7 @@ async function boot(){
   let gotLib=false;const lt=setTimeout(()=>{if(!gotLib)$("lib-list").innerHTML='<div class="empty">라이브러리를 아직 불러오지 못했습니다. 연결이 느릴 수 있습니다.</div>'},10000);
   db.collection("library").onSnapshot(snap=>{gotLib=true;clearTimeout(lt);lib=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$("v-lib").hidden)renderLib();if(!$("v-train").hidden){renderMandalaAP();renderPlan()}},()=>{clearTimeout(lt)});
   renderChart();
-  show("home");
+  show("ask");
   $("dp-tab").hidden=false;
   await loadChat();
 }
@@ -1255,3 +1256,22 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("dpanel").hidden
   document.addEventListener("touchend",e=>{if(x0===null)return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=Math.abs(t.clientY-y0);
     if(dy<60){if(from==="edge"&&dx<-50)dpOpen();if(from==="sheet"&&dx>70)dpClose()}x0=null},{passive:true});
 })();
+
+
+/* ===== 오늘의 대화 (첫 화면) + 왼쪽 메뉴 상태 ===== */
+function renderTalk(){
+  const d=new Date();$("talk-date").textContent=`${d.getMonth()+1}월 ${d.getDate()}일 ${"일월화수목금토"[d.getDay()]}요일`;
+  const name=($("who").textContent||"").trim();const nm=name&&name!=="내 기록"&&name!=="연결 중"?name+"님":"";
+  const ss=(mandala&&mandala.sessions)||[],nx=ss.find(x=>x.done.length<x.items.length);
+  const line2=!lessons.length?"오늘 받은 레슨이나 지금 겪는 문제부터 남겨 볼까요?":nx?`오늘은 배틀플랜 ${nx.n}회차가 기다리고 있어요. 무엇부터 해 볼까요?`:"오늘은 무엇을 남겨 볼까요?";
+  $("talk-hi").innerHTML=`<p>안녕하세요${nm?", "+esc(nm):""}.</p><p>${esc(line2)}</p>`;
+}
+function renderDrawerStatus(){
+  const b=stmt.bio||{},bioOk=!bioMissing(b).length,n=AREAS.filter(a=>areaDone(a)>0).length;
+  const set=(id,ok,txt)=>{const el=$(id);if(!el)return;el.classList.toggle("ok",ok);el.querySelector("i").textContent=ok?"✓":el.querySelector("i").textContent.replace("✓",id==="dw-s1"?"1":"2");el.querySelector("em").textContent=txt};
+  set("dw-s1",bioOk,bioOk?"완료":"입력하기");set("dw-s2",n===AREAS.length,n===AREAS.length?"완료":`${n}/${AREAS.length}`);
+  $("dw-sub").textContent=[b.years,b.handicap].filter(Boolean).join(" · ");
+}
+$("talk-plus").addEventListener("click",()=>{const sh=$("talk-sheet"),open=sh.hidden;sh.hidden=!open;$("talk-plus").setAttribute("aria-expanded",open);$("talk-plus").textContent=open?"×":"+"});
+$("talk-sheet").addEventListener("click",e=>{const b=e.target.closest("[data-tk]");if(!b)return;$("talk-sheet").hidden=true;$("talk-plus").textContent="+";$("talk-plus").setAttribute("aria-expanded","false");
+  const a=b.dataset.tk;if(a==="rec"){show("lesson");setTimeout(()=>{$("f-coach").focus();if(dict&&!$("mic-row").hidden)toast("코치 이름을 적고 '레슨 듣기 시작'을 누르면 녹음돼요")},120);return}show(a)});
