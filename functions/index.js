@@ -171,7 +171,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
       problems = TR.validate(out, { pick, lessons });
     }
     if (problems.length) { console.error("train validate failed", problems); throw new HttpsError("internal", "train-invalid"); }
-    const doc = TR.buildDoc({ out, pick, lessons, parent, model: MODEL.train, uid: req.auth.uid });
+    const doc = TR.buildDoc({ out, pick, lessons, parent, model: MODEL.train, uid: req.auth.uid, history: all });
     const ref = await db.collection(base + "/trainings").add(doc);
     if (parent) await db.doc(base + "/trainings/" + parent.id).update({ nextId: ref.id });
     return { id: ref.id };
@@ -182,9 +182,11 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     const snap = await db.doc(base + String(d.id || "")).get();
     if (!snap.exists) throw new HttpsError("not-found", "훈련 기록을 찾지 못했습니다.");
     const t = { id: snap.id, ...snap.data() };
+    const hs = await db.collection("players/" + req.auth.uid + "/trainings").get();
+    const history = hs.docs.map((x) => ({ id: x.id, ...x.data() }));
     let parent = null;
     if (t.parent) { const ps = await db.doc(base + t.parent).get(); parent = ps.exists ? { id: ps.id, ...ps.data() } : null; }
-    const review = TR.reviewRun(t, parent);
+    const review = TR.reviewRun(t, parent, history);
     const next = TR.nextOf(review.decision);
     const reviews = [...(t.reviews || []), review];
     await snap.ref.update({ review, reviews, next, updatedAt: new Date().toISOString() });

@@ -801,7 +801,13 @@ const T_TASK={Shot:"샷",Putt:"퍼트",Approach:"어프로치"};
 const T_TRIG={Shot:{visual:["어려운 홀","도그렉","경사"],situation:["버디 찬스","파세이브","경쟁"],club:["드라이버","우드","유틸","롱아이언","숏아이언"]},
   Putt:{visual:["숏퍼트","롱퍼트","라이 난이도","거리감"],situation:["버디 찬스","파세이브","경쟁"]},
   Approach:{visual:["거리감","라이 난이도","그린 난이도","내리막","오르막","포대그린"],situation:["파세이브","경쟁"]}};
-const T_PRES={Single:"한 가지 상황",Composite:"상황 묶어서",Random:"무작위 순서"};
+const T_PRES={Single:"한 가지 상황",Composite:"여러 상황 함께",Random:"불규칙(무작위)"};
+/* 순서표: 조건마다 2개씩 번갈아(기본) 또는 조건별로 묶어서. 서버(training.js schedule)와 같은 규칙 */
+function tSchedule(order,reps,mode){if(mode==="blocked")return order.flatMap(k=>Array(reps).fill(k));const left=Object.fromEntries(order.map(k=>[k,reps])),out=[];let rot=[...order];
+  while(Object.values(left).some(x=>x>0)){for(const k of rot){const n=Math.min(2,left[k]);for(let i=0;i<n;i++)out.push(k);left[k]-=n}rot=[...rot.slice(1),rot[0]]}return out}
+function tScheduleText(cur){const s=cur.setup,sc=s.schedule||[];if(!sc.length)return "";const lab=k=>{const c=cur.conditions.find(x=>x.key===k);return c?c.label.replace("압박 상황 + 준비 순서 유지","준비 순서 유지"):k};
+  const g=[];sc.forEach(k=>{const l=g[g.length-1];if(l&&l.k===k)l.n++;else g.push({k,n:1})});
+  return `<details class="tc-order"><summary class="hint">${s.orderMode==="blocked"?"조건별로 묶어서 하는 순서":"번갈아 하는 순서표 (조건마다 2개씩 돌아가며)"}</summary><div class="tc-conds">${g.map((x,i)=>`<span class="pill">${i+1}. ${esc(lab(x.k))} ×${x.n}</span>`).join("")}</div></details>`}
 const T_UNIT={Shot:"m",Putt:"cm",Approach:"m"};
 const T_FEEL=[["pressure","압박감","상황이 얼마나 부담스러웠나"],["anxiety","불안","잘못될까 걱정됐나"],["tension","몸의 긴장","어깨·손에 힘이 들어갔나"]];
 const myRole=()=>{try{return user&&user.role?user.role()||"player":"player"}catch(_){return "player"}};
@@ -822,11 +828,12 @@ function condLabel(c,s){
 function condsOf(cur){return (cur.setup.order||cur.conditions.map(c=>c.key)).map(k=>cur.conditions.find(c=>c.key===k)).filter(Boolean)}
 function tCardHTML(t){
   const cur=t.current||t.proposal,c=cur.card,s=cur.setup,ev=(t.internal&&t.internal.evidence)||[];
-  const meta=[T_TASK[s.task],s.distance,s.slope,s.club,`조건마다 ${s.reps}번`,s.trigger&&s.presentation&&s.presentation!=="Single"?T_PRES[s.presentation]:""].filter(Boolean).join(" · ");
+  const meta=[T_TASK[s.task],s.distance,s.slope,s.club,`조건마다 ${s.reps}번`,s.trigger&&s.presentation&&s.presentation!=="Single"?T_PRES[s.presentation]+(s.randomTarget?` · 바꾸는 것: ${s.randomTarget}`:""):""].filter(Boolean).join(" · ");
   return `<div class="tc-sec"><h4>오늘의 목표</h4><p>${esc(c.goal)}</p></div>
   <div class="tc-sec"><h4>추천 훈련</h4><p>${esc(c.drill)}</p></div>
   <div class="tc-sec"><h4>진행 방법</h4><p class="hint">${esc(meta)}</p>${s.otherDay?`<p class="notice" style="margin:0">오늘이 아닌 다른 날 해 주세요. 하루 지나서도 유지되는지 보는 훈련이에요.</p>`:""}
     <div class="tc-conds">${condsOf(cur).map((x,i)=>`<span class="pill">${i+1}. ${esc(condLabel(x,s))}</span>`).join("")}</div>
+    ${tScheduleText(cur)}
     <ol class="tc-steps">${(c.steps||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ol>
     <p class="hint" style="margin:0"><b>성공으로 세는 기준</b> · ${esc(s.success)}</p></div>
   <div class="tc-sec"><h4>체크 포인트</h4><div class="chips">${(c.checks||[]).map(x=>`<span class="chip static">${esc(x)}</span>`).join("")}</div></div>
@@ -839,6 +846,7 @@ function tResultSummary(t){
   if(run.stopped)return `<p>${esc(md(run.at.slice(0,10)))} · ${esc(run.stopped)}(으)로 중단했어요. 완료나 실패로 세지 않아요.</p>`;
   return `<div class="tc-res">${condsOf(cur).map(c=>{const r=run.results[c.key]||{};const f=r.perceived?[...T_FEEL.map(([k,l])=>`${l} ${r.perceived[k]===null||r.perceived[k]===undefined?"미측정":r.perceived[k]}`),`상황 해석 ${r.perceived.appraisal||"미측정"}`].join(" · "):"";
     return `<div><b>${esc(condLabel(c,cur.setup))}</b><span>${r.made}/${r.tries}${r.err!==null&&r.err!==undefined?` · 오차 ${r.err}${esc(cur.setup.errUnit||"")}`:""}${r.routine!==null&&r.routine!==undefined?` · ${esc(c.track)} ${r.routine}`:""}</span>${f?`<small>${esc(f)}</small>`:""}</div>`}).join("")}</div>
+  <p class="hint" style="margin:0">${esc([run.distance,run.club,run.orderMode==="blocked"||run.orderFollowed===false?"조건별로 묶어서 진행":"번갈아 진행",run.source].filter(Boolean).join(" · "))}</p>
   ${run.sameSetup===false?`<p class="hint">조건마다 거리·경사·클럽이 달랐다고 기록했어요.</p>`:""}`;
 }
 function tEditHTML(t){
@@ -855,7 +863,9 @@ function tEditHTML(t){
     <label class="fld">조건마다 반복 수<input name="reps" inputmode="numeric" value="${esc(s.reps)}"></label>
     ${s.trigger?`<div class="fld">압박 상황 · 상황 조건${chipset("situation",tr.situation,s.trigger.situation||[])}</div>
       <div class="fld">압박 상황 · 보이는 조건${chipset("visual",[...tr.visual,...(tr.club||[])],s.trigger.visual||[])}</div>
-      <div class="fld">제시 방식${chipset("presentation",["Single","Composite","Random"],[s.presentation||"Single"],false)}</div>`:""}
+      <div class="fld">제시 방식${chipset("presentation",["Single","Composite","Random"],[s.presentation||"Single"],false)}</div>
+      <div class="fld">불규칙일 때 바꾸는 것${chipset("randomTarget",["유발조건","클럽","과제"],[s.randomTarget||"유발조건"],false)}</div>`:""}
+    <div class="fld">진행 순서${chipset("orderMode",["interleaved","blocked"],[s.orderMode||"interleaved"],false).replace(">interleaved<",">번갈아 (권장)<").replace(">blocked<",">조건별로 묶어서<")}</div>
     <div class="actions"><button class="btn gold" type="submit">고친 내용으로 저장</button><button class="btn" type="button" data-t="cancel">취소</button></div></form>`;
 }
 function tRunHTML(t){
@@ -869,6 +879,9 @@ function tRunHTML(t){
       ${c.perceived?`<div class="fld">선수가 느낀 부담 (0 없음 ~ 5 매우 큼, AP 운영 척도) <span class="hint">묻지 않았으면 '미측정' 그대로</span>${feel(c.key)}</div>`:""}
       <details><summary class="hint">각 시도 오차 적기 (선택)</summary><label class="fld">시도마다 오차 (${u}), 쉼표로<input data-f="errs" placeholder="예: 30, 45, 20"></label></details></fieldset>`).join("")}
     ${s.presentation==="Random"?`<label class="fld">실제로 한 순서와 상황<input id="tr-order" maxlength="200" placeholder="예: 평소 → 파세이브(롱퍼트) → 준비 순서 유지(숏퍼트)"></label>`:""}
+    ${s.presentation==="Random"?`<p class="hint" style="margin:0">계획한 조건: ${esc([...((s.trigger||{}).situation||[]),...((s.trigger||{}).visual||[])].join(" · "))} · 바꾸는 것: ${esc(s.randomTarget||"유발조건")}</p>`:""}
+    <div class="row3"><label class="fld">실제 거리<input id="tr-dist" maxlength="40" value="${esc(s.distance||"")}"></label><label class="fld">실제 사용 클럽<input id="tr-club" maxlength="30" value="${esc(s.task==="Putt"?"퍼터":s.club||"")}" ${s.task==="Putt"?"readonly":""}></label><span></span></div>
+    ${(s.schedule||[]).length&&s.orderMode!=="blocked"?`<label class="ck-line"><input type="checkbox" id="tr-order-ok" checked> 순서표대로 번갈아 했어요</label>`:""}
     <label class="ck-line"><input type="checkbox" id="tr-same" checked> 모든 조건을 같은 거리·경사·클럽으로 했어요</label>
     <label class="fld">누가 확인했나요<select id="tr-src"><option value="선수 보고">내가 직접 셌어요</option><option value="코치 관찰">코치님이 보셨어요</option><option value="장비 측정">장비로 쟀어요</option></select></label>
     <label class="fld">메모 <span class="hint">선택</span><input id="tr-memo" maxlength="200"></label>
@@ -952,13 +965,20 @@ $("tcard").addEventListener("submit",async e=>{
     if(!v("goal")||!v("drill")||!v("steps")){toast("목표·훈련·진행 방법은 비울 수 없어요");return}
     if(!Number.isInteger(reps)||reps<1||reps>30){toast("반복 수를 1~30 사이로 적어 주세요");return}
     const setup={...cur.setup,distance:v("distance"),slope:v("slope"),club:v("club"),reps,success:v("success")};
-    if(cur.setup.trigger){setup.trigger={situation:pick("situation"),visual:pick("visual")};setup.presentation=pick("presentation")[0]||"Single"}
+    if(cur.setup.trigger){setup.trigger={situation:pick("situation"),visual:pick("visual")};setup.presentation=pick("presentation")[0]||"Single";if(setup.presentation==="Random")setup.randomTarget=pick("randomTarget")[0]||"유발조건";else delete setup.randomTarget}
+    setup.orderMode=pick("orderMode")[0]||"interleaved";setup.schedule=tSchedule(setup.order||cur.conditions.map(c=>c.key),reps,setup.orderMode);
+    const dm=String(setup.distance).match(/(\d+(?:\.\d+)?)\s*(cm|m|미터)?/);setup.distanceM=dm?(dm[2]==="cm"?Number(dm[1])/100:Number(dm[1])):null;
+    if(setup.task==="Putt")setup.club="퍼터";
     const next={card:{...cur.card,goal:v("goal"),drill:v("drill"),steps:v("steps").split("\n").map(x=>x.trim()).filter(Boolean).slice(0,8),checks:v("checks").split(/[·,]/).map(x=>x.trim()).filter(Boolean).slice(0,4)},setup,conditions:cur.conditions};
     /* 원래 비교 기준을 그대로 쓸 수 있는지 다시 확인 */
     const notes=[],p=t.proposal.setup,min=(t.template&&t.template.minReps)||5;
     if(reps<min)notes.push(`조건마다 ${min}번보다 적으면 비교하지 않고 한 번 더 하자고 할 수 있어요.`);
     if(setup.trigger&&!(setup.trigger.situation.length||setup.trigger.visual.length))notes.push("압박 상황을 하나도 고르지 않아 압박 비교를 할 수 없어요.");
     if((p.distance||"")!==setup.distance||(p.club||"")!==setup.club)notes.push("거리나 클럽이 처음 제안과 달라졌어요. 이번 결과는 고친 조건끼리만 비교해요.");
+    if(setup.orderMode==="blocked")notes.push("조건별로 묶어서 하면 연습·피로·순서 효과와 구분하기 어려워요.");
+    const vis=(setup.trigger&&setup.trigger.visual)||[];
+    if(setup.task==="Putt"&&vis.includes("숏퍼트")&&!(setup.distanceM<=2))notes.push("숏퍼트는 2m 이하 기준이에요(운영 기준 ops-1). 실제 거리를 확인해 주세요.");
+    if(setup.task==="Putt"&&vis.includes("롱퍼트")&&!(setup.distanceM>=10))notes.push("롱퍼트는 10m 이상 기준이에요(운영 기준 ops-1). 실제 거리를 확인해 주세요.");
     await tUpdate(t,{current:next,adjustments:[...(t.adjustments||[]),{at:new Date().toISOString(),by:uid,role:myRole(),before:cur,after:next}],compat:{ok:!notes.some(n=>/할 수 없어요|비교하지 않고/.test(n)),notes}},{action:"edited"});
     tMode="";toast("고친 내용으로 저장했어요. 처음 제안도 그대로 남아 있어요");renderTCard();return;
   }
@@ -975,7 +995,8 @@ $("tcard").addEventListener("submit",async e=>{
       const pf=fs.querySelectorAll("[data-feel]");if(pf.length){r.perceived={};pf.forEach(g2=>{const on=g2.querySelector('.chip[aria-pressed="true"]');const [,fk]=g2.dataset.feel.split(".");r.perceived[fk]=on&&on.dataset.v!==""?(g2.dataset.text?on.dataset.v:Number(on.dataset.v)):null})}
       results[k]=r}
     if(miss.length){err.textContent="성공 수와 시도 수를 확인해 주세요: "+miss.join(", ");return}
-    const run={at:new Date().toISOString(),by:uid,role:myRole(),source:$("tr-src").value,sameSetup:$("tr-same").checked,
+    if(!$("tr-club").value.trim()){err.textContent="실제로 쓴 클럽을 적어 주세요.";return}
+    const run={at:new Date().toISOString(),by:uid,role:myRole(),source:$("tr-src").value,sameSetup:$("tr-same").checked,orderFollowed:$("tr-order-ok")?$("tr-order-ok").checked:false,orderMode:cur.setup.orderMode||"interleaved",distance:$("tr-dist").value.trim(),club:$("tr-club").value.trim(),randomTarget:cur.setup.randomTarget||"",
       order:condsOf(cur).map(c=>c.key),presented:$("tr-order")?$("tr-order").value.trim():"",planned:cur.setup,results,memo:$("tr-memo").value.trim(),inputMs:tStart?Date.now()-tStart:null};
     f.querySelector('[type="submit"]').disabled=true;
     try{await tUpdate(t,{status:"done",runs:[...(t.runs||[]),run]},{action:"result"});toast("결과를 저장했어요")}
