@@ -280,6 +280,12 @@
     <div id="me-special"></div>
   </section>
 
+  <!-- ===== 내 계정: 연결 · 구독 · 설정 · 함께 보는 선수 ===== -->
+  <section id="v-link" class="wrap acct" hidden><header class="acct-head"><button class="acct-back" type="button" data-show="ask" aria-label="뒤로">‹</button><h1>연결</h1><span></span></header><div id="link-box" class="acct-body"></div></section>
+  <section id="v-plan" class="wrap acct" hidden><header class="acct-head"><button class="acct-back" type="button" data-show="ask" aria-label="뒤로">‹</button><h1>구독</h1><span></span></header><div id="plan-box" class="acct-body"></div></section>
+  <section id="v-set" class="wrap acct" hidden><header class="acct-head"><button class="acct-back" type="button" data-show="ask" aria-label="뒤로">‹</button><h1>설정</h1><span></span></header><div id="set-box" class="acct-body"></div></section>
+  <section id="v-watch" class="wrap acct" hidden><header class="acct-head"><button class="acct-back" type="button" data-show="ask" aria-label="뒤로">‹</button><h1>함께 보는 선수</h1><span></span></header><div id="watch-box" class="acct-body"></div></section>
+
   <!-- ===== 크루에게 묻기 ===== -->
   <!-- ===== 오늘의 대화 (로그인 후 첫 화면): 인사 → 기록 카드 2개 → 아래 입력창에서 바로 기록·질문 ===== -->
   <section id="v-ask" class="wrap talk" hidden>
@@ -391,11 +397,12 @@
         <button type="button" data-go="lib" data-node="N7">N7 효율</button><button type="button" data-go="lib" data-node="N8">N8 적응</button>
       </div>
     </details>
-    <details class="dw-grp">
-      <summary><img class="dw-img" src="img/icons3d/cart.webp" alt="" width="34" height="34">내 계정</summary>
-      <button type="button" data-go="me">나의 스테이트먼트</button>
-      <button type="button" data-go="train" data-sec="mfold">목표 바꾸기</button>
-      <button type="button" data-logout>로그아웃</button>
+    <button type="button" class="dw-sec-row" data-go="watch" id="dw-watch" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c1.2-3.5 4-5 7-5s5.8 1.5 7 5"/></svg>함께 보는 선수<small id="dw-watch-n"></small></button>
+    <details class="dw-sec dw-acct">
+      <summary><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>내 계정</summary>
+      <button type="button" class="dw-row" data-go="link">연결<small id="dw-link-n">없음</small></button>
+      <button type="button" class="dw-row" data-go="plan">구독<small>파일럿</small></button>
+      <button type="button" class="dw-row" data-go="set">설정</button>
     </details>
     <button type="button" class="dw-plaza" data-go="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-7M12 14c-4 0-6-3-6-6a6 6 0 0 1 12 0c0 3-2 6-6 6z"/></svg><b>레거시 광장</b><small>나무와 크루가 있는 곳</small></button>
     <div class="dw-foot">(주)에이피골프 · AP Legacy System</div>

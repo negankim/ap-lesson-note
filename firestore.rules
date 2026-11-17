@@ -11,6 +11,11 @@ service cloud.firestore {
     function isAdmin() { return signedIn() && role() == 'admin'; }
 
     // 나이 구분(ageBand: adult|teen|child)은 본인이 한 번만 정한다. 보호자 확인(guardianVerified)은 코치·관리자만.
+    // 연결: 선수가 수락한 사람(코치님·부모님 등)은 그 선수 기록을 읽기만 한다
+    function isViewer(uid) {
+      return signedIn() && exists(/databases/$(database)/documents/players/$(uid)/viewers/$(request.auth.uid))
+        && get(/databases/$(database)/documents/players/$(uid)/viewers/$(request.auth.uid)).data.status == 'active';
+    }
     function same(f) { return request.resource.data.get(f, null) == resource.data.get(f, null); }
     match /users/{uid} {
       allow read: if signedIn();
@@ -53,18 +58,43 @@ service cloud.firestore {
       allow write: if signedIn() && request.auth.uid == uid;
     }
 
+    // 연결 초대 링크: 만든 사람만 만들고 지운다. 받은 사람은 로그인 후 읽어서 요청한다
+    match /invites/{code} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.owner == request.auth.uid;
+      allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+      allow update: if false;
+    }
+    // 내가 함께 보는 선수 목록 (본인만)
+    match /users/{uid}/watching/{owner} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
     match /players/{uid} {
       allow read, write: if signedIn() && request.auth.uid == uid;
-      allow read: if isStaff();
+      allow read: if isStaff() || isViewer(uid);
+      // 연결 요청: 초대 링크를 받은 사람이 '대기'로 만들고, 선수 본인만 수락·거절한다. 둘 다 끊을 수 있다
+      match /viewers/{vid} {
+        allow read: if signedIn() && (request.auth.uid == uid || request.auth.uid == vid) || isStaff();
+        allow create: if signedIn() && request.auth.uid == vid && vid != uid
+          && request.resource.data.status == 'pending'
+          && exists(/databases/$(database)/documents/invites/$(request.resource.data.code))
+          && get(/databases/$(database)/documents/invites/$(request.resource.data.code)).data.owner == uid
+          && get(/databases/$(database)/documents/invites/$(request.resource.data.code)).data.expires > request.time.toMillis();
+        allow update: if signedIn() && request.auth.uid == uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'approvedAt'])
+          && request.resource.data.status in ['active', 'declined'];
+        allow delete: if signedIn() && (request.auth.uid == uid || request.auth.uid == vid);
+      }
       match /statement/{id} {
         allow read, write: if signedIn() && request.auth.uid == uid;
-        allow read: if isStaff();
+        allow read: if isStaff() || isViewer(uid);
       }
       // AI 훈련 카드: 제안·내부 연결·검토는 서버만 쓴다. 본인·코치는 수정본·수행 기록·상태만 덧붙인다(지우지 못함).
       // 만다라트와 배틀플랜 (본인 작성, 코치·관리자는 읽기)
       match /mandala/{id} {
         allow read, write: if signedIn() && request.auth.uid == uid;
-        allow read: if isStaff();
+        allow read: if isStaff() || isViewer(uid);
       }
       match /trainings/{id} {
         allow read: if (signedIn() && request.auth.uid == uid) || isStaff();
@@ -83,7 +113,7 @@ service cloud.firestore {
       }
       match /lessons/{id} {
         allow read, write: if signedIn() && request.auth.uid == uid;
-        allow read: if isStaff();
+        allow read: if isStaff() || isViewer(uid);
       }
     }
 

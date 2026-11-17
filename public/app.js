@@ -27,14 +27,14 @@ const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth
 const md=s=>s?Number(s.slice(5,7))+"/"+Number(s.slice(8,10)):"";
 function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2400)}
 
-let db=null,user=null,uid=null,ai=null,dict=null,seedFn=null,chat=null,legacy=null,myCoaches=[];
+let db=null,user=null,uid=null,ai=null,dict=null,seedFn=null,chat=null,legacy=null,account=null,myCoaches=[];
 let micTarget="lesson",lib=[],isEditor=false,stats={},statsAt=0,libNode="",libSt="active",editing=null,profileExists=false;
 const KIND={point:"레슨 포인트",drill:"드릴",training:"훈련"};
 const STATUS={active:"사용 중",pending:"검토 대기",retired:"중지"};
 let profile={level:"A",goal:""},lessons=[],draft=null,pillarFilter=null,openId=null,busy=false;
 
 /* ===== 화면 전환: 광장(첫 화면) · 로건(레슨 기록) · 루크(진단) · 데릴(훈련장) · 파코(감각·실전) · 크루에게 묻기 · 라이브러리(코치) ===== */
-const VIEWS=["home","lesson","dx","train","feel","me","ask","lib"],ALIAS={today:"home",plaza:"home",chart:"dx"};
+const VIEWS=["home","lesson","dx","train","feel","me","ask","lib","link","plan","set","watch"],ALIAS={today:"home",plaza:"home",chart:"dx"};
 function show(tab){
   if(typeof crewStop==="function")crewStop();
   if(typeof miloStop==="function")miloStop(true);
@@ -50,6 +50,10 @@ function show(tab){
   if(tab==="train"){renderMandala();renderActive();renderTrain();renderMandalaAP();renderPlan()}
   if(tab==="feel"){renderToday();renderFeelHist()}
   if(tab==="ask"){renderSug();renderTalk()}
+  if(tab==="link"){renderLink();loadViewers().then(renderLink)}
+  if(tab==="plan")renderPlanPage();
+  if(tab==="set")renderSet();
+  if(tab==="watch")loadViewers().then(renderWatch);
   if(tab==="train")renderTCard();
   if(tab==="lib")renderTMetrics();
   if(tab==="me")renderMe();
@@ -633,7 +637,7 @@ document.querySelectorAll(".lp-mate[data-crew]").forEach(b=>b.addEventListener("
 }));
 
 /* ===== 메뉴 (왼쪽 서랍) ===== */
-function openMenu(){renderDrawerStatus();$("drawer").hidden=false;$("menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden"}
+function openMenu(){renderDrawerStatus();loadViewers();$("drawer").hidden=false;$("menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden"}
 function closeMenu(){$("drawer").hidden=true;$("menu").setAttribute("aria-expanded","false");document.body.style.overflow=""}
 $("menu").addEventListener("click",openMenu);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("drawer").hidden)closeMenu()});
@@ -659,7 +663,7 @@ function setMenuUser(name,role){
 
 /* ===== 시작 ===== */
 export function start(services){
-  ({db,user,ai,dict,seedFn,consent,chat,legacy}=services);
+  ({db,user,ai,dict,seedFn,consent,chat,legacy,account}=services);
   return boot();
 }
 /* ===== 나이 확인 · 보호자 동의 ===== */
@@ -722,6 +726,7 @@ async function boot(){
   db.collection("library").onSnapshot(snap=>{gotLib=true;clearTimeout(lt);lib=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$("v-lib").hidden)renderLib();if(!$("v-train").hidden){renderMandalaAP();renderPlan()}},()=>{clearTimeout(lt)});
   renderChart();
   show("ask");
+  loadViewers().then(handleInvite);
   $("dp-tab").hidden=false;
   await loadChat();
 }
@@ -1439,3 +1444,151 @@ $("me-special").addEventListener("submit",async e=>{e.preventDefault();const f=e
   const y=st==="없음"?{status:st}:{status:st,shots:picked(f,"y-shots"),symptoms:picked(f,"y-symptoms"),when:picked(f,"y-when"),freq:slVal(f,"y-freq"),severity:slVal(f,"y-sev")};
   stmt.special={...(stmt.special||{}),yips:{...y,code:"YIPS",at:new Date().toISOString()}};
   try{await saveStatement();yipsOpen=false;toast("저장했어요");renderYips()}catch(_){toast("저장하지 못했습니다")}});
+
+/* ===== 내 계정: 연결 · 구독 · 설정 · 함께 보는 선수 =====
+   연결: 선수가 링크를 보내면 받은 사람(코치님·부모님 등)이 로그인해서 요청하고, 선수가 수락해야 읽기만 할 수 있다(규칙 isViewer).
+   구독: 파일럿 동안 무료. 플랜과 가격은 대표 확정 전이라 '곧 열려요'.
+   설정: 이름(앱 안에서 보이는 이름), 크루 말투(서버가 대화·피드백에 반영), 진동, 계정 삭제(서버 account 함수). */
+const APP_VER="2026-11-18";
+const CONTACT_EMAIL=""; // 문의 메일 주소: 대표 확인 후 넣는다
+const LINK_ROLES=[["coach","코치님"],["parent","부모님·보호자"],["family","가족·친구"]];
+const TONE_OPTS=[["coach","코치형","오늘은 출발 방향부터 확인해요. 게이트 10개, 성공 수를 세 주세요."],["friend","친구형","어제 못 했어도 괜찮아요! 오늘 같이 게이트 10개만 해 봐요."],["direct","직설형","게이트 10개. 성공 수 기록. 끝."]];
+let viewers=[],watching=[],myAge=null,watchSel=null;
+const prefGet=(k,d)=>{try{const v=localStorage.getItem("ap-"+k);return v===null?d:v}catch(_){return d}};
+const prefSet=(k,v)=>{try{localStorage.setItem("ap-"+k,v)}catch(_){}};
+const buzz=()=>{if(prefGet("vib","1")==="1"&&navigator.vibrate)try{navigator.vibrate(12)}catch(_){}};
+const roleName=r=>(LINK_ROLES.find(x=>x[0]===r)||[,"연결"])[1];
+const myName=()=>{const n=($("who").textContent||"").trim();return n&&n!=="내 기록"?n:"선수"};
+async function loadViewers(){
+  if(!uid)return;
+  try{const s=await db.collection("players/"+uid+"/viewers").get();viewers=s.docs.map(d=>({id:d.id,...d.data()}))}catch(_){viewers=[]}
+  try{const s=await db.collection("users/"+uid+"/watching").get();watching=s.docs.map(d=>({id:d.id,...d.data()}))}catch(_){watching=[]}
+  if(myAge===null){try{const d=await db.doc("users/"+uid).get();myAge=d.exists?(d.data().ageBand||""):""}catch(_){myAge=""}}
+  const act=viewers.filter(v=>v.status==="active").length,pend=viewers.filter(v=>v.status==="pending").length;
+  $("dw-link-n").textContent=pend?`요청 ${pend}`:act?`${act}명`:"없음";
+  $("dw-watch").hidden=!watching.length;$("dw-watch-n").textContent=watching.length?watching.length+"명":"";
+}
+const acctRow=(main,sub,right="",attrs="")=>`<div class="acct-row"${attrs}><span><b>${main}</b>${sub?`<small>${sub}</small>`:""}</span>${right}</div>`;
+
+function renderLink(){
+  const box=$("link-box");if(!box)return;const act=viewers.filter(v=>v.status==="active"),pend=viewers.filter(v=>v.status==="pending");
+  box.innerHTML=`<p class="lead">연결하면 코치님이나 부모님이 내 기록(레슨·문제 진술·만다라트·배틀플랜·스테이트먼트)을 함께 볼 수 있어요. 보기만 하고 고치지는 못해요. 요청이 오면 여기서 수락해요.</p>
+    ${pend.length?`<h3 class="acct-k">받은 요청</h3><div class="acct-list">${pend.map(v=>acctRow(esc(v.name||"이름 없음"),`${esc(roleName(v.role))} · ${esc(md((v.requestedAt||"").slice(0,10)))} 요청`,`<span class="acct-act"><button class="btn sm gold" type="button" data-lk="ok" data-id="${esc(v.id)}">수락</button><button class="btn sm" type="button" data-lk="no" data-id="${esc(v.id)}">거절</button></span>`)).join("")}</div>`:""}
+    <h3 class="acct-k">함께 보는 사람</h3><div class="acct-list">${act.length?act.map(v=>acctRow(esc(v.name||"이름 없음"),esc(roleName(v.role)),`<button class="btn sm" type="button" data-lk="cut" data-id="${esc(v.id)}">연결 끊기</button>`)).join(""):acctRow(`<span class="hint">아직 연결된 사람이 없어요</span>`,"")}</div>
+    <h3 class="acct-k">연결 추가</h3><div class="acct-list"><div class="acct-row col"><span><b>연결 링크 보내기</b><small>링크를 받은 사람이 로그인해서 요청하면, 내가 수락해야 볼 수 있어요. 링크는 7일 동안 쓸 수 있어요.</small></span>
+      <div class="chips" data-pick="lk-role">${LINK_ROLES.map(([k,l],i)=>`<button type="button" class="chip" data-v="${k}" aria-pressed="${i===0}">${l}</button>`).join("")}</div>
+      <button class="btn gold" type="button" data-lk="make">링크 만들기</button><div id="lk-out"></div></div></div>
+    ${myAge==="child"||myAge==="teen"?`<p class="notice">미성년 선수는 부모님·보호자와 함께 확인하고 연결해 주세요. 모르는 사람의 요청은 수락하지 마세요.</p>`:""}`;
+}
+$("link-box").addEventListener("click",async e=>{const b=e.target.closest("[data-lk]");if(!b)return;const a=b.dataset.lk,id=b.dataset.id;
+  try{
+    if(a==="ok"){await db.doc(`players/${uid}/viewers/${id}`).update({status:"active",approvedAt:new Date().toISOString()});toast("수락했어요");buzz()}
+    if(a==="no"){await db.doc(`players/${uid}/viewers/${id}`).update({status:"declined",approvedAt:new Date().toISOString()});toast("거절했어요")}
+    if(a==="cut"){if(!confirm("연결을 끊을까요? 그 사람은 더 이상 내 기록을 볼 수 없어요."))return;await db.doc(`players/${uid}/viewers/${id}`).delete();toast("연결을 끊었어요")}
+    if(a==="make"){const role=picked($("link-box"),"lk-role")[0]||"coach";const arr=new Uint8Array(9);crypto.getRandomValues(arr);
+      const code=[...arr].map(x=>"abcdefghjkmnpqrstuvwxyz23456789"[x%31]).join("");
+      await db.doc("invites/"+code).set({owner:uid,ownerName:myName(),role,createdAt:new Date().toISOString(),expires:Date.now()+7*864e5});
+      const url=location.origin+"/?invite="+code;
+      $("lk-out").innerHTML=`<label class="fld">${esc(roleName(role))}에게 보낼 링크<input id="lk-url" readonly value="${esc(url)}"></label><div class="actions"><button class="btn sm gold" type="button" data-lk="copy">복사</button>${navigator.share?`<button class="btn sm" type="button" data-lk="share">보내기</button>`:""}</div>`;return}
+    if(a==="copy"){const u=$("lk-url");u.select();try{await navigator.clipboard.writeText(u.value)}catch(_){document.execCommand("copy")}toast("링크를 복사했어요");buzz();return}
+    if(a==="share"){try{await navigator.share({title:"AP 레슨 노트 연결",text:`${myName()} 선수가 AP 레슨 노트 기록을 함께 보자고 해요.`,url:$("lk-url").value})}catch(_){}return}
+    await loadViewers();renderLink();
+  }catch(_){toast("처리하지 못했어요. 다시 눌러 주세요")}
+});
+/* 링크를 받은 사람: 로그인 후 ?invite= 로 들어오면 요청 카드를 띄운다 */
+async function handleInvite(){
+  const code=new URLSearchParams(location.search).get("invite");if(!code)return;history.replaceState(null,"",location.pathname);
+  let inv=null;try{const d=await db.doc("invites/"+code).get();inv=d.exists?d.data():null}catch(_){}
+  if(!inv||inv.expires<Date.now()){toast("연결 링크가 만료됐거나 없어요. 다시 받아 주세요");return}
+  if(inv.owner===uid){toast("내가 만든 연결 링크예요. 받은 사람이 열어야 해요");return}
+  const ov=document.createElement("div");ov.className="cs";ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
+  ov.innerHTML=`<div class="cs-box wrap"><div class="panel" style="display:grid;gap:10px"><span class="eyebrow"><b>L</b>연결 요청</span>
+    <h2 style="margin:0">${esc(inv.ownerName||"선수")} 선수가 기록을 함께 보자고 해요</h2>
+    <p style="margin:0">${esc(roleName(inv.role))}(으)로 요청을 보내면, 선수가 수락한 뒤 레슨·문제 진술·만다라트·배틀플랜을 볼 수 있어요. 보기만 하고 고치지는 못해요.</p>
+    <div class="actions"><button class="btn gold" type="button" data-iv="yes">요청 보내기</button><button class="btn" type="button" data-iv="no">나중에</button></div></div></div>`;
+  document.body.append(ov);
+  ov.addEventListener("click",async e=>{const b=e.target.closest("[data-iv]");if(!b)return;
+    if(b.dataset.iv==="yes"){try{const now=new Date().toISOString();
+      await db.doc(`players/${inv.owner}/viewers/${uid}`).set({name:myName(),role:inv.role,status:"pending",code,requestedAt:now});
+      await db.doc(`users/${uid}/watching/${inv.owner}`).set({ownerName:inv.ownerName||"",role:inv.role,at:now});
+      toast("요청을 보냈어요. 선수가 수락하면 볼 수 있어요");await loadViewers()}catch(_){toast("요청을 보내지 못했어요. 링크를 다시 받아 주세요")}}
+    ov.remove()});
+}
+
+/* 함께 보는 선수: 읽기만 */
+async function renderWatch(){
+  const box=$("watch-box");if(!box)return;
+  if(!watching.length){box.innerHTML=`<p class="lead">함께 보는 선수가 없어요. 선수에게 연결 링크를 받아 열면 여기에 생겨요.</p>`;return}
+  if(!watchSel||!watching.find(w=>w.id===watchSel))watchSel=watching[0].id;
+  const w=watching.find(x=>x.id===watchSel);
+  box.innerHTML=`<div class="chips">${watching.map(x=>`<button type="button" class="chip" data-wsel="${esc(x.id)}" aria-pressed="${x.id===watchSel}">${esc(x.ownerName||"선수")}</button>`).join("")}</div><div id="watch-one"><p class="hint">불러오는 중…</p></div>`;
+  const one=$("watch-one");
+  let st=null;try{const d=await db.doc(`players/${w.id}/viewers/${uid}`).get();st=d.exists?d.data().status:null}catch(_){}
+  if(st!=="active"){one.innerHTML=`<div class="notice">${st==="pending"?"선수가 아직 수락하지 않았어요. 수락하면 기록이 보여요.":st==="declined"?"선수가 요청을 거절했어요.":"연결이 끊겼어요."}</div><div class="actions"><button class="btn sm" type="button" data-wrm="${esc(w.id)}">목록에서 빼기</button></div>`;return}
+  let ls=[],md_=null,sm=null;
+  try{const s=await db.collection(`players/${w.id}/lessons`).get();ls=s.docs.map(d=>({id:d.id,...d.data()})).filter(l=>l.result).sort((a,b)=>((b.date||"")+(b.createdAt||"")).localeCompare((a.date||"")+(a.createdAt||"")))}catch(_){}
+  try{const d=await db.doc(`players/${w.id}/mandala/current`).get();md_=d.exists?d.data():null}catch(_){}
+  try{const d=await db.doc(`players/${w.id}/statement/current`).get();sm=d.exists?d.data():null}catch(_){}
+  const b=(sm&&sm.bio)||{},ss=(md_&&md_.sessions)||[],fin=ss.filter(x=>x.items.length&&x.done.length===x.items.length).length,y=sm&&sm.special&&sm.special.yips;
+  one.innerHTML=`<div class="panel" style="display:grid;gap:8px"><div class="t-head"><b>${esc(w.ownerName||"선수")}</b><span class="pill">${esc(roleName(w.role))}로 보는 중 · 읽기만</span></div>
+      <div class="bio-grid">${BIO_SHOW.map(([k,l])=>`<div><small>${l}</small><b>${esc(b[k]||"—")}</b></div>`).join("")}</div>
+      ${y&&y.status&&y.status!=="없음"?`<p class="notice yips-note" style="margin:0">스페셜 · 입스: ${esc(y.status)}${(y.shots||[]).length?" · "+esc(y.shots.join("·")):""}</p>`:""}
+      <p class="hint" style="margin:0">만다라트 목표: ${esc((md_&&md_.goal)||"—")} · 배틀플랜 ${ss.length?`${fin}/${ss.length}회차`:"없음"}</p></div>
+    <h3 class="acct-k">최근 기록</h3>${ls.slice(0,8).map(l=>`<details class="panel wl"><summary><span>${esc(md(l.date))}</span><b>${esc(l.result.title||"")}</b><span class="pill">${l.source==="self"?"본인 진술":esc(l.coach||"코치 미기재")}</span></summary>${resultHTML(l.result,l.coach||"",l.date,{self:l.source==="self"})}</details>`).join("")||`<p class="hint">아직 기록이 없어요.</p>`}`;
+}
+$("watch-box").addEventListener("click",async e=>{const s=e.target.closest("[data-wsel]");if(s){watchSel=s.dataset.wsel;renderWatch();return}
+  const r=e.target.closest("[data-wrm]");if(r){const o=r.dataset.wrm;try{await db.doc(`users/${uid}/watching/${o}`).delete();await db.doc(`players/${o}/viewers/${uid}`).delete().catch(()=>{})}catch(_){}await loadViewers();renderWatch()}});
+
+function renderPlanPage(){
+  const box=$("plan-box");if(!box)return;
+  box.innerHTML=`<h3 class="acct-k">지금 내 플랜</h3><div class="acct-list"><div class="acct-row col"><span><b>AP 레슨 노트 · 파일럿</b><small>파일럿 기간에는 무료로 모든 기능을 써 볼 수 있어요.</small></span>
+      <div class="plan-use"><span>크루에게 묻기 <b>하루 10번</b></span><span>레슨 정리 <b>하루 20번</b></span><span>내 문제 진술 <b>하루 20번</b></span><span>훈련 제안 <b>하루 20번</b></span></div></div></div>
+    <h3 class="acct-k">모든 플랜 <span class="pill">곧 열려요</span></h3><div class="acct-list">
+      ${acctRow("개인","레슨 기록·문제 진술·만다라트·배틀플랜, 크루 대화 횟수 늘림",`<span class="hint">준비 중</span>`)}
+      ${acctRow("패밀리","부모님이 자녀 기록을 함께 보고 응원해요",`<span class="hint">준비 중</span>`)}
+      ${acctRow("코치 · 아카데미 · 팀","선수 관리, 레슨 레코드, Matrix 진단 근거와 레거시 기여 기록",`<span class="hint">준비 중</span>`)}</div>
+    <p class="hint">결제는 아직 받지 않아요. 플랜이 열리면 여기서 고를 수 있어요.</p>`;
+}
+
+function renderSet(){
+  const box=$("set-box");if(!box)return;const inf=(user&&user.info)?user.info():{};const tone=inf.tone||"coach";
+  box.innerHTML=`<h3 class="acct-k">프로필</h3><div class="acct-list">
+      ${acctRow("이름",esc(myName()),`<button class="btn sm" type="button" data-st="name">바꾸기</button>`)}
+      <div id="st-name" hidden></div>
+      ${acctRow("로그인 이메일",esc(inf.email||"—"))}
+      ${acctRow("로그인 방식",inf.provider==="google.com"?"Google로 로그인":esc(inf.provider||"—"))}</div>
+    <h3 class="acct-k">크루 말투</h3><div class="acct-list">${TONE_OPTS.map(([k,l,ex])=>`<button type="button" class="acct-row tone" data-tone="${k}" aria-pressed="${k===tone}"><span><b>${l}</b><small>“${ex}”</small></span><i class="tone-ck" aria-hidden="true">${k===tone?"✓":""}</i></button>`).join("")}</div>
+    <p class="hint" style="margin-top:-4px">말하는 방식만 바뀌고, 정리 규칙과 안전 규칙은 그대로예요.</p>
+    <h3 class="acct-k">기능</h3><div class="acct-list">
+      ${acctRow("언어","한국어",`<span class="hint">다른 언어 준비 중</span>`)}
+      ${acctRow("진동","저장·체크할 때 살짝 떨림",`<label class="switch"><input type="checkbox" id="st-vib" ${prefGet("vib","1")==="1"?"checked":""}><i></i></label>`)}</div>
+    <h3 class="acct-k">도움</h3><div class="acct-list">
+      ${acctRow("문의하기",CONTACT_EMAIL?esc(CONTACT_EMAIL):"궁금한 점은 먼저 크루나 밀로에게 물어보세요. 문의 메일은 곧 안내해요.",CONTACT_EMAIL?`<a class="btn sm" href="mailto:${esc(CONTACT_EMAIL)}">메일 보내기</a>`:`<button class="btn sm" type="button" data-show="ask">오늘의 대화</button>`)}</div>
+    <h3 class="acct-k">계정</h3><div class="acct-list">
+      ${acctRow("로그아웃","",`<button class="btn sm" type="button" data-logout>로그아웃</button>`)}
+      ${acctRow(`<span class="danger">계정 삭제</span>`,"내 기록과 계정을 지워요",`<button class="btn sm" type="button" data-st="del">자세히</button>`)}
+      <div id="st-del" hidden></div></div>
+    <h3 class="acct-k">정보 · 약관</h3><div class="acct-list">
+      ${acctRow("개인정보 처리방침","",`<span class="hint">준비 중</span>`)}
+      ${acctRow("이용약관","",`<span class="hint">준비 중</span>`)}
+      ${myAge==="child"?acctRow("보호자 동의","만 14세 미만 · 보호자 확인 상태는 코치님이 확인해요"):""}
+      ${acctRow("앱 버전",APP_VER)}</div>`;
+}
+$("set-box").addEventListener("click",async e=>{
+  if(e.target.closest("[data-logout]"))return; // 아래 공용 처리
+  const t=e.target.closest("[data-tone]");if(t){try{await db.doc("users/"+uid).update({tone:t.dataset.tone});if(user.info){const i=user.info();user.info=()=>({...i,tone:t.dataset.tone})}toast("크루 말투를 바꿨어요");buzz();renderSet()}catch(_){toast("저장하지 못했어요")}return}
+  const b=e.target.closest("[data-st]");if(!b)return;
+  if(b.dataset.st==="name"){const box=$("st-name");box.hidden=!box.hidden;box.innerHTML=`<form class="acct-row col" id="st-name-f"><label class="fld">앱 안에서 보일 이름<input id="st-name-i" maxlength="20" value="${esc(myName())}"></label><p class="hint" style="margin:0">연결된 코치님·부모님 화면에도 이 이름으로 보여요.</p><div class="actions"><button class="btn sm gold" type="submit">저장</button></div></form>`;return}
+  if(b.dataset.st==="del"){const box=$("st-del");box.hidden=!box.hidden;box.innerHTML=`<div class="acct-row col"><p style="margin:0">지우면 내 레슨 기록, 문제 진술, 스테이트먼트, 만다라트·배틀플랜, 훈련 카드, 대화, 연결이 모두 사라지고 되돌릴 수 없어요.</p>
+      <p class="hint" style="margin:0">공동 레거시 나무에 남긴 레슨 포인트는 이름이 가려진 채 남아요.</p>
+      <label class="fld">확인을 위해 <b>삭제</b>라고 적어 주세요<input id="st-del-i" maxlength="4" autocomplete="off"></label>
+      <div class="actions"><button class="btn sm danger-btn" type="button" data-st="del-go">계정 삭제</button></div><p class="status err" id="st-del-st"></p></div>`;return}
+  if(b.dataset.st==="del-go"){if($("st-del-i").value.trim()!=="삭제"){$("st-del-st").textContent="'삭제'라고 정확히 적어 주세요.";return}
+    if(!account){$("st-del-st").textContent="지금은 삭제할 수 없어요. 새로고침 후 다시 해 주세요.";return}
+    b.disabled=true;$("st-del-st").textContent="지우는 중이에요…";
+    try{await account({task:"delete",confirm:"삭제"});toast("계정을 삭제했어요");setTimeout(()=>$("logout").click(),800)}catch(_){$("st-del-st").textContent="삭제하지 못했어요. 잠시 뒤 다시 해 주세요.";b.disabled=false}}
+});
+$("set-box").addEventListener("submit",async e=>{if(e.target.id!=="st-name-f")return;e.preventDefault();const v=$("st-name-i").value.trim();if(!v){toast("이름을 적어 주세요");return}
+  try{await db.doc("users/"+uid).update({nickname:v});$("who").textContent=v;setMenuUser(v,user.role?user.role():"");toast("이름을 바꿨어요");buzz();renderSet()}catch(_){toast("저장하지 못했어요")}});
+$("set-box").addEventListener("change",e=>{if(e.target.id==="st-vib"){prefSet("vib",e.target.checked?"1":"0");if(e.target.checked)buzz()}});
+document.addEventListener("click",e=>{if(e.target.closest("#set-box [data-logout]"))$("logout").click()});

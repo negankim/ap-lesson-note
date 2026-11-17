@@ -51,6 +51,12 @@ async function callClaude(model, prompt, maxTokens) {
   }
 }
 
+const TONES = {
+  coach: "",
+  friend: "\n\n[말투] 친구처럼 다정하고 편하게 말한다(반말 아닌 부드러운 존댓말, 응원 한마디). 내용·판정 규칙·안전 규칙은 그대로.",
+  direct: "\n\n[말투] 짧고 직설적으로 말한다. 할 일부터 먼저, 꾸밈말은 뺀다. 내용·판정 규칙·안전 규칙은 그대로.",
+};
+
 async function countUse(uid, task) {
   let used = 0;
   const day = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10); // 한국 날짜
@@ -92,6 +98,9 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
   const minor = (await ageOf(req.auth.uid)) !== "adult";
   let statement = null;
   try { const sd = await db.doc(`players/${req.auth.uid}/statement/current`).get(); statement = sd.exists ? sd.data() : null; } catch (_) {}
+  /* 크루 말투 (설정): 내용·판정 규칙은 그대로, 말하는 방식만 바꾼다 */
+  let toneLine = "";
+  try { const ud = await db.doc(`users/${req.auth.uid}`).get(); toneLine = TONES[ud.exists && ud.data().tone] || ""; } catch (_) {}
   if (d.task === "organize") {
     const text = String(d.text || "").slice(0, 12000);
     if (text.length < 20) throw new HttpsError("invalid-argument", "레슨 내용이 너무 짧습니다.");
@@ -159,7 +168,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     await countUse(req.auth.uid, "feedback");
     return callClaude(MODEL.feedback, feedbackPrompt({
       lesson: d.lesson || {}, verdict: String(d.verdict || ""), text: String(d.text || "").slice(0, 300), minor, statement,
-    }), 2000);
+    }) + toneLine, 2000);
   }
   if (d.task === "chat") {
     const q = String(d.text || "").trim().slice(0, 400);
@@ -178,7 +187,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     const r = await callClaude(MODEL.chat, chatPrompt({
       question: q, lessons, profile: pf.exists ? pf.data() : {}, history, minor, statement,
       today: new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10),
-    }), 1500);
+    }) + toneLine, 1500);
     const who = ["logan", "rook", "daryl", "paco"].includes(r.who) ? r.who : "logan";
     const sources = (Array.isArray(r.sources) ? r.sources : []).map((s) => lessons[Number(String(s).replace(/\D/g, "")) - 1])
       .filter(Boolean).slice(0, 3).map((l) => ({ id: l.id, date: l.date || "", coach: l.coach || "", title: (l.result && l.result.title) || "" }));
@@ -315,4 +324,29 @@ exports.seedLibrary = onCall({ region: "asia-northeast3" }, async (req) => {
     await ref.set(data); added++;
   }
   return { added, skipped };
+});
+
+
+/* 계정: 본인 계정 삭제. 개인 기록(선수 기록·스테이트먼트·만다라트·연결·대화)과 로그인 계정을 지운다.
+ * 공동 레거시 나무의 포인트는 이름이 가려진 채 남는다(제품 원칙: 개인 기록을 지워도 공동 나무는 줄지 않는다). */
+exports.account = onCall({ region: "asia-northeast3", timeoutSeconds: 120 }, async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
+  const uid = req.auth.uid, d = req.data || {};
+  if (d.task !== "delete") throw new HttpsError("invalid-argument", "알 수 없는 요청입니다.");
+  if (String(d.confirm || "") !== "삭제") throw new HttpsError("failed-precondition", "확인 문구가 맞지 않습니다.");
+  // 내가 보던 선수들 쪽 연결 기록 지우기
+  const watching = await db.collection(`users/${uid}/watching`).get();
+  await Promise.all(watching.docs.map((x) => db.doc(`players/${x.id}/viewers/${uid}`).delete().catch(() => {})));
+  // 나를 보던 사람들 쪽 목록 지우기
+  const viewers = await db.collection(`players/${uid}/viewers`).get();
+  await Promise.all(viewers.docs.map((x) => db.doc(`users/${x.id}/watching/${uid}`).delete().catch(() => {})));
+  const invites = await db.collection("invites").where("owner", "==", uid).get();
+  await Promise.all(invites.docs.map((x) => x.ref.delete()));
+  await db.recursiveDelete(db.doc(`players/${uid}`));
+  await db.recursiveDelete(db.doc(`users/${uid}`));
+  await db.doc(`guardians/${uid}`).delete().catch(() => {});
+  const usage = await db.collection("usage").where("uid", "==", uid).get();
+  await Promise.all(usage.docs.map((x) => x.ref.delete()));
+  await admin.auth().deleteUser(uid).catch(() => {});
+  return { ok: true };
 });

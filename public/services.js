@@ -4,7 +4,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, onSnapshot, serverTimestamp, query, where, orderBy, limit, collectionGroup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc, onSnapshot, serverTimestamp, query, where, orderBy, limit, collectionGroup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 import { start, mountPlaza } from "./app.js";
 
@@ -27,15 +27,17 @@ const db = {
     get: async () => { const d = await getDoc(doc(fs, path)); return { exists: d.exists(), data: () => d.data() }; },
     set: (data) => setDoc(doc(fs, path), data),
     update: (data) => updateDoc(doc(fs, path), data),
+    delete: () => deleteDoc(doc(fs, path)),
   }),
 };
 
 /* 역할: users/{uid}.role = player | coach | admin  (코치·관리자는 콘솔이나 관리자가 지정) */
-function makeUser(u, role) {
+function makeUser(u, role, extra = {}) {
   const names = {};
   return {
     id: async () => u.uid,
-    me: async () => ({ name: u.displayName || u.email || "" }),
+    me: async () => ({ name: extra.nickname || u.displayName || u.email || "" }),
+    info: () => ({ email: u.email || "", provider: (u.providerData[0] && u.providerData[0].providerId) || "", google: u.displayName || "", nickname: extra.nickname || "", tone: extra.tone || "coach" }),
     canEdit: async () => role === "coach" || role === "admin",
     role: () => role,
     profiles: async (ids) => {
@@ -159,11 +161,11 @@ onAuthStateChanged(auth, async (u) => {
   started = true;
   /* 사용자 문서: 이름만 본인이 쓰고, 역할은 규칙상 본인이 못 바꾼다 */
   const ref = doc(fs, "users/" + u.uid);
-  let role = "player";
+  let role = "player", extra = {};
   try {
     const d = await getDoc(ref);
-    if (d.exists()) { role = d.data().role || "player"; await updateDoc(ref, { name: u.displayName || "", lastSeen: serverTimestamp() }); }
+    if (d.exists()) { role = d.data().role || "player"; extra = { nickname: d.data().nickname || "", tone: d.data().tone || "coach" }; await updateDoc(ref, { name: u.displayName || "", lastSeen: serverTimestamp() }); }
     else await setDoc(ref, { name: u.displayName || "", role: "player", createdAt: serverTimestamp(), lastSeen: serverTimestamp() });
   } catch (e) { console.warn("users doc", e); }
-  await start({ db, user: makeUser(u, role), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation(), consent: makeConsent(u, role), chat: makeChat(u), legacy: { ...legacy, add: httpsCallable(fn, "legacy", { timeout: 60000 }) }, seedFn: httpsCallable(fn, "seedLibrary", { timeout: 120000 }) });
+  await start({ db, account: httpsCallable(fn, "account", { timeout: 120000 }), user: makeUser(u, role, extra), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation(), consent: makeConsent(u, role), chat: makeChat(u), legacy: { ...legacy, add: httpsCallable(fn, "legacy", { timeout: 60000 }) }, seedFn: httpsCallable(fn, "seedLibrary", { timeout: 120000 }) });
 });
