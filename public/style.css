@@ -636,3 +636,7 @@ body{background:linear-gradient(#eaf6fb,var(--bg) 340px)}
 .milo-pop img{width:60px;height:auto;align-self:start}
 .mh-detail{display:grid;gap:4px;border-top:1px solid var(--line);padding-top:8px}.mh-detail p{margin:0;font-size:13.5px;line-height:1.5}.mh-detail .btn{justify-self:start}
 .milo-pop{max-height:calc(100% - 24px);overflow-y:auto;align-items:start}
+
+/* 걷기 그림(가로가 넓음)과 대기 그림이 같은 크기·발 높이로 보이게: 4:5 상자, 아래 맞춤 */
+#v-home .station{width:clamp(70px,17%,124px)}
+#v-home .station .crew-go img{aspect-ratio:4/5;object-fit:contain;object-position:50% 100%}

@@ -1299,7 +1299,9 @@ function growTour(tree,el,realData){
 /* ===== 광장 크루가 스스로 돌아다니기 =====
    크루는 광장 바닥(타원) 안에서 천천히 걸어 다니다 멈춰 쉬고, 가끔 인사한다. 누르면 그 방으로 들어간다(조작해서 움직이는 게임은 아님).
    그림은 자세별 정지 이미지라 다리 동작은 없고, 이동 + 살짝 흔들림으로 걷는 느낌만 낸다. 모자 AP 모노그램이 뒤집히지 않게 좌우 반전은 하지 않는다. */
-const WALK={timers:[],on:false,frames:null};
+const WALK={timers:[],on:false,frames:null,seen:true};
+/* 광장이 화면에 보일 때만 걷기 그림을 넘긴다 (휴대폰 배터리·성능) */
+try{new IntersectionObserver(es=>es.forEach(e=>{WALK.seen=e.isIntersecting}),{threshold:0.05}).observe(document.getElementById("scene"))}catch(_){}
 /* 걷는 동작 그림(있을 때만): img/crew3d/walk/manifest.json = {"logan":{"right":8,"left":8},...}
    파일 이름 img/crew3d/walk/{id}-walk-{right|left}-{01..08}.webp. 없으면 이동+흔들림으로 대신한다. */
 async function loadWalkFrames(){if(WALK.frames!==null)return;WALK.frames={};
@@ -1308,7 +1310,7 @@ async function loadWalkFrames(){if(WALK.frames!==null)return;WALK.frames={};
       list.forEach(u=>{const im=new Image();im.src=u});(WALK.frames[id]=WALK.frames[id]||{})[d]=list}}catch(_){}}
 function walkAnim(st,img,id,dir,on){clearInterval(st._wf);const fr=WALK.frames&&WALK.frames[id]&&WALK.frames[id][dir];
   if(!on||!fr){st.classList.toggle("framed",false);if(!on&&id)img.src=`img/crew3d/${id}-idle.webp`;return}
-  st.classList.add("framed");let k=0;img.src=fr[0];st._wf=setInterval(()=>{k=(k+1)%fr.length;img.src=fr[k]},110)}
+  st.classList.add("framed");let k=0;img.src=fr[0];st._wf=setInterval(()=>{if(!WALK.seen)return;k=(k+1)%fr.length;img.src=fr[k]},125)}
 function floorPoint(self){ // 바닥 타원 안의 한 점 (left %, bottom %) — 나무 줄기 앞 가운데는 비우고, 다른 크루(가는 곳 포함)와 떨어진 곳
   const others=[...document.querySelectorAll("#v-home .station")].filter(x=>x!==self).map(x=>({x:+x.dataset.x,y:+x.dataset.y}));
   for(let k=0;k<40;k++){const x=6+Math.random()*80,y=3+Math.random()*30;
@@ -1331,7 +1333,7 @@ async function crewWalk(){
     const rest=()=>{if(!WALK.on)return;st.classList.remove("walking");walkAnim(st,img,id,"",false);
       if(Math.random()<.35&&id){img.src=`img/crew3d/${id}-greet.webp`;WALK.timers.push(setTimeout(()=>{img.src=`img/crew3d/${id}-idle.webp`},1800))}
       WALK.timers.push(setTimeout(go,2500+Math.random()*4500))};
-    const go=()=>{if(!WALK.on)return;if(held()||document.hidden||$("v-home").hidden){WALK.timers.push(setTimeout(go,1500));return}
+    const go=()=>{if(!WALK.on)return;if(held()||document.hidden||$("v-home").hidden||!WALK.seen){WALK.timers.push(setTimeout(go,1500));return}
       const from={x:+st.dataset.x,y:+st.dataset.y},to=floorPoint(st),dist=Math.hypot(to.x-from.x,(to.y-from.y)*1.6),dur=Math.max(2.5,dist/5.5);
       st.dataset.x=to.x;st.dataset.y=to.y;st.classList.add("walking");walkAnim(st,img,id,to.x<from.x?"left":"right",true);placeStation(st,to,dur);WALK.timers.push(setTimeout(rest,dur*1000))};
     WALK.timers.push(setTimeout(go,800+i*900));
