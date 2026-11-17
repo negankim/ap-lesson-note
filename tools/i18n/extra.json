@@ -1,8 +1,58 @@
 {
- "{0}년": {"en":"{0} yrs","ja":"{0}年","zh":"{0}年","ms":"{0} tahun","id":"{0} tahun"},
- "{0}세": {"en":"{0} yrs old","ja":"{0}歳","zh":"{0}岁","ms":"{0} tahun","id":"{0} tahun"},
- "평균 {0}타": {"en":"Avg {0}","ja":"平均{0}打","zh":"平均{0}杆","ms":"Purata {0}","id":"Rata-rata {0}"},
- "주 {0}회": {"en":"{0}×/week","ja":"週{0}回","zh":"每周{0}次","ms":"{0} kali/minggu","id":"{0} kali/minggu"},
- "회당 {0}시간": {"en":"{0} h/session","ja":"1回{0}時間","zh":"每次{0}小时","ms":"{0} jam/sesi","id":"{0} jam/sesi"},
- "월 {0}라운드": {"en":"{0} rounds/month","ja":"月{0}ラウンド","zh":"每月{0}场","ms":"{0} pusingan/bulan","id":"{0} ronde/bulan"}
+ "{0}년": {
+  "en": "{0} yrs",
+  "ja": "{0}年",
+  "zh": "{0}年",
+  "ms": "{0} tahun",
+  "id": "{0} tahun"
+ },
+ "{0}세": {
+  "en": "{0} yrs old",
+  "ja": "{0}歳",
+  "zh": "{0}岁",
+  "ms": "{0} tahun",
+  "id": "{0} tahun"
+ },
+ "평균 {0}타": {
+  "en": "Avg {0}",
+  "ja": "平均{0}打",
+  "zh": "平均{0}杆",
+  "ms": "Purata {0}",
+  "id": "Rata-rata {0}"
+ },
+ "주 {0}회": {
+  "en": "{0}×/week",
+  "ja": "週{0}回",
+  "zh": "每周{0}次",
+  "ms": "{0} kali/minggu",
+  "id": "{0} kali/minggu"
+ },
+ "회당 {0}시간": {
+  "en": "{0} h/session",
+  "ja": "1回{0}時間",
+  "zh": "每次{0}小时",
+  "ms": "{0} jam/sesi",
+  "id": "{0} jam/sesi"
+ },
+ "월 {0}라운드": {
+  "en": "{0} rounds/month",
+  "ja": "月{0}ラウンド",
+  "zh": "每月{0}场",
+  "ms": "{0} pusingan/bulan",
+  "id": "{0} ronde/bulan"
+ },
+ "주니어 선수": {
+  "en": "Junior player",
+  "ja": "ジュニア選手",
+  "zh": "青少年球员",
+  "ms": "Pemain junior",
+  "id": "Pemain junior"
+ },
+ "{0}○○ 선수": {
+  "en": "{0}○○ player",
+  "ja": "{0}○○ 選手",
+  "zh": "{0}○○ 球员",
+  "ms": "Pemain {0}○○",
+  "id": "Pemain {0}○○"
+ }
 }

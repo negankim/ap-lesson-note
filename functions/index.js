@@ -298,6 +298,60 @@ const playerLabel = (u) => {
   const n = String(u.name || "").trim();
   return n ? n.slice(0, 1) + "○○ 선수" : "선수";
 };
+/* 레거시 포인트 통합: 어느 언어로 정리했든 한국어 기준문(name·point·how·dose)으로 맞추고 6개 언어 번역(i18n)을 붙인다.
+ * 같은 노드의 기존 포인트와 뜻이 같으면 그 포인트로 합친다(언어가 달라도 하나의 잎). 실패하면 원문 그대로 쌓고 i18n 없음으로 둔다. */
+const PT_LANGS = ["ko", "en", "ja", "zh", "ms", "id"];
+const ptFields = (x) => ({ name: String((x && x.name) || "").slice(0, 60), point: String((x && x.point) || "").slice(0, 300), how: String((x && x.how) || "").slice(0, 300), dose: String((x && x.dose) || "").slice(0, 80) });
+async function canonize(pts, lang) {
+  const nodes = [...new Set(pts.map((p) => p.node))];
+  const cand = {};
+  for (const n of nodes) {
+    const sn = await db.collection("legacyPoints").where("node", "==", n).limit(80).get();
+    cand[n] = sn.docs.map((d) => ({ id: d.id, name: d.data().name || "", point: String(d.data().point || "").slice(0, 120) }));
+  }
+  const prompt = `골프 레슨 포인트를 공동 지식 나무에 쌓기 위해 정리한다. 입력 포인트(원문 언어: ${LANGS[lang] || lang})마다:
+1) 한국어 기준문(ko)과 en(English)·ja(日本語)·zh(简体中文)·ms(Bahasa Melayu)·id(Bahasa Indonesia) 번역을 만든다. 각 언어 객체는 name·point·how·dose. 뜻을 더하거나 빼지 말고, 숫자·단위·클럽 번호는 그대로, 골프 용어는 그 언어에서 흔히 쓰는 말로. 원문 언어 칸은 원문을 그대로 둔다.
+2) 같은 노드의 기존 포인트 목록에서 "같은 교정 내용"(같은 동작을 같은 방향으로 고치는 것)이면 same_as 에 그 id, 아니면 null. 비슷한 주제일 뿐이면 null.
+설명 없이 JSON만: {"points":[{"i":0,"same_as":null,"ko":{...},"en":{...},"ja":{...},"zh":{...},"ms":{...},"id":{...}}]}
+
+[입력 포인트]
+${JSON.stringify(pts.map((p, i) => ({ i, node: p.node, name: p.name, point: p.point, how: p.how, dose: p.dose })))}
+
+[같은 노드의 기존 포인트]
+${JSON.stringify(cand)}`;
+  const out = await callClaude(MODEL.feedback, prompt, 6000);
+  const list = (out && Array.isArray(out.points)) ? out.points : [];
+  return pts.map((p, i) => {
+    const r = list.find((x) => Number(x.i) === i);
+    if (!r || !r.ko || !r.ko.name) return { ...p, i18n: null, same: null };
+    const i18n = {};
+    PT_LANGS.forEach((L) => { if (r[L] && r[L].name) i18n[L] = ptFields(r[L]); });
+    i18n[lang] = ptFields(p); // 원문 언어 칸은 원문 그대로
+    const ok = (cand[p.node] || []).some((c) => c.id === r.same_as);
+    return { ...p, ...ptFields(r.ko), orig: ptFields(p), i18n, same: ok ? r.same_as : null };
+  });
+}
+/* 예전에 번역 없이 쌓인 포인트를 조금씩 채운다(레거시에 보탤 때마다 최대 8개) */
+async function backfillI18n() {
+  const sn = await db.collection("legacyPoints").where("i18nAt", "==", null).limit(8).get().catch(() => null);
+  let docs = sn ? sn.docs : [];
+  if (!docs.length) {
+    const all = await db.collection("legacyPoints").limit(200).get();
+    docs = all.docs.filter((d) => !d.data().i18n).slice(0, 8);
+  }
+  if (!docs.length) return;
+  const pts = docs.map((d) => ({ node: d.data().node, ...ptFields(d.data()) }));
+  const prompt = `다음 한국어 골프 레슨 포인트를 en·ja·zh·ms·id 로 옮긴다. 각 언어 객체는 name·point·how·dose. 뜻을 더하거나 빼지 말고 숫자·단위는 그대로. JSON만: {"points":[{"i":0,"en":{...},"ja":{...},"zh":{...},"ms":{...},"id":{...}}]}\n\n${JSON.stringify(pts.map((p, i) => ({ i, ...p })))}`;
+  const out = await callClaude(MODEL.feedback, prompt, 6000);
+  const list = (out && Array.isArray(out.points)) ? out.points : [];
+  await Promise.all(docs.map((d, i) => {
+    const r = list.find((x) => Number(x.i) === i);
+    if (!r) return null;
+    const i18n = { ko: ptFields(d.data()) };
+    PT_LANGS.slice(1).forEach((L) => { if (r[L] && r[L].name) i18n[L] = ptFields(r[L]); });
+    return d.ref.update({ i18n, i18nAt: Date.now() });
+  }));
+}
 async function addToLegacy(uid, lessonId) {
   const lref = db.doc(`players/${uid}/lessons/${lessonId}`);
   const [ls, us] = await Promise.all([lref.get(), db.doc("users/" + uid).get()]);
@@ -308,12 +362,14 @@ async function addToLegacy(uid, lessonId) {
   const dref = db.doc(`players/${uid}/drafts/${L.draftId}`);
   const ds = await dref.get();
   if (!ds.exists || ds.data().usedBy) { await lref.update({ legacyAt: Date.now(), legacyAdded: 0 }); return { added: 0, echoed: 0 }; }
-  const draft = ds.data(), pts = draft.new_points || [], coach = String(draft.coach || "").trim();
+  const draft = ds.data(), coach = String(draft.coach || "").trim(), plang = draft.lang || "ko";
+  let pts = draft.new_points || [];
+  try { if (pts.length) pts = await canonize(pts, plang); } catch (e) { console.warn("legacy canonize", e.message); pts = pts.map((p) => ({ ...p, i18n: null, same: null })); }
   const src = { coach: coach || "코치 미기재", player: playerLabel(us.exists ? us.data() : {}), date: L.date || "", lang: draft.lang || "ko", at: Date.now() };
   let added = 0, echoed = 0;
   await db.runTransaction(async (t) => {
     const stRef = db.doc("legacy/stats");
-    const refs = pts.map((p) => db.doc("legacyPoints/" + crypto.createHash("sha1").update(p.node + "|" + normKey(p.name || p.point)).digest("hex").slice(0, 20)));
+    const refs = pts.map((p) => db.doc("legacyPoints/" + (p.same || crypto.createHash("sha1").update(p.node + "|" + normKey(p.name || p.point)).digest("hex").slice(0, 20))));
     const ck = normKey(coach), cref = ck ? db.doc("legacyCoaches/" + crypto.createHash("sha1").update(ck).digest("hex").slice(0, 20)) : null;
     const snaps = await Promise.all(refs.map((r) => t.get(r)));
     const cs = cref ? await t.get(cref) : null;
@@ -322,10 +378,13 @@ async function addToLegacy(uid, lessonId) {
     pts.forEach((p, i) => {
       if (snaps[i].exists) {
         echoed++;
-        t.update(refs[i], { echoes: inc(1), sources: admin.firestore.FieldValue.arrayUnion(src), updatedAt: Date.now() });
+        const up = { echoes: inc(1), sources: admin.firestore.FieldValue.arrayUnion(src), updatedAt: Date.now() };
+        if (!snaps[i].data().i18n && p.i18n) { up.i18n = { ko: ptFields(snaps[i].data()), ...p.i18n }; up.i18nAt = Date.now(); }
+        t.update(refs[i], up);
       } else {
         added++;
-        t.set(refs[i], { ...p, lang: draft.lang || "ko", coach: src.coach, sources: [src], echoes: 1, confirmed: false, createdAt: Date.now(), updatedAt: Date.now() });
+        const { same, ...pp } = p;
+        t.set(refs[i], { ...pp, lang: plang, i18nAt: p.i18n ? Date.now() : null, coach: src.coach, sources: [src], echoes: 1, confirmed: false, createdAt: Date.now(), updatedAt: Date.now() });
         st["nodes." + p.node] = inc(1);
         st["domains." + p.domain] = inc(1);
       }
@@ -337,9 +396,10 @@ async function addToLegacy(uid, lessonId) {
     t.update(dref, { usedBy: lessonId });
     t.update(lref, { legacyAt: Date.now(), legacyAdded: added, legacyEchoed: echoed });
   });
+  await Promise.race([backfillI18n(), new Promise((r) => setTimeout(r, 25000))]).catch((e) => console.warn("legacy backfill", e.message));
   return { added, echoed };
 }
-exports.legacy = onCall({ region: "asia-northeast3" }, async (req) => {
+exports.legacy = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", timeoutSeconds: 120 }, async (req) => {
   if (!req.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
   const id = String((req.data || {}).lessonId || "");
   if (!/^[A-Za-z0-9]{10,40}$/.test(id)) throw new HttpsError("invalid-argument", "레슨 번호가 맞지 않습니다.");

@@ -23,7 +23,7 @@
   var map = {}, pats = [];
   var norm = function (s) { return s.replace(/\s+/g, " ").trim(); };
   var KO = /[가-힣]/;
-  function fill(tpl, vals) { return tpl.replace(/\{(\d+)\}/g, function (_, i) { var v = vals[+i]; return v == null ? "" : T(v); }); }
+  function fill(tpl, vals) { return tpl.replace(/\{(\d+)\}/g, function (_, i) { var v = vals[+i]; return v == null ? "" : (v.trim().length > 1 ? T(v) : v); }); }
   function T(s) {
     if (s == null) return s;
     s = String(s);
@@ -97,7 +97,7 @@
       map = d.t || {};
       pats = (d.p || []).map(function (x) {
         var re = "^" + esc(x[0]).replace(/\{(\d+)\}/g, "(.*?)") + "$";
-        var lit = (x[0].replace(/\{\d+\}/g, "").match(/[가-힣]/g) || []).length;
+        var lit = (x[0].replace(/\{\d+\}/g, "").match(/[가-힣○]/g) || []).length;
         return [new RegExp(re), x[1], lit < 3];
       });
     }

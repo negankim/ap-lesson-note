@@ -417,7 +417,9 @@ export function mountPlaza(el,st,{landing=false}={}){
 async function loadNodePoints(n){
   if(!legacy||plazaPoints[n])return;
   let ps=[];try{ps=await legacy.points(n)}catch(_){return}
-  plazaPoints[n]=ps.map(p=>{const d=(DOMAIN[p.domain]||DOMAIN.tech)[0],src=(p.sources||[]);const s0=src[0]||{};
+  /* 공동 레거시 포인트: 내 언어 번역(i18n)이 있으면 그걸로, 없으면 기준문(한국어) */
+  const L=window.AP_LANG||"ko";ps=ps.map(p=>p.i18n&&p.i18n[L]&&p.i18n[L].name?{...p,...p.i18n[L]}:p);
+  plazaPoints[n]=ps.map(p=>{const d=T((DOMAIN[p.domain]||DOMAIN.tech)[0]),src=(p.sources||[]);const s0=src[0]||{};
     const more=src.length>1?` 외 ${src.length-1}곳에서 이어짐`:"";
     return {id:p.id,title:`[${d}] ${p.name||"레슨 포인트"} — “${p.point}”`,coach:`${s0.coach||p.coach||"코치 미기재"} · ${s0.player||"선수"}${more} · ${p.confirmed?"코치 확인":"코치 확인 전"}`,date:md(s0.date||"")}});
   if(plazaTree)plazaTree.update({...treeData(plazaStats,{points:plazaPoints}),stageOverride:31});
