@@ -180,7 +180,7 @@ $("mgrid").addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(
 function sameCount(l){return (l.feedback||[]).filter(f=>f.verdict==="여전하다").length}
 function chartSay(){
   const l=lessons[0];const g=$("g-chart"),gp=$("g-pos");if(!g)return;g.dataset.who="daryl";
-  if(!l){if(gp){gp.innerHTML="";delete gp.dataset.said}say(g,"아직 기록이 없어요. 첫 레슨이 들어오면 6일 훈련을 같이 시작해요.");return}
+  if(!l){if(gp)say(gp,"지금 겪는 문제를 골라서 알려 주세요. 글은 안 써도 돼요. 문제와 솔루션, 훈련 방법을 바로 정리해 줄게요.",{who:"rook"});say(g,mandala?"만다라트가 준비됐어요. 설정을 고르고 배틀플랜을 만들어요.":"아직 기록이 없어요. 먼저 만다라트를 만들거나, 루크에게 문제를 말해 주세요.");return}
   const plan=l.result.plan||[],done=l.done||[];const next=plan.find(p=>!done.includes(p.day));
   const nd=l.result.node&&NODES[l.result.node];
   if(gp){
@@ -188,8 +188,13 @@ function chartSay(){
     else say(gp,"지금 겪는 문제를 골라서 알려 주세요. 글은 짧아도, 안 써도 돼요. 문제와 솔루션, 훈련 방법을 바로 정리해 줄게요.",{who:"rook"});
   }
   if(sameCount(l)>=3){say(g,"훈련은 잠시 멈추고, 코치님 확인 뒤에 다시 이어 가요.");return}
-  if(!next){say(g,"이번 배틀플랜을 다 마쳤어요. 잘했어요! 다음 레슨에서 달라진 점을 들려주세요.");return}
-  say(g,`이번 배틀플랜 ${done.length}/${plan.length}일 했어요. 오늘은 D${next.day} '${next.focus}' 차례예요. 해 보고 어땠는지 알려 주세요.`);
+  /* 데릴은 만다라트·배틀플랜 기준으로 말한다 (레슨의 6일 플랜은 접어 둔 칸에) */
+  const ss=(mandala&&mandala.sessions)||[];
+  if(!mandala){say(g,"새 기록이 있어요. 만다라트를 만들면 그 내용에 맞춰 훈련을 채워 줄게요.");return}
+  if(!ss.length){say(g,"만다라트가 준비됐어요. 주 몇 회, 회당 시간, 기간을 밀어서 고르고 배틀플랜을 만들어요.");return}
+  const nx=ss.find(x=>x.done.length<x.items.length),fin=ss.filter(x=>x.items.length&&x.done.length===x.items.length).length;
+  if(!nx){say(g,`배틀플랜 ${ss.length}회차를 다 마쳤어요. 잘했어요! 달라진 점을 루크나 코치님께 들려주세요.`,{motion:"success"});return}
+  say(g,`배틀플랜 ${fin}/${ss.length}회차 했어요. 오늘은 ${nx.n}회차예요. 끝난 훈련은 체크하고, 느낌은 파코에게 남겨 주세요.`);
 }
 function renderActive(){
   chartSay();
@@ -1214,4 +1219,4 @@ $("bplan").addEventListener("click",async e=>{const b=e.target.closest('[data-m=
 });
 $("bplan").addEventListener("change",async e=>{const c=e.target.closest("input[data-sess]");if(!c)return;const s=mandala.sessions.find(x=>x.n===Number(c.dataset.sess));if(!s)return;
   const id=c.dataset.item;s.done=c.checked?[...new Set([...s.done,id])]:s.done.filter(x=>x!==id);
-  try{await saveMandala()}catch(_){toast("저장하지 못했어요")}renderPlan();renderMandalaAP()});
+  try{await saveMandala()}catch(_){toast("저장하지 못했어요")}renderPlan();renderMandalaAP();chartSay()});
