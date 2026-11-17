@@ -135,7 +135,7 @@
       <div class="scene-tree" id="plaza-tree"></div>
       <button class="milo-q q-tree" type="button" data-milo-help="tree" aria-label="레거시 나무 도움말">?</button>
       <div class="station st-logan"><button class="crew-go" type="button" data-show="lesson" aria-label="로건 · 레슨 기록으로 가기"><img src="img/crew3d/logan-idle.webp" alt="" width="120" height="200"><span class="plate"><b>로건</b>레슨 기록</span></button><button class="milo-q" type="button" data-milo-help="logan" aria-label="로건 도움말">?</button></div>
-      <div class="station st-rook"><button class="crew-go" type="button" data-show="dx" aria-label="루크 · Matrix 진단으로 가기"><img src="img/crew3d/rook-idle.webp" alt="" width="120" height="200"><span class="plate"><b>루크</b>Matrix 진단</span></button><button class="milo-q" type="button" data-milo-help="rook" aria-label="루크 도움말">?</button></div>
+      <div class="station st-rook"><button class="crew-go" type="button" data-show="dx" aria-label="루크 · 내 문제 진술로 가기"><img src="img/crew3d/rook-idle.webp" alt="" width="120" height="200"><span class="plate"><b>루크</b>내 문제 진술</span></button><button class="milo-q" type="button" data-milo-help="rook" aria-label="루크 도움말">?</button></div>
       <div class="station st-daryl"><button class="crew-go" type="button" data-show="train" aria-label="데릴 · 훈련장으로 가기"><img src="img/crew3d/daryl-idle.webp" alt="" width="120" height="200"><span class="plate"><b>데릴</b>훈련장</span></button><button class="milo-q" type="button" data-milo-help="daryl" aria-label="데릴 도움말">?</button></div>
       <div class="station st-paco"><button class="crew-go" type="button" data-show="feel" aria-label="파코 · 감각과 실전으로 가기"><img src="img/crew3d/paco-idle.webp" alt="" width="120" height="200"><span class="plate"><b>파코</b>감각 · 실전</span></button><button class="milo-q" type="button" data-milo-help="paco" aria-label="파코 도움말">?</button></div>
     </div>
@@ -193,30 +193,34 @@
     </div>
   </section>
 
-  <!-- ===== 루크: Matrix 진단 ===== -->
+  <!-- ===== 루크: 내 문제 진술 (Matrix 지도는 코치 영역에서만) ===== -->
   <section id="v-dx" class="wrap room" style="gap:16px" hidden>
     <header class="room-head">
       <img class="room-av" src="img/crew3d/rook-greet.webp" alt="" width="96" height="160">
-      <div><p class="room-k">루크 · 진단 담당</p><h1>Matrix 진단</h1><p class="lead">문제(현상)와 원인(해석)을 나누고, 지금 내 위치를 N1~N8 위에 짚습니다.</p></div>
-      <button class="milo-q" type="button" data-milo-help="rook" aria-label="Matrix 진단 도움말">?</button>
+      <div><p class="room-k">루크 · 진단 담당</p><h1>내 문제 진술</h1><p class="lead">지금 겪는 문제를 골라서 알려 주세요. 문제·솔루션·훈련 방법이 바로 나오고, 만다라트와 배틀플랜으로 이어집니다.</p></div>
+      <button class="milo-q" type="button" data-milo-help="rook" aria-label="내 문제 진술 도움말">?</button>
     </header>
     <div class="guide" id="g-pos" data-who="rook"></div>
-    <div id="dx-box"></div>
+    <form id="prob-form" class="panel prob-form" novalidate></form>
+    <div id="prob-out"></div>
+    <div id="prob-list"></div>
+    <details class="panel coach-zone" id="coach-zone" hidden><summary><span class="eyebrow"><b>C</b>코치 영역 · Matrix 위치와 근거</span></summary><div id="dx-box"></div></details>
   </section>
 
   <!-- ===== 데릴: 훈련장 ===== -->
   <section id="v-train" class="wrap room" style="gap:16px" hidden>
     <header class="room-head">
       <img class="room-av" src="img/crew3d/daryl-greet.webp" alt="" width="96" height="160">
-      <div><p class="room-k">데릴 · 훈련 담당</p><h1>훈련장</h1><p class="lead">오늘 할 훈련과 6일 배틀플랜을 끝까지 함께합니다.</p></div>
+      <div><p class="room-k">데릴 · 훈련 담당</p><h1>훈련장</h1><p class="lead">만다라트와 배틀플랜으로 오늘 할 훈련을 끝까지 함께합니다.</p></div>
       <button class="milo-q" type="button" data-milo-help="daryl" aria-label="훈련장 도움말">?</button>
     </header>
     <div class="guide" id="g-chart"></div>
+    <div id="mandala"></div>
+    <div id="bplan"></div>
     <div id="tcard"></div>
-    <div id="train-today"></div>
-    <div id="active"></div>
+    <details class="panel" id="lesson-plan"><summary><span class="eyebrow"><b>L</b>최근 레슨의 6일 플랜</span></summary><div id="train-today"></div><div id="active"></div></details>
     <details class="panel mfold" id="mfold">
-      <summary><span class="eyebrow"><b>M</b>목표와 8개 영역 (만다라트)</span></summary>
+      <summary><span class="eyebrow"><b>M</b>선수 구분과 영역별 레슨 보기</span></summary>
       <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap">
         <button class="btn sm" type="button" id="prof-btn">목표 바꾸기</button>
       </div>
@@ -309,7 +313,7 @@
     </div>
     <button class="dw-main" type="button" data-go="home"><img class="dw-img" src="img/icons3d/flag.webp" alt="" width="34" height="34">광장 · 레거시 나무</button>
     <button class="dw-main" type="button" data-go="lesson"><img class="dw-img" src="img/crew3d/logan-idle.webp" alt="" width="34" height="34">레슨 기록 <small>로건</small></button>
-    <button class="dw-main" type="button" data-go="dx"><img class="dw-img" src="img/crew3d/rook-idle.webp" alt="" width="34" height="34">Matrix 진단 <small>루크</small></button>
+    <button class="dw-main" type="button" data-go="dx"><img class="dw-img" src="img/crew3d/rook-idle.webp" alt="" width="34" height="34">내 문제 진술 <small>루크</small></button>
     <button class="dw-main" type="button" data-go="train"><img class="dw-img" src="img/crew3d/daryl-idle.webp" alt="" width="34" height="34">훈련장 <small>데릴</small></button>
     <button class="dw-main" type="button" data-go="feel"><img class="dw-img" src="img/crew3d/paco-idle.webp" alt="" width="34" height="34">감각 · 실전 <small>파코</small></button>
     <button class="dw-main" type="button" data-go="me"><img class="dw-img" src="img/icons3d/glove.webp" alt="" width="34" height="34">나의 스테이트먼트</button>

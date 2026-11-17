@@ -14,9 +14,9 @@ const db = admin.firestore();
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 
 /* 모델: 정리는 정확도 우선, 피드백은 빠르고 싸게. 바꾸면 docs/decisions.md 에 기록. */
-const MODEL = { organize: "claude-sonnet-5-5", feedback: "claude-haiku-5-5", chat: "claude-haiku-5-5", train: "claude-sonnet-5-5" };
+const MODEL = { solve: "claude-sonnet-5-5", organize: "claude-sonnet-5-5", feedback: "claude-haiku-5-5", chat: "claude-haiku-5-5", train: "claude-sonnet-5-5" };
 /* 하루 사용 한도 (사람당). 파일럿 비용 관리용. */
-const DAILY_LIMIT = { organize: 20, feedback: 40, chat: 10, train: 20 };
+const DAILY_LIMIT = { organize: 20, feedback: 40, chat: 10, train: 20, solve: 20 };
 
 async function callClaude(model, prompt, maxTokens) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -108,6 +108,39 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
         name: String(p.name || "").slice(0, 60), point: String(p.point || "").slice(0, 300), how: String(p.how || "").slice(0, 300), dose: String(p.dose || "").slice(0, 80) }));
     const dref = await db.collection("players/" + req.auth.uid + "/drafts").add({ coach, new_points: r.new_points, at: Date.now() });
     r.draft_id = dref.id;
+    return r;
+  }
+  /* 내 문제 진술: 본인 상황 진술 → 문제·솔루션·훈련·6일 플랜. 근거는 '본인 진술', 공동 레거시에는 올리지 않는다. */
+  if (d.task === "solve") {
+    const s = d.statement || {};
+    const pick = (v, n) => (Array.isArray(v) ? v : []).map((x) => String(x).slice(0, 30)).slice(0, n);
+    const parts = [
+      `샷: ${pick(s.shots, 4).join(", ") || "미선택"}`,
+      `공이 어떻게: ${pick(s.misses, 6).join(", ") || "미선택"}`,
+      `언제 심한가: ${pick(s.when, 6).join(", ") || "미선택"}`,
+      `얼마나 자주: ${Number.isFinite(Number(s.freq)) ? `10번 중 ${Number(s.freq)}번` : "미입력"}`,
+      `얼마나 됐나: ${String(s.since || "미입력").slice(0, 20)}`,
+      s.words ? `본인 말: ${String(s.words).slice(0, 1500)}` : "",
+    ].filter(Boolean).join("\n");
+    if (!pick(s.shots, 4).length || !pick(s.misses, 6).length) throw new HttpsError("invalid-argument", "샷과 공이 어떻게 갔는지를 골라 주세요.");
+    await countUse(req.auth.uid, "solve");
+    const libSnap = await db.collection("library").where("status", "==", "active").get();
+    const lib = libSnap.docs.map((x) => ({ id: x.id, ...x.data() }));
+    const r = await callClaude(MODEL.solve, organizePrompt({
+      text: parts, coach: "", profile: d.profile || {}, history: (d.history || []).slice(0, 3), lib, minor, statement, self: true,
+    }), 16000);
+    if (r && r.off_topic) return r;
+    const NODE = /^N[1-8]$/, MF = ["높음", "보통", "낮음", "판단 보류"];
+    r.mf = r.mf && typeof r.mf === "object" ? { level: MF.includes(r.mf.level) ? r.mf.level : "판단 보류", signs: String(r.mf.signs || "").slice(0, 200), basis: "본인 진술" } : { level: "판단 보류", signs: "", basis: "본인 진술" };
+    r.mental = !!r.mental || r.mf.level === "낮음";
+    ["via", "via2"].forEach((k) => { if (!NODE.test(String(r[k] || ""))) r[k] = null; });
+    r.problem = { ...(r.problem || {}), basis: "본인 진술" };
+    r.lesson = { points: [], feels: ((r.lesson && r.lesson.feels) || []).slice(0, 3) };
+    r.drills = (r.drills || []).map((x) => ({ ...x, source: x.source === "AP 라이브러리" ? "AP 라이브러리" : "AI 보완" }));
+    r.new_points = [];
+    const hy = r.hyp && typeof r.hyp === "object" ? r.hyp : {};
+    r.hyp = { tech: String(hy.tech || "미확인").slice(0, 200), pressure: String(hy.pressure || "미확인").slice(0, 200), interaction: String(hy.interaction || "미확인").slice(0, 200), other: String(hy.other || "미확인").slice(0, 200), matrix: "v1.2" };
+    r.source = "self";
     return r;
   }
   if (d.task === "feedback") {

@@ -43,7 +43,7 @@ const CAUSAL = `[AP Matrix v1.2 — 판단의 바탕]
 function statementText(st) {
   if (!st || !st.bio) return "";
   const b = st.bio, L = { years: "구력", age: "나이", gender: "성별", handicap: "핸디캡/평균 타수", practice: "훈련량", play: "플레이 빈도" };
-  const bio = Object.keys(L).filter((k) => b[k]).map((k) => `${L[k]} ${b[k]}${k === "years" ? "년" : k === "age" ? "세" : ""}`).join(" · ");
+  const bio = Object.keys(L).filter((k) => b[k]).map((k) => `${L[k]} ${b[k]}${/^\d+$/.test(String(b[k])) ? (k === "years" ? "년" : k === "age" ? "세" : "") : ""}`).join(" · ");
   const areas = Object.entries(st.areas || {}).map(([k, a]) => {
     const items = Object.entries(a).filter(([x]) => !x.startsWith("_")).map(([, v]) => `${v.l}${v.v ? " " + v.v + "/5" : ""}${v.m ? " (" + v.m + (v.u ? v.u : "") + ")" : ""}`).join(", ");
     return items ? `${a._n || k}(${a._node || ""}): ${items}` : "";
@@ -55,12 +55,18 @@ function statementText(st) {
 - 자기평가와 레슨 내용이 다르면 확인할 점으로 check에 남긴다.`;
 }
 
-function organizePrompt({ text, coach, profile, history, lib, minor, statement }) {
+function organizePrompt({ text, coach, profile, history, lib, minor, statement, self }) {
   const level = (profile && LV[profile.level]) ? profile.level : "A";
   const hist = (history || []).map((h) => `- ${h.date} ${h.title} (${h.node || "미정"})`).join("\n") || "없음";
   return `너는 AP 골프 아카데미의 레슨 기록 비서다. 레슨을 받은 골퍼가 남긴 레슨 내용을 정리한다.
 골퍼: ${LV[level]} / 최종 목표: ${(profile && profile.goal) || DEF_GOAL[level]}
-레슨한 코치: ${coach || "미기재"}
+${self ? `[이번 입력은 코치 레슨이 아니라 골퍼 본인의 상황 진술이다]
+- 근거(basis)는 "본인 진술". 원인(interpretation)은 확정하지 말고 "~일 수 있다, 확인 필요"로 쓰고, check에 코치나 다음 연습에서 확인할 질문 하나를 쓴다.
+- 경쟁 가설(기술·압박 반응·상호작용·기타)을 hyp에 남긴다. 압박 상황에서만 심하다는 말만으로 멘탈 원인으로 확정하지 않는다.
+- lesson.points는 [] (코치가 한 말이 없다). lesson.feels에는 본인이 쓴 감각 표현만.
+- drills는 AP 라이브러리 항목을 먼저 쓰고(source "AP 라이브러리"), 없으면 source "AI 보완". source "코치"는 쓰지 않는다.
+- new_points는 [] (공동 레거시는 코치의 말로만 쌓인다).
+- solution 끝에 "코치에게 확인하면 좋은 점"을 한 문장 덧붙인다.` : `레슨한 코치: ${coach || "미기재"}`}
 최근 레슨:
 ${hist}
 ${statementText(statement)}
@@ -93,7 +99,7 @@ ${safety(minor)}
 [출력] JSON 하나만:
 {"title":"한 줄 제목","pillar":"drive|iron|short|putt|course|body|mind|life","problem":{"observation":"","interpretation":"","basis":""},"node":"N1~N8 또는 null","via":"함께 볼 관련 영역 또는 null","via2":"두 번째 관련 영역 또는 null","mental":false,"mf":{"level":"높음|보통|낮음|판단 보류","signs":"그렇게 본 근거(레슨에 나온 말)","basis":"코치 판단|본인 진술|AI 추정"},"node_reason":"주 검토 영역으로 고른 이유(규칙 번호, 원인 확정 아님)","hyp":{"tech":"기술 가설 근거 또는 미확인","pressure":"압박 반응 가설 근거 또는 미확인","interaction":"상호작용 가설 또는 미확인","other":"피로·장비·난도·환경 등 또는 미확인"},"confidence":"높음|중간|낮음","check":"","lesson":{"points":[""],"feels":[""]},"solution":"","drills":[{"name":"","how":"","dose":"","freq":"","source":"코치|AP 라이브러리|AI 보완","lib_id":""}],"plan":[{"day":1,"focus":"","tasks":[""]}],"recheck":"","missing":[""],"new_points":[{"node":"N1~N8","domain":"tech|mental|fitting|physical|course","kind":"point|drill","name":"짧은 이름","point":"코치가 한 말 그대로에 가깝게","how":"","dose":""}]}
 
-[레슨 내용]
+${self ? "[골퍼 본인의 상황 진술]" : "[레슨 내용]"}
 ${text}`;
 }
 

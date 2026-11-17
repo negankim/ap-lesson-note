@@ -28,7 +28,7 @@ const md=s=>s?Number(s.slice(5,7))+"/"+Number(s.slice(8,10)):"";
 function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2400)}
 
 let db=null,user=null,uid=null,ai=null,dict=null,seedFn=null,chat=null,legacy=null,myCoaches=[];
-let lib=[],isEditor=false,stats={},statsAt=0,libNode="",libSt="active",editing=null,profileExists=false;
+let micTarget="lesson",lib=[],isEditor=false,stats={},statsAt=0,libNode="",libSt="active",editing=null,profileExists=false;
 const KIND={point:"레슨 포인트",drill:"드릴",training:"훈련"};
 const STATUS={active:"사용 중",pending:"검토 대기",retired:"중지"};
 let profile={level:"A",goal:""},lessons=[],draft=null,pillarFilter=null,openId=null,busy=false;
@@ -42,8 +42,8 @@ function show(tab){
   if(tab==="home")openPlaza();
   plazaTree&&plazaTree.pause(tab!=="home");
   if(tab==="lesson"){renderList();renderLegacy()}
-  if(tab==="dx"){renderDx();chartSay()}
-  if(tab==="train"){renderMandala();renderActive();renderTrain()}
+  if(tab==="dx"){renderProbForm();renderProbList();chartSay();$("coach-zone").hidden=!isEditor;if(isEditor)renderDx()}
+  if(tab==="train"){renderMandala();renderActive();renderTrain();renderMandalaAP();renderPlan()}
   if(tab==="feel"){renderToday();renderFeelHist()}
   if(tab==="ask")renderSug();
   if(tab==="train")renderTCard();
@@ -87,16 +87,17 @@ function resultHTML(r,coach,date,opts={}){
   const leaves={};nps.forEach(p=>leaves[p.node]=(leaves[p.node]||0)+1);
   const npHTML=nps.length?`<div class="sec newpt"><h4><i>🌱</i>NEW 레슨 포인트</h4>
     <p class="hint" style="margin:0">${esc(coach||"코치")}님이 이번 레슨에서 새로 준 포인트예요. 저장하면 AP 레거시 나무의 잎으로 쌓이고, 코치님이 확인하면 코치님 이름이 정식으로 남습니다.</p>
-    ${nps.map(p=>`<div class="drill"><div class="t"><b>${esc(p.name)}</b><span class="pill gold">${p.node} ${esc(NODES[p.node].ko)} · ${esc((DOMAIN[p.domain]||DOMAIN.tech)[0])}</span></div><div class="feel">“${esc(p.point)}”</div>${p.how||p.dose?`<small>${esc([p.how,p.dose].filter(Boolean).join(" · "))}</small>`:""}<div><span class="pill">🌱 코치 확인 전</span></div></div>`).join("")}</div>`:"";
+    ${nps.map(p=>`<div class="drill"><div class="t"><b>${esc(p.name)}</b><span class="pill gold">${isEditor?p.node+" "+esc(NODES[p.node].ko)+" · ":""}${esc((DOMAIN[p.domain]||DOMAIN.tech)[0])}</span></div><div class="feel">“${esc(p.point)}”</div>${p.how||p.dose?`<small>${esc([p.how,p.dose].filter(Boolean).join(" · "))}</small>`:""}<div><span class="pill">🌱 코치 확인 전</span></div></div>`).join("")}</div>`:"";
   return `<div class="result">
     <div class="rhead"><span class="eyebrow">${esc(md(date))} · ${esc(PNAME[r.pillar]||"")}</span><h2>${esc(r.title||"레슨 정리")}</h2>
-      <div class="meta">${coach?`<span class="pill gold">출처 · ${esc(coach)}</span>`:`<span class="pill">코치 미기재</span>`}${node?`<span class="pill gold">${node} ${esc(NODES[node].ko)}</span>`:`<span class="pill warn">위치 미정</span>`}${r.confidence?`<span class="pill ${conf}">판정 ${esc(r.confidence)}</span>`:""}${r.mental?`<span class="pill warn">압박 시 심해짐 · N1</span>`:""}</div></div>
+      <div class="meta">${opts.self||r.source==="self"?`<span class="pill">본인 진술</span>`:coach?`<span class="pill gold">출처 · ${esc(coach)}</span>`:`<span class="pill">코치 미기재</span>`}${isEditor?(node?`<span class="pill gold">${node} ${esc(NODES[node].ko)}</span>`:`<span class="pill warn">위치 미정</span>`):""}${r.confidence&&isEditor?`<span class="pill ${conf}">판정 ${esc(r.confidence)}</span>`:""}${r.mental?`<span class="pill warn">압박 상황에서 더 심함</span>`:""}</div></div>
     <div class="sec"><h4><i>1</i>문제</h4>
       <dl class="kv"><dt>현상</dt><dd>${esc(r.problem&&r.problem.observation)}</dd><dt>원인</dt><dd>${esc(r.problem&&r.problem.interpretation)}</dd></dl>
       ${basis?`<div><span class="pill">근거 · ${esc(basis)}</span></div>`:""}</div>
     ${npHTML}
-    <div class="sec map"><h4><i>2</i>Matrix 위치</h4>${mapSVG(node,r.via&&NODES[r.via]?r.via:null,r.mental,leaves)}<p>${esc(r.node_reason)}</p>${r.check?`<div class="check"><b>다음 레슨에서 확인</b> · ${esc(r.check)}</div>`:""}</div>
-    <div class="sec"><h4><i>3</i>레슨 정리</h4>${(r.lesson&&r.lesson.points||[]).length?`<ul>${r.lesson.points.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"<p class='hint'>정리된 포인트가 없습니다.</p>"}${(r.lesson&&r.lesson.feels||[]).map(f=>`<div class="feel">“${esc(f)}”</div>`).join("")}</div>
+    ${isEditor?`<div class="sec map"><h4><i>2</i>Matrix 위치 <span class="pill">코치 영역</span></h4>${mapSVG(node,r.via&&NODES[r.via]?r.via:null,r.mental,leaves)}<p>${esc(r.node_reason)}</p>${r.check?`<div class="check"><b>다음 레슨에서 확인</b> · ${esc(r.check)}</div>`:""}</div>`
+      :r.check?`<div class="sec"><h4><i>2</i>확인할 것</h4><div class="check">${esc(r.check)}</div></div>`:""}
+    ${opts.self||r.source==="self"?((r.lesson&&r.lesson.feels||[]).length?`<div class="sec"><h4><i>3</i>내가 말한 느낌</h4>${r.lesson.feels.map(f=>`<div class="feel">“${esc(f)}”</div>`).join("")}</div>`:""):`<div class="sec"><h4><i>3</i>레슨 정리</h4>${(r.lesson&&r.lesson.points||[]).length?`<ul>${r.lesson.points.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"<p class='hint'>정리된 포인트가 없습니다.</p>"}${(r.lesson&&r.lesson.feels||[]).map(f=>`<div class="feel">“${esc(f)}”</div>`).join("")}</div>`}
     <div class="sec"><h4><i>4</i>솔루션</h4><p>${esc(r.solution)}</p></div>
     <div class="sec"><h4><i>5</i>훈련 방안</h4>${drills||"<p class='hint'>처방된 훈련이 없습니다.</p>"}</div>
     <div class="sec"><h4><i>6</i>배틀플랜 · 6일</h4><div class="days">${plan}</div>${r.recheck?`<p class="hint"><b>재평가</b> · ${esc(r.recheck)}</p>`:""}${(r.missing||[]).length?`<p class="hint">코치가 정하지 않은 것: ${esc(r.missing.join(", "))}</p>`:""}</div>
@@ -121,7 +122,7 @@ $("go").addEventListener("click",async()=>{
     (r.drills||[]).forEach(d=>{const it=d.lib_id&&lib.find(x=>x.id===d.lib_id);if(it){d.source="AP 라이브러리";d.lib_rev=it.rev||1}else if(d.source==="AP 라이브러리"){d.source="AI 보완";d.lib_id=""}});
     $("out").innerHTML=resultHTML(r,coach,draft.date,{key:"draft"})+`<div class="actions" style="margin-top:12px"><button class="btn" type="button" id="redo">다시 정리</button><button class="btn gold" type="button" id="save">내 차트에 저장</button></div>`;
     st.textContent="";
-    say($("g-lesson"),r.new_points.length?`NEW 레슨 포인트! ${coach||"코치"}님이 ${r.new_points.map(p=>p.node).filter((v,i,a)=>a.indexOf(v)===i).join("·")}에 새 포인트를 줬어요. 저장하면 새싹으로 남아요.`:r.node?`정리했어요. 지금 위치는 ${r.node} ${NODES[r.node].ko}예요. 아래 6일 플랜을 확인하고 내 차트에 저장해 주세요.`:"정리했어요. 위치를 확정하려면 확인할 게 하나 있어요. 아래 '다음 레슨에서 확인'을 봐 주세요.",{now:true,who:"rook",motion:r.new_points.length||r.node?"success":"guide"});
+    say($("g-lesson"),r.new_points.length?`NEW 레슨 포인트! ${coach||"코치"}님이 새 포인트 ${r.new_points.length}개를 줬어요. 저장하면 레거시 나무에 새싹으로 남아요.`:r.node?`정리했어요. 아래 문제·솔루션·훈련을 확인하고 내 차트에 저장해 주세요.`:"정리했어요. 위치를 확정하려면 확인할 게 하나 있어요. 아래 '다음 레슨에서 확인'을 봐 주세요.",{now:true,who:"rook",motion:r.new_points.length||r.node?"success":"guide"});
     $("out").scrollIntoView({behavior:"smooth",block:"start"});
   }catch(e){
     st.className="status err";
@@ -153,11 +154,14 @@ function setupMic(){
   if(!dict)return;
   $("mic-row").hidden=false;
   let on=false;
-  dict.onPartial(({text})=>{$("partial").textContent=text});
-  dict.onFinal(({text})=>{const t=$("f-text");t.value=(t.value?t.value.replace(/\s*$/,"")+"\n":"")+text;$("partial").textContent=""});
-  dict.onState(({state})=>{on=state==="listening";$("mic").dataset.on=on;$("mic-l").textContent=on?"듣는 중 · 눌러서 멈춤":"레슨 듣기 시작";});
+  /* 마이크 하나를 레슨 기록(로건)과 내 문제 진술(루크)이 같이 쓴다. micTarget 으로 어디에 적을지 정한다 */
+  dict.onPartial(({text})=>{if(micTarget==="lesson")$("partial").textContent=text});
+  dict.onFinal(({text})=>{const t=micTarget==="prob"?$("p-words"):$("f-text");if(!t)return;t.value=(t.value?t.value.replace(/\s*$/,"")+(micTarget==="prob"?" ":"\n"):"")+text;$("partial").textContent=""});
+  dict.onState(({state})=>{on=state==="listening";$("mic").dataset.on=on&&micTarget==="lesson";$("mic-l").textContent=on&&micTarget==="lesson"?"듣는 중 · 눌러서 멈춤":"레슨 듣기 시작";
+    const pm=$("p-mic");if(pm){pm.textContent=on&&micTarget==="prob"?"■ 멈추기":"🎙 말하기"}});
   $("mic").addEventListener("click",()=>{
     if(on){dict.stop().catch(()=>{});return}
+    micTarget="lesson";
     dict.start().catch(err=>{if(err&&err.code==="not_granted"){$("mic-row").hidden=true;toast("마이크가 허용되지 않아 입력으로 진행합니다")}});
   });
 }
@@ -181,8 +185,7 @@ function chartSay(){
   const nd=l.result.node&&NODES[l.result.node];
   if(gp){
     if(sameCount(l)>=3)say(gp,"같은 문제가 세 번 넘게 반복됐어요. 혼자 더 하기보다 코치님과 원인을 다시 확인해 보는 게 좋겠어요.",{who:"rook",motion:"guide"});
-    else if(nd)say(gp,`지금 내 위치는 ${l.result.node} ${nd.ko}예요. 이 자리를 먼저 잡으면 다음 단계가 열려요.`,{who:"rook"});
-    else say(gp,"아직 위치를 확정하지 못했어요. 다음 레슨에서 코치님께 확인할 것부터 챙겨 주세요.",{who:"rook",motion:"guide"});
+    else say(gp,"지금 겪는 문제를 골라서 알려 주세요. 글은 짧아도, 안 써도 돼요. 문제와 솔루션, 훈련 방법을 바로 정리해 줄게요.",{who:"rook"});
   }
   if(sameCount(l)>=3){say(g,"훈련은 잠시 멈추고, 코치님 확인 뒤에 다시 이어 가요.");return}
   if(!next){say(g,"이번 배틀플랜을 다 마쳤어요. 잘했어요! 다음 레슨에서 달라진 점을 들려주세요.");return}
@@ -197,7 +200,7 @@ function renderActive(){
   const fbs="";
   $("active").innerHTML=`<div class="panel" data-id="${esc(l.id)}">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="eyebrow"><b>P</b>이번 배틀플랜</span><span class="pill gold">${done.length}/${n}일 완료</span></div>
-    <div><h2>${esc(r.title)}</h2><p class="hint">${esc(md(l.date))} · ${esc(l.coach||"코치 미기재")} · ${esc(r.node?r.node+" "+NODES[r.node].ko:"위치 미정")}</p></div>
+    <div><h2>${esc(r.title)}</h2><p class="hint">${esc(md(l.date))} · ${esc(l.source==="self"?"본인 진술":l.coach||"코치 미기재")}${isEditor?" · "+esc(r.node?r.node+" "+NODES[r.node].ko:"위치 미정"):""}</p></div>
     ${fails>=3?`<div class="notice bad"><b>같은 문제가 ${fails}번 해결되지 않았습니다.</b> 혼자 계속하기보다 코치와 확인할 때입니다.<div class="actions" style="margin-top:8px"><button class="btn sm" type="button" data-copy="${esc(l.id)}">코치에게 보낼 요약 복사</button></div></div>`:""}
     <div class="days">${(r.plan||[]).map(p=>{const d=done.includes(p.day);return `<label class="day ck${d?" done":""}" for="ck-${p.day}"><input type="checkbox" id="ck-${p.day}" data-day="${p.day}" ${d?"checked":""}><span class="dn">D${p.day}</span><div><b>${esc(p.focus)}</b><small>${esc((p.tasks||[]).join(" · "))}</small></div></label>`}).join("")}</div>
     <div class="actions"><button class="btn sm" type="button" data-show="feel">해 본 느낌 남기기 · 파코</button></div>
@@ -701,8 +704,9 @@ async function boot(){
   await loadCoaches();
   await loadLessons();
   await loadTrainings();
+  await loadMandala();
   let gotLib=false;const lt=setTimeout(()=>{if(!gotLib)$("lib-list").innerHTML='<div class="empty">라이브러리를 아직 불러오지 못했습니다. 연결이 느릴 수 있습니다.</div>'},10000);
-  db.collection("library").onSnapshot(snap=>{gotLib=true;clearTimeout(lt);lib=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$("v-lib").hidden)renderLib()},()=>{clearTimeout(lt)});
+  db.collection("library").onSnapshot(snap=>{gotLib=true;clearTimeout(lt);lib=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$("v-lib").hidden)renderLib();if(!$("v-train").hidden){renderMandalaAP();renderPlan()}},()=>{clearTimeout(lt)});
   renderChart();
   show("home");
   await loadChat();
@@ -712,85 +716,106 @@ async function boot(){
 const MILO_HELP={
   tree:{title:"레거시 나무",meaning:"코치와 선수들이 남긴 레슨 포인트가 잎으로 쌓이는 모두의 나무야. 내 진척도가 아니라 골프 지식이 모이는 곳이지.",action:"열매(N1~N8)를 누르면 그 영역에 쌓인 레슨과 누가 남겼는지 볼 수 있어."},
   logan:{title:"로건 · 레슨 기록",meaning:"오늘 받은 레슨을 말이나 글로 남기는 곳이야.",action:"정리하기를 누르면 문제·솔루션·훈련·6일 배틀플랜까지 한 번에 정리돼.",goLabel:"레슨 기록으로",onGo:()=>show("lesson")},
-  rook:{title:"루크 · Matrix 진단",meaning:"문제(현상)와 원인(해석)을 나눠서 지금 내 위치를 N1~N8 위에 짚는 곳이야.",action:"레슨이 쌓이면 위치가 어떻게 바뀌어 왔는지도 볼 수 있어.",goLabel:"진단 보러 가기",onGo:()=>show("dx")},
-  daryl:{title:"데릴 · 훈련장",meaning:"오늘 할 훈련과 6일 배틀플랜이 있는 곳이야.",action:"하루씩 체크하고, 해 본 느낌은 파코에게 남기면 돼.",goLabel:"훈련장으로",onGo:()=>show("train")},
+  rook:{title:"루크 · 내 문제 진술",meaning:"지금 겪는 문제를 내 말로 남기는 곳이야. 어떤 샷인지, 공이 어떻게 가는지, 언제 심한지를 고르기만 하면 돼.",action:"문제·솔루션·훈련 방법이 바로 나오고, 저장하면 만다라트와 배틀플랜으로 이어져.",goLabel:"문제 말하러 가기",onGo:()=>show("dx")},
+  daryl:{title:"데릴 · 훈련장",meaning:"가운데 목표와 8개 영역의 만다라트, 그리고 설정대로 만든 배틀플랜이 있는 곳이야.",action:"칸을 누르면 그 영역 훈련과 수행률이 보이고, 배틀플랜은 회차마다 체크하면 돼. 해 본 느낌은 파코에게.",goLabel:"훈련장으로",onGo:()=>show("train")},
   paco:{title:"파코 · 감각과 실전",meaning:"연습해 본 느낌을 30초 만에 남기는 곳이야.",action:"맞았다·여전하다·느낌을 모르겠다 중 하나만 골라도 다음 연습을 조율해 줘.",goLabel:"느낌 남기러 가기",onGo:()=>show("feel")},
   ask:{title:"크루에게 묻기",meaning:"내 레슨 기록을 근거로 크루가 답하는 곳이야.",action:"하루 10번까지 물을 수 있어. 기록에 없는 내용은 'AI 추정'으로 표시돼."}
 };
 (function startMilo(){if(!window.MiloHelp)return setTimeout(startMilo,150);window.MiloHelp.mount({root:document,assetUrl:"img/milo.webp",help:MILO_HELP})})();
 
 /* ===== 나의 스테이트먼트 (골퍼의 기본 캐릭터) =====
-   기본 바이오는 처음 로그인 때 필수, 6개 영역은 천천히. 항목마다 1~5 자기평가 + 아는 숫자(측정값).
-   저장: players/{uid}/statement/current. 크루는 참고만 하고, 판정은 레슨 기록과 코치 말이 먼저. */
+   입력은 글이 아니라 밀어서 고르기(슬라이더)와 누르기(칩). 기본 바이오는 처음 로그인 때 필수, 6개 영역은 천천히.
+   저장: players/{uid}/statement/current. 크루는 참고, 만다라트·배틀플랜은 약한 영역을 먼저 챙긴다. 판정은 레슨 기록과 코치 말이 먼저. */
+const SL={}; // 슬라이더 설정: id → {min,max,step,fmt}
+function slider(id,cfg,val){SL[id]=cfg;const has=val!==null&&val!==undefined&&val!=="";const v=has?Number(val):cfg.start??Math.round((cfg.min+cfg.max)/2);
+  return `<div class="sl" data-sl="${id}"><div class="sl-top"><b class="sl-v">${has?esc(cfg.fmt(v)):`<span class="hint">밀어서 고르기</span>`}</b><button type="button" class="sl-x" data-sl-clear ${has?"":"hidden"}>모름</button></div>
+    <input type="range" min="${cfg.min}" max="${cfg.max}" step="${cfg.step||1}" value="${v}" data-touched="${has}" aria-label="${esc(cfg.label||id)}"></div>`}
+const slVal=(root,id)=>{const w=root.querySelector(`[data-sl="${id}"] input`);return w&&w.dataset.touched==="true"?Number(w.value):null};
+function chipsHTML(name,opts,on=[],multi=false){return `<div class="chips" data-pick="${name}" data-multi="${multi}">${opts.map(o=>`<button type="button" class="chip" data-v="${esc(o)}" aria-pressed="${on.includes(o)}">${esc(o)}</button>`).join("")}</div>`}
+const picked=(root,name)=>[...root.querySelectorAll(`[data-pick="${name}"] .chip[aria-pressed="true"]`)].map(c=>c.dataset.v);
+document.addEventListener("input",e=>{const w=e.target.closest(".sl input");if(!w)return;const box=w.closest(".sl"),c=SL[box.dataset.sl];w.dataset.touched="true";box.querySelector(".sl-v").textContent=c.fmt(Number(w.value));box.querySelector("[data-sl-clear]").hidden=false});
+document.addEventListener("click",e=>{
+  const x=e.target.closest("[data-sl-clear]");if(x){const box=x.closest(".sl");box.querySelector("input").dataset.touched="false";box.querySelector(".sl-v").innerHTML=`<span class="hint">밀어서 고르기</span>`;x.hidden=true;return}
+  const c=e.target.closest("[data-pick] .chip");if(c){const g=c.parentElement;if(g.dataset.multi==="true")c.setAttribute("aria-pressed",c.getAttribute("aria-pressed")!=="true");else g.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",b===c&&c.getAttribute("aria-pressed")!=="true"))}
+});
 const BIO=[
-  {k:"years",l:"구력",t:"num",u:"년",ph:"예: 3"},
-  {k:"age",l:"나이 (만)",t:"num",u:"세",ph:"예: 15"},
-  {k:"gender",l:"성별",t:"pick",o:["남","여","선택 안 함"]},
-  {k:"handicap",l:"핸디캡 또는 평균 타수",t:"text",ph:"예: 핸디 12 · 평균 95타"},
-  {k:"practice",l:"훈련량",t:"text",ph:"예: 주 3회 · 회당 2시간"},
-  {k:"play",l:"플레이 빈도",t:"text",ph:"예: 월 2라운드"},
+  {k:"years",l:"구력",min:0,max:40,start:3,fmt:v=>v===0?"1년 미만":v+"년"},
+  {k:"age",l:"나이 (만)",min:7,max:80,start:16,fmt:v=>v+"세"},
+  {k:"gender",l:"성별",pick:["남","여","선택 안 함"]},
+  {k:"score",l:"평균 타수",min:62,max:130,start:90,fmt:v=>"평균 "+v+"타",key:"handicap"},
+  {k:"pweek",l:"연습 횟수",min:0,max:7,start:3,fmt:v=>v===0?"거의 안 함":"주 "+v+"회"},
+  {k:"phours",l:"연습 1회 시간",min:0.5,max:6,step:0.5,start:2,fmt:v=>"회당 "+v+"시간"},
+  {k:"rounds",l:"플레이 빈도",min:0,max:20,start:2,fmt:v=>v===0?"거의 안 나감":"월 "+v+"라운드",key:"play"},
 ];
+const BIO_SHOW=[["years","구력"],["age","나이"],["gender","성별"],["handicap","평균 타수"],["practice","훈련량"],["play","플레이 빈도"]];
+function bioFields(b={}){const n=b.num||{};return BIO.map(f=>`<div class="fld bio-f"><span>${f.l}</span>${f.pick?chipsHTML("b-"+f.k,f.pick,b[f.k]?[b[f.k]]:[]):slider("b-"+f.k,{...f,label:f.l},n[f.k])}</div>`).join("")}
+function readBio(root){const num={};BIO.forEach(f=>{if(!f.pick)num[f.k]=slVal(root,"b-"+f.k)});const g=picked(root,"b-gender")[0]||"";const F=k=>BIO.find(x=>x.k===k).fmt;
+  const ok=k=>num[k]!==null;return {num,years:ok("years")?F("years")(num.years):"",age:ok("age")?F("age")(num.age):"",gender:g,handicap:ok("score")?F("score")(num.score):"",
+    practice:ok("pweek")&&ok("phours")?F("pweek")(num.pweek)+" · "+F("phours")(num.phours):"",play:ok("rounds")?F("rounds")(num.rounds):""}}
+const bioMissing=b=>BIO_SHOW.filter(([k])=>!b[k]).map(([,l])=>l);
 const AREAS=[
-  {k:"mental",n:"멘탈",node:"N1",ic:"bulb",note:"정식 멘탈 테스트 문항지가 준비되면 이 칸이 문항지로 바뀝니다. 지금은 간단한 자기평가만 받아요.",
-   items:[{k:"tension",l:"긴장 조절 (평소·시합)"},{k:"attention",l:"주의력 (지금 샷에 집중)"},{k:"focus",l:"집중 지속 (18홀 내내)"},{k:"body",l:"압박 때 신체 변화 조절",hint:"심장·손떨림·호흡이 빨라지는 정도",mu:"",mph:"예: 손이 떨리고 숨이 빨라짐"}]},
-  {k:"short",n:"숏게임",node:"N5",ic:"flag",
-   items:[{k:"pitch",l:"피치샷",mu:"m",mph:"자신 있는 거리 예: 30~60"},{k:"chip",l:"칩샷"},{k:"scramble",l:"스크램블 능력",mu:"%",mph:"파 세이브율 예: 30"},{k:"skills",l:"스킬스 (벙커·로브 등)"}]},
-  {k:"shot",n:"샷",node:"N3",ic:"ball",
-   items:[{k:"driver",l:"드라이버",mu:"m",mph:"평균 비거리 예: 210"},{k:"iron",l:"아이언샷",mu:"m",mph:"7번 아이언 거리 예: 140"},{k:"shape",l:"샷셰이핑 능력 (구질)",mu:"",mph:"주 구질 예: 드로우"}]},
-  {k:"physical",n:"피지컬",node:"N7",ic:"glove",
+  {k:"mental",n:"멘탈",ic:"bulb",pillar:"mind",note:"정식 멘탈 테스트 문항지가 준비되면 이 칸이 문항지로 바뀝니다.",
+   items:[{k:"tension",l:"긴장 조절 (평소·시합)"},{k:"attention",l:"주의력 (지금 샷에 집중)"},{k:"focus",l:"집중 지속 (18홀 내내)"},{k:"body",l:"압박 때 몸의 변화 조절",mc:["손이 떨림","호흡이 빨라짐","심장이 두근거림","몸이 굳음","별 변화 없음"],multi:true}]},
+  {k:"short",n:"숏게임",ic:"flag",pillar:"short",
+   items:[{k:"pitch",l:"피치샷",mv:{min:10,max:100,step:5,u:"m",lab:"자신 있는 거리"}},{k:"chip",l:"칩샷"},{k:"scramble",l:"스크램블 능력",mv:{min:0,max:100,step:5,u:"%",lab:"파 세이브율"}},{k:"skills",l:"스킬스 (벙커·로브 등)"}]},
+  {k:"shot",n:"샷",ic:"ball",pillar:"drive",
+   items:[{k:"driver",l:"드라이버",mv:{min:100,max:320,step:5,u:"m",lab:"평균 비거리"}},{k:"iron",l:"아이언샷",mv:{min:60,max:200,step:5,u:"m",lab:"7번 아이언 거리"}},{k:"shape",l:"샷셰이핑 능력 (구질)",mc:["스트레이트","드로우","페이드","훅","슬라이스"],mlab:"주 구질"}]},
+  {k:"physical",n:"피지컬",ic:"glove",pillar:"body",
    items:[{k:"rom",l:"가동범위"},{k:"strength",l:"근력"},{k:"endurance",l:"근지구력"},{k:"agility",l:"민첩성"},{k:"power",l:"파워"}]},
-  {k:"course",n:"코스 매니지먼트",node:"N8",ic:"cart",
+  {k:"course",n:"코스 매니지먼트",ic:"cart",pillar:"course",
    items:[{k:"club",l:"클럽 선택"},{k:"strategy",l:"코스 공략"},{k:"adapt",l:"코스 적응력"}]},
-  {k:"fitting",n:"클럽 피팅 (머터리얼)",node:"N3",ic:"bag",rate:false,
-   items:[{k:"weight",l:"클럽 무게",mu:"g",mph:"드라이버 예: 310"},{k:"flex",l:"샤프트 강도",mu:"",mph:"예: R · SR · S · X"},{k:"speed",l:"스윙 스피드",mu:"m/s",mph:"예: 42"},{k:"spin",l:"스핀량",mu:"rpm",mph:"드라이버 예: 2600"},{k:"fitted",l:"피팅 받은 적",mu:"",mph:"예: 2025년 드라이버 피팅"}]},
+  {k:"fitting",n:"클럽 피팅 (머터리얼)",ic:"bag",rate:false,
+   items:[{k:"weight",l:"드라이버 무게",mv:{min:250,max:380,step:5,u:"g"}},{k:"flex",l:"샤프트 강도",mc:["L","A","R","SR","S","X"]},{k:"speed",l:"스윙 스피드",mv:{min:25,max:60,step:1,u:"m/s"}},{k:"spin",l:"드라이버 스핀량",mv:{min:1500,max:4500,step:100,u:"rpm"}},{k:"fitted",l:"피팅 받은 적",mc:["있음","없음"]}]},
 ];
 const RATE=["","많이 부족","부족","보통","좋음","강점"];
 let stmt={},meOpen="";
 async function loadStatement(){try{const d=await db.doc("players/"+uid+"/statement/current").get();stmt=d.exists?d.data():{}}catch(_){stmt={}}}
 async function saveStatement(){stmt.updatedAt=new Date().toISOString();await db.doc("players/"+uid+"/statement/current").set(stmt)}
-function bioFields(v={}){return BIO.map(f=>f.t==="pick"
-  ?`<fieldset class="cs-age"><legend>${f.l}</legend>${f.o.map(o=>`<label><input type="radio" name="b-${f.k}" value="${o}" ${v[f.k]===o?"checked":""}> ${o}</label>`).join("")}</fieldset>`
-  :`<label class="fld">${f.l}<input id="b-${f.k}" ${f.t==="num"?'inputmode="numeric"':""} maxlength="40" value="${esc(v[f.k]||"")}" placeholder="${f.ph}"></label>`).join("")}
-function readBio(form){const o={};BIO.forEach(f=>{if(f.t==="pick"){const c=form.querySelector(`input[name="b-${f.k}"]:checked`);o[f.k]=c?c.value:""}else o[f.k]=form.querySelector("#b-"+f.k).value.trim()});return o}
 function askBio(){
   const ov=$("bio-ov"),form=$("bio-form");ov.hidden=false;document.body.style.overflow="hidden";
-  form.innerHTML=bioFields(stmt.bio||{})+`<p class="status err" id="bio-err" aria-live="polite"></p><button class="btn gold" type="submit">저장하고 광장으로</button>`;
-  say($("g-bio"),"반가워요, 루크예요. 지금의 나를 먼저 알아 두면 레슨을 훨씬 정확하게 정리할 수 있어요.",{now:true,who:"rook"});
+  form.innerHTML=bioFields(stmt.bio||{})+`<p class="status err" id="bio-err" aria-live="polite"></p><button class="btn gold" type="submit">저장하고 다음으로</button>`;
+  say($("g-bio"),"반가워요, 루크예요. 글은 안 써도 돼요. 밀어서 고르기만 하면 1분이면 끝나요.",{now:true,who:"rook"});
   return new Promise(done=>{form.onsubmit=async e=>{e.preventDefault();const b=readBio(form),err=$("bio-err");
-    const miss=BIO.filter(f=>!b[f.k]).map(f=>f.l);if(miss.length){err.textContent="아직 비어 있어요: "+miss.join(", ");return}
+    const miss=bioMissing(b);if(miss.length){err.textContent="아직 고르지 않았어요: "+miss.join(", ");return}
     stmt.bio=b;try{await saveStatement()}catch(_){err.textContent="저장하지 못했습니다. 다시 눌러 주세요.";return}
     ov.hidden=true;document.body.style.overflow="";done()}});
 }
 function areaDone(a){const v=(stmt.areas||{})[a.k]||{};return a.items.filter(i=>{const x=v[i.k]||{};return x.v||x.m}).length}
+function areaAvg(a){const v=(stmt.areas||{})[a.k]||{};const r=a.items.map(i=>(v[i.k]||{}).v).filter(x=>x>0);return r.length?r.reduce((s,x)=>s+x,0)/r.length:null}
+function itemHTML(a,i,x){
+  const rate=a.rate===false?"":slider(`r-${a.k}-${i.k}`,{min:1,max:5,start:3,fmt:v=>v+" · "+RATE[v],label:i.l},x.v||null);
+  const mOn=x.m?String(x.m).split(" · "):[];
+  const meas=i.mv?`<div class="fld"><small>${esc(i.mv.lab||"측정값")} <span class="hint">아는 경우만</span></small>${slider(`m-${a.k}-${i.k}`,{...i.mv,fmt:v=>v+i.mv.u,label:i.l},x.mn??null)}</div>`
+    :i.mc?`<div class="fld"><small>${esc(i.mlab||(a.rate===false?"":"해당하는 것"))}</small>${chipsHTML(`c-${a.k}-${i.k}`,i.mc,mOn,!!i.multi)}</div>`:"";
+  return `<div class="me-item"><div class="t-head"><b>${esc(i.l)}</b>${x.coach?`<span class="pill ok">코치 확인</span>`:`<span class="pill">자기평가</span>`}</div>${rate}${meas}</div>`;
+}
 function renderMe(){
   if(!$("me-bio"))return;const b=stmt.bio||{};
   $("me-bio").innerHTML=`<div class="panel"><div class="t-head"><span class="eyebrow"><b>B</b>기본 바이오</span><button class="btn sm" type="button" id="me-bio-edit">고치기</button></div>
-    <div class="bio-grid">${BIO.map(f=>`<div><small>${f.l}</small><b>${esc(b[f.k]||"—")}${b[f.k]&&f.u?f.u:""}</b></div>`).join("")}</div>
+    <div class="bio-grid">${BIO_SHOW.map(([k,l])=>`<div><small>${l}</small><b>${esc(b[k]||"—")}</b></div>`).join("")}</div>
     <form id="me-bio-form" class="me-bio-form" hidden></form></div>`;
-  $("me-areas").innerHTML=AREAS.map(a=>{const n=areaDone(a),open=meOpen===a.k,v=(stmt.areas||{})[a.k]||{};
+  $("me-areas").innerHTML=AREAS.map(a=>{const n=areaDone(a),open=meOpen===a.k,v=(stmt.areas||{})[a.k]||{},avg=areaAvg(a);
     return `<div class="panel me-area${open?" open":""}"><button type="button" class="me-head" data-area="${a.k}" aria-expanded="${open}">
-      <img src="img/icons3d/${a.ic}.webp" alt="" width="40" height="40"><span><b>${a.n}</b><small>${n}/${a.items.length} 작성 · 주로 ${a.node} ${esc(NODES[a.node].ko)}</small></span><i class="bar"><i style="width:${Math.round(n/a.items.length*100)}%"></i></i></button>
+      <img src="img/icons3d/${a.ic}.webp" alt="" width="40" height="40"><span><b>${a.n}</b><small>${n}/${a.items.length} 작성${avg?` · 평균 ${avg.toFixed(1)}`:""}</small></span><i class="bar"><i style="width:${Math.round(n/a.items.length*100)}%"></i></i></button>
       ${open?`<form class="me-form" data-form="${a.k}">${a.note?`<p class="notice" style="margin:0">${a.note}</p>`:""}
-        ${a.items.map(i=>{const x=v[i.k]||{};return `<div class="me-item"><div class="t-head"><b>${i.l}</b>${x.coach?`<span class="pill ok">코치 확인</span>`:`<span class="pill">자기평가</span>`}</div>${i.hint?`<small class="hint">${i.hint}</small>`:""}
-          ${a.rate===false?"":`<div class="chips rate" data-k="${i.k}">${[1,2,3,4,5].map(r=>`<button type="button" class="chip" data-r="${r}" aria-pressed="${x.v===r}" title="${RATE[r]}">${r}<small>${RATE[r]}</small></button>`).join("")}</div>`}
-          ${i.mph!==undefined?`<label class="fld">측정값·메모 ${i.mu?`(${i.mu})`:""} <span class="hint">선택</span><input data-m="${i.k}" maxlength="60" value="${esc(x.m||"")}" placeholder="${i.mph}"></label>`:""}</div>`}).join("")}
+        ${a.items.map(i=>itemHTML(a,i,v[i.k]||{})).join("")}
         <div class="actions"><button class="btn gold" type="submit">저장</button></div></form>`:""}</div>`}).join("");
 }
 $("v-me").addEventListener("click",e=>{
   const h=e.target.closest("[data-area]");if(h){meOpen=meOpen===h.dataset.area?"":h.dataset.area;renderMe();return}
-  const r=e.target.closest(".rate .chip");if(r){const g=r.parentElement;g.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c===r));return}
-  if(e.target.id==="me-bio-edit"){const f=$("me-bio-form");f.hidden=!f.hidden;if(!f.hidden)f.innerHTML=bioFields(stmt.bio||{})+`<div class="actions"><button class="btn gold" type="submit">저장</button></div>`}
+  if(e.target.id==="me-bio-edit"){const f=$("me-bio-form");f.hidden=!f.hidden;if(!f.hidden)f.innerHTML=bioFields(stmt.bio||{})+`<p class="status err" id="me-bio-err"></p><div class="actions"><button class="btn gold" type="submit">저장</button></div>`}
 });
 $("v-me").addEventListener("submit",async e=>{
   e.preventDefault();const f=e.target;
-  if(f.id==="me-bio-form"){stmt.bio={...(stmt.bio||{}),...readBio(f)}}
-  else{const k=f.dataset.form,a=AREAS.find(x=>x.k===k);const prev=(stmt.areas||{})[k]||{},o={};
-    a.items.forEach(i=>{const c=f.querySelector(`.rate[data-k="${i.k}"] .chip[aria-pressed="true"]`),m=f.querySelector(`[data-m="${i.k}"]`);
-      const v=c?Number(c.dataset.r):0,mv=m?m.value.trim():"";if(v||mv)o[i.k]={l:i.l,v,m:mv,u:i.mu||"",coach:false};});
-    stmt.areas={...(stmt.areas||{}),[k]:{...o,_n:a.n,_node:a.node,_at:new Date().toISOString()}};meOpen=""}
+  if(f.id==="me-bio-form"){const b=readBio(f),miss=bioMissing(b);if(miss.length){$("me-bio-err").textContent="아직 고르지 않았어요: "+miss.join(", ");return}stmt.bio=b}
+  else{const k=f.dataset.form,a=AREAS.find(x=>x.k===k),o={};
+    a.items.forEach(i=>{const v=a.rate===false?0:(slVal(f,`r-${k}-${i.k}`)||0);let m="",mn=null;
+      if(i.mv){mn=slVal(f,`m-${k}-${i.k}`);m=mn===null?"":String(mn)}else if(i.mc){m=picked(f,`c-${k}-${i.k}`).join(" · ")}
+      if(v||m)o[i.k]={l:i.l,v,m,mn,u:i.mv?i.mv.u:"",coach:false}});
+    stmt.areas={...(stmt.areas||{}),[k]:{...o,_n:a.n,_at:new Date().toISOString()}};meOpen=""}
   try{await saveStatement();toast("저장했어요");renderMe()}catch(_){toast("저장하지 못했습니다")}
 });
-MILO_HELP.me={title:"나의 스테이트먼트",meaning:"지금의 나를 기록해 두는 곳이야. 기본 바이오와 멘탈·숏게임·샷·피지컬·코스·클럽 피팅 6개 영역이 있어.",action:"영역을 눌러 1~5로 스스로 매기고, 아는 숫자가 있으면 적어 줘. 크루는 참고만 하고, 판정은 레슨 기록과 코치님 말이 먼저야."};
+MILO_HELP.me={title:"나의 스테이트먼트",meaning:"지금의 나를 남겨 두는 곳이야. 기본 바이오와 멘탈·숏게임·샷·피지컬·코스·클럽 피팅 6개 영역이 있어.",action:"글은 안 써도 돼. 밀어서 1~5로 매기고, 아는 숫자도 밀어서 고르면 돼. 약한 영역은 만다라트와 배틀플랜이 먼저 챙겨."};
 
 /* ===== AI 훈련 카드 (데릴의 훈련장) =====
    선수 기록 확인 → 오늘의 훈련 제안 → 수정·적용 → 결과 확인 → 다음 훈련.
@@ -1022,3 +1047,171 @@ async function renderTMetrics(){
       <p class="hint" style="margin:0">추천 수만으로 성과를 보지 않아요. 목표 수치는 초기 사용 자료를 모은 뒤 정합니다.</p>`;
   }catch(_){box.hidden=true}
 }
+
+/* ===== 내 문제 진술 (루크의 방) =====
+   글 대신 고르기·밀기로 뼈대를 받고, 원하면 말 한마디(음성·글)를 덧붙인다. → 서버 solve → 문제·솔루션·훈련·6일 플랜.
+   저장은 레슨 기록과 같은 곳(players/{uid}/lessons, source:"self"). 근거는 '본인 진술'. 공동 레거시에는 올리지 않는다.
+   나중: 목소리로 본인과 레슨자를 구분(speaker 필드 자리), 해결된 문제는 레거시로, 해법에 맞는 레슨자 추천. */
+const P_SHOTS=["드라이버","우드·유틸","아이언","어프로치","벙커","퍼트"];
+const P_MISS={swing:["왼쪽으로 출발","오른쪽으로 출발","왼쪽으로 휨","오른쪽으로 휨","뒤땅","탑볼","생크","거리가 안 나옴","거리가 들쑥날쑥","방향이 들쑥날쑥","탄도가 너무 높음","탄도가 너무 낮음"],
+  putt:["짧음","김","왼쪽으로 빠짐","오른쪽으로 빠짐","거리감이 들쑥날쑥","짧은 퍼트가 불안","라인을 못 읽음"]};
+const P_WHEN=["연습장에서도","코스에서","시합·압박 상황","첫 홀·첫 샷","실수한 직후","피곤할 때","특정 거리·클럽에서"];
+const P_SINCE=["1주 안","1달쯤","3달쯤","6달쯤","1년 넘게"];
+let probDraft=null,probBusy=false;
+function renderProbForm(){
+  const f=$("prob-form");if(!f||f.dataset.ready)return;f.dataset.ready="1";
+  f.innerHTML=`<div class="fld"><span class="eyebrow"><b>1</b>어떤 샷에서요?</span>${chipsHTML("p-shot",P_SHOTS,[],true)}</div>
+    <div class="fld"><span class="eyebrow"><b>2</b>공이 어떻게 가나요?</span><div id="p-miss-box">${chipsHTML("p-miss",P_MISS.swing,[],true)}</div></div>
+    <div class="fld"><span class="eyebrow"><b>3</b>언제 더 심한가요?</span>${chipsHTML("p-when",P_WHEN,[],true)}</div>
+    <div class="fld"><span class="eyebrow"><b>4</b>얼마나 자주요?</span>${slider("p-freq",{min:1,max:10,start:5,fmt:v=>`10번 중 ${v}번`,label:"얼마나 자주"},null)}</div>
+    <div class="fld"><span class="eyebrow"><b>5</b>얼마나 됐나요?</span>${slider("p-since",{min:0,max:4,start:1,fmt:v=>P_SINCE[v],label:"얼마나 됐나"},null)}</div>
+    <div class="fld"><span class="eyebrow"><b>6</b>말로 덧붙이기 <span class="hint">선택</span></span>
+      <div class="row-mic"><textarea id="p-words" rows="2" maxlength="1500" placeholder="예: 연습장에선 괜찮은데 첫 홀 티샷만 오른쪽으로 밀려요"></textarea><button class="btn sm" type="button" id="p-mic" ${dict?"":"hidden"}>🎙 말하기</button></div></div>
+    <p class="status" id="p-st" role="status"></p>
+    <div class="actions"><button class="btn gold" type="submit" id="p-go">문제와 솔루션 보기</button></div>`;
+}
+$("prob-form").addEventListener("click",e=>{
+  if(e.target.closest('[data-pick="p-shot"] .chip')){setTimeout(()=>{const putt=picked($("prob-form"),"p-shot").includes("퍼트"),sw=picked($("prob-form"),"p-shot").some(x=>x!=="퍼트");
+    const keep=picked($("prob-form"),"p-miss");$("p-miss-box").innerHTML=chipsHTML("p-miss",[...(sw||!putt?P_MISS.swing:[]),...(putt?P_MISS.putt:[])],keep,true)},0)}
+  if(e.target.id==="p-mic"&&dict){if(e.target.textContent.includes("멈추기")){dict.stop().catch(()=>{});return}
+    micTarget="prob";dict.start().catch(()=>toast("마이크를 쓸 수 없어 글로 적어 주세요"))}
+});
+$("prob-form").addEventListener("submit",async e=>{
+  e.preventDefault();const f=e.target,st=$("p-st");if(probBusy)return;
+  const s={shots:picked(f,"p-shot"),misses:picked(f,"p-miss"),when:picked(f,"p-when"),freq:slVal(f,"p-freq"),since:(v=>v===null?"":P_SINCE[v])(slVal(f,"p-since")),words:$("p-words").value.trim(),speaker:"self",at:new Date().toISOString()};
+  if(!s.shots.length||!s.misses.length){st.className="status err";st.textContent="어떤 샷인지, 공이 어떻게 가는지는 꼭 골라 주세요.";return}
+  if(!ai){st.className="status err";st.textContent="로그인한 뒤에 볼 수 있어요.";return}
+  probBusy=true;$("p-go").disabled=true;st.className="status";st.innerHTML=`<div class="guide" id="g-pwait"></div><div class="ld" aria-hidden="true"></div>`;
+  say($("g-pwait"),"말씀하신 상황을 정리하고 있어요. 20~40초만 기다려 주세요.",{now:true,who:"rook",motion:"think"});
+  try{
+    const r=(await ai({task:"solve",statement:s,profile,history:lessons.slice(0,3).map(l=>({date:l.date,title:l.result.title,node:l.result.node||null}))})).data;
+    if(r&&r.off_topic){st.className="status err";st.textContent="골프 이야기만 정리할 수 있어요.";return}
+    if(!r||!r.plan)throw new Error("format");
+    (r.drills||[]).forEach(d=>{const it=d.lib_id&&lib.find(x=>x.id===d.lib_id);if(it){d.source="AP 라이브러리";d.lib_rev=it.rev||1}else{d.source="AI 보완";d.lib_id=""}});
+    probDraft={date:today(),coach:"",source:"self",statement:s,transcript:[s.shots.join("·")+" / "+s.misses.join("·"),s.when.join("·"),s.words].filter(Boolean).join(" — "),result:r};
+    st.textContent="";
+    $("prob-out").innerHTML=resultHTML(r,"",probDraft.date,{self:true})+`<div class="actions" style="margin-top:12px"><button class="btn" type="button" id="p-redo">다시 고르기</button><button class="btn gold" type="button" id="p-save">내 기록에 저장 · 만다라트로</button></div>`;
+    say($("g-pos"),"정리했어요. 원인은 아직 '확인할 것'이에요. 저장하면 데릴이 만다라트와 배틀플랜에 바로 넣어 줘요.",{now:true,who:"rook",motion:"success"});
+    $("prob-out").scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(err){st.className="status err";const m=(err&&(err.message||""))+" "+(err&&err.code||"");
+    st.textContent=/guardian-pending/.test(m)?"보호자 확인이 끝나면 볼 수 있어요.":/age-required/.test(m)?"나이 확인이 필요해요. 새로고침해 주세요.":/resource-exhausted/.test(m)?"오늘 횟수를 다 썼어요. 내일 다시 해 주세요.":"정리하지 못했어요. 다시 눌러 주세요."}
+  finally{probBusy=false;$("p-go").disabled=false}
+});
+$("prob-out").addEventListener("click",async e=>{
+  if(e.target.id==="p-redo"){$("prob-out").innerHTML="";$("prob-form").scrollIntoView({behavior:"smooth"});return}
+  if(e.target.id!=="p-save"||!probDraft)return;e.target.disabled=true;
+  try{await db.collection("players/"+uid+"/lessons").add({...probDraft,done:[],feedback:[],createdAt:new Date().toISOString()});
+    probDraft=null;$("prob-out").innerHTML="";delete $("prob-form").dataset.ready;renderProbForm();await loadLessons();
+    toast("저장했어요. 만다라트와 배틀플랜을 맞춰 보세요");show("train");mandalaHint=true;renderMandalaAP()}
+  catch(_){toast("저장하지 못했어요. 다시 눌러 주세요");e.target.disabled=false}
+});
+function renderProbList(){
+  const box=$("prob-list");if(!box)return;const ls=lessons.filter(l=>l.source==="self").slice(0,6);
+  box.innerHTML=ls.length?`<div class="panel"><span class="eyebrow"><b>S</b>내가 남긴 문제 진술</span>${ls.map(l=>`<div class="fb"><div class="h"><span>${esc(md(l.date))}</span><span class="pill">본인 진술</span></div><div>${esc(l.result.title)}</div><button class="btn sm" type="button" data-open-lesson="${esc(l.id)}">자세히</button></div>`).join("")}</div>`:"";
+}
+$("prob-list").addEventListener("click",e=>{const b=e.target.closest("[data-open-lesson]");if(!b)return;openId=b.dataset.openLesson;show("lesson");renderList();setTimeout(()=>$("detail").scrollIntoView({behavior:"smooth",block:"start"}),80)});
+
+/* ===== 만다라트 (오타니식 3×3) + 설정에 따른 배틀플랜 (데릴의 훈련장) =====
+   파일럿: AP 라이브러리 훈련으로 자동 생성(규칙, AI 아님). 가운데는 본인 목표, 둘레 8칸은 8개 영역.
+   칸을 누르면 그 영역 훈련과 수행률(%)이 보인다. 최근 문제·레슨과 스테이트먼트의 약한 영역을 먼저 챙긴다.
+   저장: players/{uid}/mandala/current. 훈련 내용은 라이브러리에서 코치진이 고치면 다음 생성부터 반영. */
+let mandala=null,mOpen="",mandalaHint=false;
+const LVKEY={P:"투어",J:"아마",A:"일반"};
+const doseFor=it=>{const d=String(it.dose||"");const seg=d.split("·").map(x=>x.trim()).find(x=>x.startsWith(LVKEY[profile.level]||"일반"));return seg||d};
+const roundOnly=it=>/라운드/.test(String(it.freq||""));
+async function loadMandala(){try{const d=await db.doc("players/"+uid+"/mandala/current").get();mandala=d.exists?d.data():null}catch(_){mandala=null}}
+async function saveMandala(){mandala.updatedAt=new Date().toISOString();await db.doc("players/"+uid+"/mandala/current").set(mandala)}
+function focusPillars(){
+  const f=[];const l=lessons[0];if(l&&PNAME[l.result.pillar])f.push(l.result.pillar);
+  const SH={"드라이버":"drive","우드·유틸":"drive","아이언":"iron","어프로치":"short","벙커":"short","퍼트":"putt"};
+  if(l&&l.statement)(l.statement.shots||[]).forEach(x=>SH[x]&&f.push(SH[x]));
+  if(l&&l.result.mental)f.push("mind");
+  AREAS.forEach(a=>{const v=areaAvg(a);if(a.pillar&&v!==null&&v<=2.5)f.push(a.pillar)});
+  return [...new Set(f)];
+}
+function genCells(){
+  const act=lib.filter(x=>x.status==="active"&&!x.example&&PNAME[x.pillar]);const l=lessons[0],node=l&&l.result.node,via=l&&l.result.via;
+  const sc=x=>(x.node===node?3:0)+(x.node===via?2:0)+(x.kind!=="point"?1:0)+(roundOnly(x)?-1:0);
+  return Object.fromEntries(PILLARS.map(([p])=>[p,act.filter(x=>x.pillar===p).sort((a,b)=>sc(b)-sc(a)).slice(0,8).map(x=>x.id)]));
+}
+function genSessions(cells,set,focus){
+  /* 회차마다 첫 칸은 가장 먼저 챙길 영역(최근 문제), 나머지 칸은 다른 먼저 챙길 영역을 두 번, 그 밖의 영역을 한 번씩 돌아가며 */
+  const total=set.perWeek*set.weeks,per=Math.max(1,Math.min(4,Math.round(set.minutes/25)));
+  const usable=p=>(cells[p]||[]).filter(id=>{const it=lib.find(x=>x.id===id);return it&&!roundOnly(it)});
+  const avail=PILLARS.map(([p])=>p).filter(p=>usable(p).length);
+  const lead=focus.find(p=>avail.includes(p))||null;
+  const rest=avail.filter(p=>p!==lead),cyc=[];
+  [...rest.filter(p=>focus.includes(p)),...rest].forEach(p=>cyc.push(p));
+  const ptr={},nextOf=p=>{const l=usable(p);return l[(ptr[p]=(ptr[p]??-1)+1)%l.length]};
+  const out=[];let c=0;
+  for(let s=0;s<total;s++){const items=[],used=new Set();
+    if(lead&&(per>1||s%2===0)){items.push(nextOf(lead));used.add(lead)}
+    let guard=0;while(items.length<per&&cyc.length&&guard++<cyc.length*2){const p=cyc[c++%cyc.length];if(used.has(p))continue;used.add(p);items.push(nextOf(p))}
+    out.push({n:s+1,week:Math.floor(s/set.perWeek)+1,items,done:[]})}
+  return out;
+}
+function cellStat(p){const ids=(mandala&&mandala.cells[p])||[];let plan=0,done=0;(mandala.sessions||[]).forEach(s=>s.items.forEach(id=>{if(ids.includes(id)){plan++;if(s.done.includes(id))done++}}));return {plan,done,pct:plan?Math.round(done/plan*100):null}}
+function itemStat(id){let plan=0,done=0;(mandala.sessions||[]).forEach(s=>{if(s.items.includes(id)){plan++;if(s.done.includes(id))done++}});return {plan,done}}
+function renderMandalaAP(){
+  const box=$("mandala");if(!box)return;if(!uid){box.innerHTML="";return}
+  if(!lib.length){box.innerHTML=`<div class="panel"><span class="eyebrow"><b>M</b>나의 만다라트</span><p class="hint">AP 훈련 라이브러리를 불러오는 중이에요.</p></div>`;return}
+  if(!mandala){box.innerHTML=`<div class="panel"><span class="eyebrow"><b>M</b>나의 만다라트</span><p style="margin:0">가운데에 목표를 두고, 둘레 8개 영역에 AP 훈련을 자동으로 채워요. 최근 문제와 약한 영역을 먼저 챙깁니다.</p>
+    <label class="fld">가운데 목표 <span class="hint">선택</span><input id="m-goal" maxlength="30" placeholder="${esc(profile.goal||DEF_GOAL[profile.level])}"></label>
+    <div class="actions"><button class="btn gold" type="button" data-m="make">만다라트 만들기</button></div></div>`;return}
+  const goal=mandala.goal||profile.goal||DEF_GOAL[profile.level];
+  const cells=[0,1,2,3,null,4,5,6,7].map(i=>{if(i===null)return `<button type="button" class="mcell goal" data-m="goal"><small>목표</small><b>${esc(goal)}</b></button>`;
+    const [p,name]=PILLARS[i],st=cellStat(p),f=(mandala.focus||[]).includes(p);
+    return `<button type="button" class="mcell${st.plan?" has":""}${mOpen===p?" sel":""}${f?" focus":""}" data-m="cell" data-p="${p}" style="--p:${st.pct||0}%" aria-pressed="${mOpen===p}"><b>${esc(name)}</b><small>${st.pct===null?`훈련 ${(mandala.cells[p]||[]).length}개`:st.pct+"% 수행"}</small>${f?`<i class="mf-dot" title="먼저 챙길 영역"></i>`:""}</button>`}).join("");
+  let detail="";
+  if(mOpen==="goal")detail=`<div class="m-detail"><label class="fld">가운데 목표<input id="m-goal" maxlength="30" value="${esc(mandala.goal||"")}" placeholder="${esc(goal)}"></label><div class="actions"><button class="btn sm gold" type="button" data-m="goal-save">저장</button></div></div>`;
+  else if(mOpen){const ids=mandala.cells[mOpen]||[];detail=`<div class="m-detail"><div class="t-head"><b>${esc(PNAME[mOpen])} 훈련</b>${(s=>s.pct===null?"":`<span class="pill gold">${s.pct}% 수행 · ${s.done}/${s.plan}</span>`)(cellStat(mOpen))}</div>
+    ${ids.map(id=>{const it=lib.find(x=>x.id===id);if(!it)return "";const s=itemStat(id);return `<div class="drill"><div class="t"><b>${esc(it.name)}</b><span class="dose">${esc(doseFor(it))}${it.freq?" · "+esc(it.freq):""}</span></div>${it.point?`<small>${esc(it.point)}</small>`:""}${it.how?`<small>${esc(it.how)}</small>`:""}
+      <div><span class="pill ok">AP 라이브러리 v${it.rev||1}</span> ${roundOnly(it)?`<span class="pill">라운드에서 확인</span>`:s.plan?`<span class="pill">${s.done}/${s.plan}회 수행</span>`:`<span class="pill">이번 플랜에 없음</span>`}</div></div>`}).join("")||`<p class="hint">이 영역 훈련이 아직 라이브러리에 없어요.</p>`}</div>`}
+  box.innerHTML=`<div class="panel"><div class="t-head"><span class="eyebrow"><b>M</b>나의 만다라트</span><button class="btn sm" type="button" data-m="remake">다시 만들기</button></div>
+    ${mandalaHint?`<p class="notice" style="margin:0">새 문제나 레슨이 저장됐어요. '다시 만들기'를 누르면 그 내용에 맞춰 훈련을 다시 채워요.</p>`:""}
+    <div class="mgrid ap">${cells}</div><p class="hint" style="margin:0">칸을 누르면 그 영역 훈련이 보여요. 칸은 배틀플랜에서 수행한 만큼 차오릅니다. ● 표시는 먼저 챙길 영역이에요.</p>${detail}</div>`;
+}
+function renderPlan(){
+  const box=$("bplan");if(!box)return;if(!uid||!mandala){box.innerHTML="";return}
+  const b=(stmt.bio&&stmt.bio.num)||{},set=mandala.settings||{perWeek:Math.max(1,Math.min(7,b.pweek||3)),minutes:Math.max(20,Math.min(180,Math.round((b.phours||1)*60/10)*10)),weeks:2};
+  const ss=mandala.sessions||[],next=ss.find(s=>s.done.length<s.items.length),tot=ss.reduce((a,s)=>a+s.items.length,0),dn=ss.reduce((a,s)=>a+s.done.length,0);
+  const weeks=[...new Set(ss.map(s=>s.week))];
+  box.innerHTML=`<div class="panel"><div class="t-head"><span class="eyebrow"><b>P</b>배틀플랜</span>${ss.length?`<span class="pill gold">${tot?Math.round(dn/tot*100):0}% · ${dn}/${tot}</span>`:""}</div>
+    <details class="bp-set" ${ss.length?"":"open"}><summary class="hint">설정: 주 ${set.perWeek}회 · 회당 ${set.minutes}분 · ${set.weeks}주</summary>
+      <div class="fld"><small>주 몇 회</small>${slider("bp-w",{min:1,max:7,fmt:v=>"주 "+v+"회",label:"주 몇 회"},set.perWeek)}</div>
+      <div class="fld"><small>회당 시간</small>${slider("bp-m",{min:20,max:180,step:10,fmt:v=>v+"분",label:"회당 시간"},set.minutes)}</div>
+      <div class="fld"><small>기간</small>${slider("bp-k",{min:1,max:8,fmt:v=>v+"주",label:"기간"},set.weeks)}</div>
+      <div class="actions"><button class="btn gold" type="button" data-m="plan">${ss.length?"이 설정으로 다시 만들기":"배틀플랜 만들기"}</button></div></details>
+    ${weeks.map(w=>`<div class="bp-week"><span class="eyebrow">${w}주차</span>${ss.filter(s=>s.week===w).map(s=>{const isNext=next&&s.n===next.n,ok=s.items.length&&s.done.length===s.items.length;
+      return `<div class="bp-s${isNext?" next":""}${ok?" done":""}"><div class="h"><b>${s.n}회차</b>${isNext?`<span class="pill gold">오늘 할 세션</span>`:ok?`<span class="pill ok">완료</span>`:""}</div>
+        ${s.items.map(id=>{const it=lib.find(x=>x.id===id);return it?`<label class="ck-line"><input type="checkbox" data-sess="${s.n}" data-item="${esc(id)}" ${s.done.includes(id)?"checked":""}> <span>${esc(it.name)} <small class="hint">${esc(PNAME[it.pillar]||"")} · ${esc(doseFor(it))}</small></span></label>`:""}).join("")}</div>`}).join("")}</div>`).join("")}
+    ${ss.length?`<div class="actions"><button class="btn sm" type="button" data-show="feel">해 본 느낌 남기기 · 파코</button></div>`:""}</div>`;
+}
+async function makeMandala(keepGoal){
+  const goal=keepGoal!==undefined?keepGoal:(($("m-goal")&&$("m-goal").value.trim())||"");
+  const prev=mandala;const focus=focusPillars(),cells=genCells();
+  mandala={goal,cells,focus,settings:prev&&prev.settings||null,sessions:[],history:[...((prev&&prev.history)||[]),...(prev&&prev.sessions&&prev.sessions.length?[{at:prev.updatedAt||"",settings:prev.settings,sessions:prev.sessions,cells:prev.cells}]:[])].slice(-5),
+    basedOn:lessons[0]?lessons[0].id:null,generatedAt:new Date().toISOString(),rule:"mandala-1 (AP 라이브러리 자동 생성 · 파일럿)"};
+  if(prev&&prev.settings)mandala.sessions=genSessions(cells,prev.settings,focus);
+  await saveMandala();mandalaHint=false;
+}
+$("mandala").addEventListener("click",async e=>{const b=e.target.closest("[data-m]");if(!b)return;const a=b.dataset.m;
+  try{
+    if(a==="make"){await makeMandala();toast("만다라트를 만들었어요. 아래에서 배틀플랜을 만들어 보세요");renderMandalaAP();renderPlan();return}
+    if(a==="remake"){if(mandala&&(mandala.sessions||[]).some(s=>s.done.length)&&!confirm("다시 만들면 지금 배틀플랜 체크는 기록으로 보관되고 새로 시작해요. 다시 만들까요?"))return;await makeMandala(mandala?mandala.goal:"");toast("최근 기록에 맞춰 다시 만들었어요");renderMandalaAP();renderPlan();return}
+    if(a==="cell"){mOpen=mOpen===b.dataset.p?"":b.dataset.p;renderMandalaAP();return}
+    if(a==="goal"){mOpen=mOpen==="goal"?"":"goal";renderMandalaAP();return}
+    if(a==="goal-save"){mandala.goal=$("m-goal").value.trim();await saveMandala();mOpen="";renderMandalaAP();return}
+  }catch(_){toast("저장하지 못했어요. 다시 눌러 주세요")}
+});
+$("bplan").addEventListener("click",async e=>{const b=e.target.closest('[data-m="plan"]');if(!b)return;const r=$("bplan");
+  const set={perWeek:slVal(r,"bp-w"),minutes:slVal(r,"bp-m"),weeks:slVal(r,"bp-k")};
+  if([set.perWeek,set.minutes,set.weeks].some(v=>v===null)){toast("주 몇 회·회당 시간·기간을 밀어서 골라 주세요");return}
+  if((mandala.sessions||[]).some(s=>s.done.length)&&!confirm("지금 플랜의 체크는 기록으로 보관되고 새로 시작해요. 다시 만들까요?"))return;
+  if((mandala.sessions||[]).length)mandala.history=[...(mandala.history||[]),{at:mandala.updatedAt||"",settings:mandala.settings,sessions:mandala.sessions,cells:mandala.cells}].slice(-5);
+  mandala.settings=set;mandala.sessions=genSessions(mandala.cells,set,mandala.focus||[]);
+  try{await saveMandala();toast(`배틀플랜 ${mandala.sessions.length}회차를 만들었어요`);renderPlan();renderMandalaAP()}catch(_){toast("저장하지 못했어요")}
+});
+$("bplan").addEventListener("change",async e=>{const c=e.target.closest("input[data-sess]");if(!c)return;const s=mandala.sessions.find(x=>x.n===Number(c.dataset.sess));if(!s)return;
+  const id=c.dataset.item;s.done=c.checked?[...new Set([...s.done,id])]:s.done.filter(x=>x!==id);
+  try{await saveMandala()}catch(_){toast("저장하지 못했어요")}renderPlan();renderMandalaAP()});

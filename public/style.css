@@ -479,3 +479,25 @@ body{background:linear-gradient(#eaf6fb,var(--bg) 340px)}
 .tc-stop{display:grid;gap:8px;width:100%}
 .tc-h{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}.tc-h small{grid-column:1/-1;color:var(--muted)}
 .tc-order summary{cursor:pointer}.tc-order .tc-conds{margin-top:6px}
+
+/* ===== 슬라이더(밀어서 고르기) ===== */
+.sl{display:grid;gap:4px}.sl-top{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:24px}
+.sl-v{font-size:15px}.sl-x{border:0;background:none;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer}
+.sl input[type=range]{width:100%;accent-color:var(--green);height:28px}
+.sl input[data-touched="false"]{opacity:.45}
+.bio-f{display:grid;gap:6px;font-size:13px;color:var(--muted)}
+#bio-form{display:grid;gap:14px}
+/* ===== 내 문제 진술 ===== */
+.prob-form{display:grid;gap:16px}.prob-form .fld{display:grid;gap:8px}
+.row-mic{display:flex;gap:8px;align-items:flex-start}.row-mic textarea{flex:1;font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
+.coach-zone summary{cursor:pointer}
+/* ===== 만다라트 · 배틀플랜 ===== */
+.mgrid.ap .mcell{position:relative}.mgrid.ap .mcell.focus{outline:2px solid var(--gold);outline-offset:-2px}
+.mgrid.ap .mcell.goal{cursor:pointer}
+.mf-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--gold)}
+.m-detail{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.bp-set{display:grid;gap:10px}.bp-set summary{cursor:pointer}.bp-set .fld{display:grid;gap:4px;margin-top:8px}
+.bp-week{display:grid;gap:8px}
+.bp-s{border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:6px}
+.bp-s.next{border-color:var(--gold);background:var(--raise)}.bp-s.done{opacity:.7}
+.bp-s .h{display:flex;justify-content:space-between;align-items:center}
