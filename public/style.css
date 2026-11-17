@@ -455,3 +455,26 @@ body{background:linear-gradient(#eaf6fb,var(--bg) 340px)}
 .rate{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .rate .chip{display:grid;justify-items:center;padding:6px 2px;font-weight:700}.rate .chip small{font-size:10px;font-weight:400;color:var(--muted)}
 .rate .chip[aria-pressed="true"] small{color:inherit}
+
+/* ===== AI 훈련 카드 ===== */
+.tcard{display:grid;gap:12px}
+.tc-sec{display:grid;gap:4px}.tc-sec h4,.tc-h4{margin:0;font-size:13px;color:var(--gold);letter-spacing:.02em}
+.tc-sec p{margin:0}
+.tc-steps{margin:2px 0 0;padding-left:20px;display:grid;gap:4px}
+.tc-conds{display:flex;flex-wrap:wrap;gap:6px}
+.chip.static{cursor:default}
+.tc-why summary,.tc-hist summary{cursor:pointer;font-weight:600}
+.tc-why p{margin:6px 0 0}
+.tc-edit,.tc-run{display:grid;gap:10px}
+.tc-edit .fld,.tc-run .fld{display:grid;gap:4px;font-size:13px;color:var(--muted)}
+.tc-edit textarea{font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
+.row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tr-c{border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:8px;margin:0}
+.tr-c legend{font-weight:700;padding:0 4px}
+.tr-feel{display:grid;gap:4px}.tr-feel span{font-size:13px}.tr-feel small{display:block;color:var(--muted);font-size:11px}
+.pchips .chip{min-width:34px;padding:4px 8px}
+.ck-line{display:flex;gap:8px;align-items:center;font-size:14px}
+.tc-res{display:grid;gap:6px}.tc-res>div{display:grid;gap:2px;padding:8px 10px;border-radius:10px;background:var(--raise)}
+.tc-res small{color:var(--muted)}
+.tc-stop{display:grid;gap:8px;width:100%}
+.tc-h{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}.tc-h small{grid-column:1/-1;color:var(--muted)}

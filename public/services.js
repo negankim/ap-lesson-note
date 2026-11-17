@@ -4,7 +4,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, onSnapshot, serverTimestamp, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, onSnapshot, serverTimestamp, query, where, orderBy, limit, collectionGroup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 import { start, mountPlaza } from "./app.js";
 
@@ -22,6 +22,7 @@ const db = {
     add: (data) => addDoc(collection(fs, path), data),
     onSnapshot: (cb, err) => onSnapshot(collection(fs, path), (s) => cb(wrapDocs(s)), err),
   }),
+  group: (name) => ({ get: async () => wrapDocs(await getDocs(collectionGroup(fs, name))) }),
   doc: (path) => ({
     get: async () => { const d = await getDoc(doc(fs, path)); return { exists: d.exists(), data: () => d.data() }; },
     set: (data) => setDoc(doc(fs, path), data),

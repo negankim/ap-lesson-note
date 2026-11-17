@@ -60,6 +60,18 @@ service cloud.firestore {
         allow read, write: if signedIn() && request.auth.uid == uid;
         allow read: if isStaff();
       }
+      // AI 훈련 카드: 제안·내부 연결·검토는 서버만 쓴다. 본인·코치는 수정본·수행 기록·상태만 덧붙인다(지우지 못함).
+      match /trainings/{id} {
+        allow read: if (signedIn() && request.auth.uid == uid) || isStaff();
+        allow create, delete: if false;
+        allow update: if ((signedIn() && request.auth.uid == uid) || isStaff())
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['adjustments', 'runs', 'status', 'current', 'updatedAt', 'compat', 'events'])
+          && request.resource.data.adjustments.size() >= resource.data.adjustments.size()
+          && request.resource.data.runs.size() >= resource.data.runs.size()
+          && request.resource.data.events.size() >= resource.data.events.size()
+          && request.resource.data.status in ['proposed', 'applied', 'skipped', 'stopped', 'done'];
+      }
       match /coaches/{id} {
         allow read, write: if signedIn() && request.auth.uid == uid;
         allow read: if isStaff();
@@ -68,6 +80,11 @@ service cloud.firestore {
         allow read, write: if signedIn() && request.auth.uid == uid;
         allow read: if isStaff();
       }
+    }
+
+    // 운영 지표(추천 채택률 등)용: 코치·관리자는 모든 선수의 훈련 카드를 모아 읽는다
+    match /{path=**}/trainings/{id} {
+      allow read: if isStaff();
     }
 
     match /library/{id} {

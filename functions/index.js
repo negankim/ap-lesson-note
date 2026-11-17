@@ -6,16 +6,17 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
-const { organizePrompt, feedbackPrompt, chatPrompt } = require("./prompts");
+const { organizePrompt, feedbackPrompt, chatPrompt, statementText, safety } = require("./prompts");
+const TR = require("./training");
 
 admin.initializeApp();
 const db = admin.firestore();
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 
 /* 모델: 정리는 정확도 우선, 피드백은 빠르고 싸게. 바꾸면 docs/decisions.md 에 기록. */
-const MODEL = { organize: "claude-sonnet-5-5", feedback: "claude-haiku-5-5", chat: "claude-haiku-5-5" };
+const MODEL = { organize: "claude-sonnet-5-5", feedback: "claude-haiku-5-5", chat: "claude-haiku-5-5", train: "claude-sonnet-5-5" };
 /* 하루 사용 한도 (사람당). 파일럿 비용 관리용. */
-const DAILY_LIMIT = { organize: 20, feedback: 40, chat: 10 };
+const DAILY_LIMIT = { organize: 20, feedback: 40, chat: 10, train: 20 };
 
 async function callClaude(model, prompt, maxTokens) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -142,8 +143,52 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     await col.add({ role: "crew", ...ans, at: now + 1 });
     return { ...ans, used, limit: DAILY_LIMIT.chat };
   }
+  /* AI 훈련 카드: 규칙이 템플릿을 고르고, AI가 이 선수에게 맞게 채우고, 서버가 검증한 뒤에만 저장한다.
+   * 근거는 브라우저가 보낸 값이 아니라 서버가 읽은 본인 기록뿐이다(다른 선수 기록이 섞이지 않는다). */
+  if (d.task === "train") {
+    const base = "players/" + req.auth.uid;
+    const [ls, ts] = await Promise.all([db.collection(base + "/lessons").get(), db.collection(base + "/trainings").get()]);
+    const lessons = ls.docs.map((x) => ({ id: x.id, ...x.data() })).filter((l) => l.result)
+      .sort((a, b) => ((b.date || "") + (b.createdAt || "")).localeCompare((a.date || "") + (a.createdAt || ""))).slice(0, 5);
+    const all = ts.docs.map((x) => ({ id: x.id, ...x.data() })).sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+    let parent = null;
+    if (d.parent) {
+      parent = all.find((x) => x.id === String(d.parent));
+      if (!parent) throw new HttpsError("not-found", "이전 훈련을 찾지 못했습니다.");
+      if (!parent.next || !parent.next.tpl) throw new HttpsError("failed-precondition", "train-no-next");
+    }
+    await countUse(req.auth.uid, "train");
+    const pick = TR.choose({ lessons, parent });
+    const prompt = TR.trainPrompt({ pick, lessons, prior: all.slice(0, 3), parent, statementText: statementText(statement), safety, minor });
+    let out = await TR_call(prompt), problems = TR.validate(out, { pick, lessons });
+    if (problems.length) {
+      console.warn("train validate retry", problems);
+      out = await TR_call(prompt + "\n\n[이전 출력의 문제 · 고쳐서 다시 출력]\n- " + problems.join("\n- "));
+      problems = TR.validate(out, { pick, lessons });
+    }
+    if (problems.length) { console.error("train validate failed", problems); throw new HttpsError("internal", "train-invalid"); }
+    const doc = TR.buildDoc({ out, pick, lessons, parent, model: MODEL.train, uid: req.auth.uid });
+    const ref = await db.collection(base + "/trainings").add(doc);
+    if (parent) await db.doc(base + "/trainings/" + parent.id).update({ nextId: ref.id });
+    return { id: ref.id };
+  }
+  /* 결과 검토: AI를 쓰지 않는 규칙 검토. 결과를 저장한 뒤 부른다. */
+  if (d.task === "train_review") {
+    const base = "players/" + req.auth.uid + "/trainings/";
+    const snap = await db.doc(base + String(d.id || "")).get();
+    if (!snap.exists) throw new HttpsError("not-found", "훈련 기록을 찾지 못했습니다.");
+    const t = { id: snap.id, ...snap.data() };
+    let parent = null;
+    if (t.parent) { const ps = await db.doc(base + t.parent).get(); parent = ps.exists ? { id: ps.id, ...ps.data() } : null; }
+    const review = TR.reviewRun(t, parent);
+    const next = TR.nextOf(review.decision);
+    const reviews = [...(t.reviews || []), review];
+    await snap.ref.update({ review, reviews, next, updatedAt: new Date().toISOString() });
+    return { decision: review.decision, next };
+  }
   throw new HttpsError("invalid-argument", "알 수 없는 요청입니다.");
 });
+const TR_call = (prompt) => callClaude(MODEL.train, prompt, 4000);
 
 /* ===== 공동 레거시 (AP 레거시 광장의 나무) =====
  * 개인 기록과 분리된 하나의 나무. 선수가 레슨을 저장하면 그 레슨의 새 포인트가 여기에 잎으로 쌓인다.

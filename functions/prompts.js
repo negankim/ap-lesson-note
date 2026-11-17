@@ -169,4 +169,4 @@ ${safety(minor)}
 ${question}`;
 }
 
-module.exports = { organizePrompt, feedbackPrompt, chatPrompt, statementText };
+module.exports = { organizePrompt, feedbackPrompt, chatPrompt, statementText, safety };

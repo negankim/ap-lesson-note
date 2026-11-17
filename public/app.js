@@ -46,6 +46,8 @@ function show(tab){
   if(tab==="train"){renderMandala();renderActive();renderTrain()}
   if(tab==="feel"){renderToday();renderFeelHist()}
   if(tab==="ask")renderSug();
+  if(tab==="train")renderTCard();
+  if(tab==="lib")renderTMetrics();
   if(tab==="me")renderMe();
   if(tab==="lib"){renderLib();loadStats()}
   window.scrollTo(0,0);
@@ -142,7 +144,7 @@ $("out").addEventListener("click",async e=>{
     await loadLessons();
     if(lg.added||lg.echoed){plazaStats=null;show("home");
       say($("g-plaza"),`NEW 레슨 포인트! ${cname||"코치"}님의 레슨이 ${npNodes.map(n=>n+" "+NODES[n].ko).join(", ")}에 ${lg.added?`새 잎 ${lg.added}개`:""}${lg.added&&lg.echoed?", ":""}${lg.echoed?`이미 있던 잎에 출처 ${lg.echoed}개`:""}로 더해졌어요.`,{now:true,who:"rook",motion:"success"})}
-    else{toast("저장했어요. 데릴의 훈련장에서 6일 플랜을 시작해요");show("train")}
+    else{toast("저장했어요. 데릴의 훈련장에서 오늘의 훈련 제안을 받아 보세요");show("train")}
   }catch(err){toast("저장하지 못했습니다. 잠시 뒤 다시 눌러 주세요");e.target.disabled=false}
 });
 
@@ -698,6 +700,7 @@ async function boot(){
   if(!stmt.bio)await askBio();
   await loadCoaches();
   await loadLessons();
+  await loadTrainings();
   let gotLib=false;const lt=setTimeout(()=>{if(!gotLib)$("lib-list").innerHTML='<div class="empty">라이브러리를 아직 불러오지 못했습니다. 연결이 느릴 수 있습니다.</div>'},10000);
   db.collection("library").onSnapshot(snap=>{gotLib=true;clearTimeout(lt);lib=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$("v-lib").hidden)renderLib()},()=>{clearTimeout(lt)});
   renderChart();
@@ -788,3 +791,212 @@ $("v-me").addEventListener("submit",async e=>{
   try{await saveStatement();toast("저장했어요");renderMe()}catch(_){toast("저장하지 못했습니다")}
 });
 MILO_HELP.me={title:"나의 스테이트먼트",meaning:"지금의 나를 기록해 두는 곳이야. 기본 바이오와 멘탈·숏게임·샷·피지컬·코스·클럽 피팅 6개 영역이 있어.",action:"영역을 눌러 1~5로 스스로 매기고, 아는 숫자가 있으면 적어 줘. 크루는 참고만 하고, 판정은 레슨 기록과 코치님 말이 먼저야."};
+
+/* ===== AI 훈련 카드 (데릴의 훈련장) =====
+   선수 기록 확인 → 오늘의 훈련 제안 → 수정·적용 → 결과 확인 → 다음 훈련.
+   제안·내부 연결·검토는 서버가 만든다(players/{uid}/trainings). 화면에는 내부 코드·가설 용어를 보이지 않는다.
+   AI 원안(proposal)은 그대로 두고, 고친 내용은 adjustments 에, 실제 수행은 runs 에 덧붙인다. */
+let trainings=[],tBusy=false,tMode="",tStart=0,tStop=false;
+const T_TASK={Shot:"샷",Putt:"퍼트",Approach:"어프로치"};
+const T_TRIG={Shot:{visual:["어려운 홀","도그렉","경사"],situation:["버디 찬스","파세이브","경쟁"],club:["드라이버","우드","유틸","롱아이언","숏아이언"]},
+  Putt:{visual:["숏퍼트","롱퍼트","라이 난이도","거리감"],situation:["버디 찬스","파세이브","경쟁"]},
+  Approach:{visual:["거리감","라이 난이도","그린 난이도","내리막","오르막","포대그린"],situation:["파세이브","경쟁"]}};
+const T_PRES={Single:"한 가지 상황",Composite:"상황 묶어서",Random:"무작위 순서"};
+const T_UNIT={Shot:"m",Putt:"cm",Approach:"m"};
+const T_FEEL=[["pressure","압박감","상황이 얼마나 부담스러웠나"],["anxiety","불안","잘못될까 걱정됐나"],["tension","몸의 긴장","어깨·손에 힘이 들어갔나"]];
+const myRole=()=>{try{return user&&user.role?user.role()||"player":"player"}catch(_){return "player"}};
+const sameDay=(iso)=>iso&&new Date(iso).toDateString()===new Date().toDateString();
+async function loadTrainings(){
+  if(!db||!uid){trainings=[];return}
+  try{const s=await db.collection("players/"+uid+"/trainings").get();trainings=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""))}catch(_){trainings=[]}
+}
+function tState(t){
+  if(t.status==="applied"){const ap=(t.events||[]).filter(e=>e.action==="applied").slice(-1)[0];return sameDay(ap&&ap.at)?"진행 중":"결과 미입력"}
+  return {proposed:"제안",skipped:"미수행",stopped:"중단",done:"결과 입력됨"}[t.status]||""
+}
+function condLabel(c,s){
+  if(!(s.trigger&&c.perceived))return c.label;
+  const tg=[...(s.trigger.situation||[]),...(s.trigger.visual||[])].join("·");
+  return tg?c.label.replace("압박 상황",`압박 상황(${tg})`):c.label;
+}
+function condsOf(cur){return (cur.setup.order||cur.conditions.map(c=>c.key)).map(k=>cur.conditions.find(c=>c.key===k)).filter(Boolean)}
+function tCardHTML(t){
+  const cur=t.current||t.proposal,c=cur.card,s=cur.setup,ev=(t.internal&&t.internal.evidence)||[];
+  const meta=[T_TASK[s.task],s.distance,s.slope,s.club,`조건마다 ${s.reps}번`,s.trigger&&s.presentation&&s.presentation!=="Single"?T_PRES[s.presentation]:""].filter(Boolean).join(" · ");
+  return `<div class="tc-sec"><h4>오늘의 목표</h4><p>${esc(c.goal)}</p></div>
+  <div class="tc-sec"><h4>추천 훈련</h4><p>${esc(c.drill)}</p></div>
+  <div class="tc-sec"><h4>진행 방법</h4><p class="hint">${esc(meta)}</p>${s.otherDay?`<p class="notice" style="margin:0">오늘이 아닌 다른 날 해 주세요. 하루 지나서도 유지되는지 보는 훈련이에요.</p>`:""}
+    <div class="tc-conds">${condsOf(cur).map((x,i)=>`<span class="pill">${i+1}. ${esc(condLabel(x,s))}</span>`).join("")}</div>
+    <ol class="tc-steps">${(c.steps||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ol>
+    <p class="hint" style="margin:0"><b>성공으로 세는 기준</b> · ${esc(s.success)}</p></div>
+  <div class="tc-sec"><h4>체크 포인트</h4><div class="chips">${(c.checks||[]).map(x=>`<span class="chip static">${esc(x)}</span>`).join("")}</div></div>
+  <details class="tc-why"><summary>추천 이유</summary>${c.why?`<p>${esc(c.why)}</p>`:""}${(c.unknowns||[]).length?`<p class="hint">아직 모르는 것: ${esc(c.unknowns.join(" · "))}</p>`:""}
+    <p class="hint">${ev.length?"근거: "+esc(ev.map(e=>md(e.date)+" "+(e.coach||"코치 미기재")+" 레슨").join(", ")):"레슨 기록이 충분하지 않아 현재 수행부터 확인해요."} · AI가 만든 제안이에요. 코치님 판단이 먼저예요.</p></details>
+  ${t.compat&&t.compat.ok===false?`<div class="notice">${esc((t.compat.notes||[]).join(" "))}</div>`:""}`;
+}
+function tResultSummary(t){
+  const run=(t.runs||[]).slice(-1)[0],cur=t.current||t.proposal;if(!run)return "";
+  if(run.stopped)return `<p>${esc(md(run.at.slice(0,10)))} · ${esc(run.stopped)}(으)로 중단했어요. 완료나 실패로 세지 않아요.</p>`;
+  return `<div class="tc-res">${condsOf(cur).map(c=>{const r=run.results[c.key]||{};const f=r.perceived?T_FEEL.map(([k,l])=>`${l} ${r.perceived[k]===null?"미측정":r.perceived[k]}`).join(" · "):"";
+    return `<div><b>${esc(condLabel(c,cur.setup))}</b><span>${r.made}/${r.tries}${r.err!==null&&r.err!==undefined?` · 오차 ${r.err}${esc(cur.setup.errUnit||"")}`:""}${r.routine!==null&&r.routine!==undefined?` · ${esc(c.track)} ${r.routine}`:""}</span>${f?`<small>${esc(f)}</small>`:""}</div>`}).join("")}</div>
+  ${run.sameSetup===false?`<p class="hint">조건마다 거리·경사·클럽이 달랐다고 기록했어요.</p>`:""}`;
+}
+function tEditHTML(t){
+  const cur=t.current||t.proposal,c=cur.card,s=cur.setup,tr=T_TRIG[s.task]||T_TRIG.Putt;
+  const chipset=(name,opts,on,multi=true)=>`<div class="chips" data-chips="${name}" data-multi="${multi}">${opts.map(o=>`<button type="button" class="chip" data-v="${esc(o)}" aria-pressed="${on.includes(o)}">${esc(T_PRES[o]||o)}</button>`).join("")}</div>`;
+  return `<form class="tc-edit" id="tc-edit">
+    <p class="hint" style="margin:0">고쳐도 AI가 처음 낸 제안은 그대로 남고, 고친 내용으로 진행해요.</p>
+    <label class="fld">오늘의 목표<input name="goal" maxlength="200" value="${esc(c.goal)}"></label>
+    <label class="fld">추천 훈련<textarea name="drill" rows="2" maxlength="400">${esc(c.drill)}</textarea></label>
+    <label class="fld">진행 방법 <span class="hint">한 줄에 하나</span><textarea name="steps" rows="5">${esc((c.steps||[]).join("\n"))}</textarea></label>
+    <label class="fld">체크 포인트 <span class="hint">· 로 구분</span><input name="checks" value="${esc((c.checks||[]).join(" · "))}"></label>
+    <label class="fld">성공으로 세는 기준<input name="success" maxlength="120" value="${esc(s.success)}"></label>
+    <div class="row3"><label class="fld">거리<input name="distance" maxlength="40" value="${esc(s.distance)}"></label><label class="fld">경사·라이<input name="slope" maxlength="40" value="${esc(s.slope)}"></label><label class="fld">클럽<input name="club" maxlength="30" value="${esc(s.club)}"></label></div>
+    <label class="fld">조건마다 반복 수<input name="reps" inputmode="numeric" value="${esc(s.reps)}"></label>
+    ${s.trigger?`<div class="fld">압박 상황 · 상황 조건${chipset("situation",tr.situation,s.trigger.situation||[])}</div>
+      <div class="fld">압박 상황 · 보이는 조건${chipset("visual",[...tr.visual,...(tr.club||[])],s.trigger.visual||[])}</div>
+      <div class="fld">제시 방식${chipset("presentation",["Single","Composite","Random"],[s.presentation||"Single"],false)}</div>`:""}
+    <div class="actions"><button class="btn gold" type="submit">고친 내용으로 저장</button><button class="btn" type="button" data-t="cancel">취소</button></div></form>`;
+}
+function tRunHTML(t){
+  const cur=t.current||t.proposal,s=cur.setup,u=s.errUnit||T_UNIT[s.task]||"";
+  const feel=(k)=>T_FEEL.map(([f,l,h])=>`<div class="tr-feel"><span>${l}<small>${h}</small></span><div class="chips pchips" data-feel="${k}.${f}">${[0,1,2,3,4,5].map(n=>`<button type="button" class="chip" data-v="${n}" aria-pressed="false">${n}</button>`).join("")}<button type="button" class="chip" data-v="" aria-pressed="true">미측정</button></div></div>`).join("");
+  return `<form class="tc-run" id="tc-run">
+    ${condsOf(cur).map((c,i)=>`<fieldset class="tr-c" data-k="${c.key}"><legend>${i+1}. ${esc(condLabel(c,s))}</legend>
+      <div class="row3"><label class="fld">성공<input data-f="made" inputmode="numeric" required></label><label class="fld">시도<input data-f="tries" inputmode="numeric" value="${esc(s.reps)}"></label><label class="fld">목표 오차 평균 (${u}) <span class="hint">선택</span><input data-f="err" inputmode="decimal"></label></div>
+      ${c.track?`<label class="fld">${esc(c.track)} <span class="hint">선택</span><input data-f="routine" inputmode="numeric"></label>`:""}
+      ${c.perceived?`<div class="fld">선수가 느낀 부담 (0 없음 ~ 5 매우 큼) <span class="hint">재지 않았으면 '미측정' 그대로</span>${feel(c.key)}</div>`:""}
+      <details><summary class="hint">각 시도 오차 적기 (선택)</summary><label class="fld">시도마다 오차 (${u}), 쉼표로<input data-f="errs" placeholder="예: 30, 45, 20"></label></details></fieldset>`).join("")}
+    ${s.presentation==="Random"?`<label class="fld">실제로 한 순서와 상황<input id="tr-order" maxlength="200" placeholder="예: 평소 → 파세이브(롱퍼트) → 준비 순서 유지(숏퍼트)"></label>`:""}
+    <label class="ck-line"><input type="checkbox" id="tr-same" checked> 모든 조건을 같은 거리·경사·클럽으로 했어요</label>
+    <label class="fld">누가 확인했나요<select id="tr-src"><option value="선수 보고">내가 직접 셌어요</option><option value="코치 관찰">코치님이 보셨어요</option><option value="장비 측정">장비로 쟀어요</option></select></label>
+    <label class="fld">메모 <span class="hint">선택</span><input id="tr-memo" maxlength="200"></label>
+    <p class="status err" id="tr-err" aria-live="polite"></p>
+    <div class="actions"><button class="btn gold" type="submit">결과 저장</button><button class="btn" type="button" data-t="cancel">취소</button></div></form>`;
+}
+function renderTCard(){
+  const box=$("tcard");if(!box)return;if(!uid){box.innerHTML="";return}
+  const t=trainings[0];
+  const head=(pills="")=>`<div class="t-head"><span class="eyebrow"><b>AI</b>오늘의 훈련 제안</span><span>${pills}</span></div>`;
+  const stLine=`<p class="status" id="tc-st" role="status"></p>`;
+  const hist=trainings.length>1?`<details class="tc-hist"><summary class="hint">지난 훈련 ${trainings.length-1}개</summary>${trainings.slice(1,11).map(x=>{const c=(x.current||x.proposal).card;return `<div class="tc-h"><span>${esc(md((x.createdAt||"").slice(0,10)))} · ${esc(c.goal)}</span><span class="pill">${esc(tState(x))}</span>${x.next?`<small>${esc(x.next.text)}</small>`:""}</div>`}).join("")}</details>`:"";
+  if(!t||(["skipped","stopped"].includes(t.status)&&tMode!=="view")){
+    const intro=!t?(lessons.length?"최근 레슨 기록을 바탕으로 오늘 할 훈련 하나를 제안해요.":"먼저 현재 수행을 확인한 뒤 다음 훈련을 맞추겠습니다.")
+      :t.status==="stopped"?"지난 훈련은 중단으로 남겨 두었어요. 몸이 괜찮아지면 코치님과 상의한 뒤 새로 시작해요.":"지난 제안은 하지 않은 것으로 남겨 두었어요.";
+    box.innerHTML=`<div class="panel tcard">${head()}<p style="margin:0">${intro}</p><div class="actions"><button class="btn gold" type="button" data-t="new">오늘의 훈련 제안 받기</button></div>${stLine}${hist}</div>`;return}
+  const pills=`<span class="pill ${t.status==="done"?"ok":t.status==="applied"?"gold":""}">${tState(t)}</span> <span class="pill">${(t.adjustments||[]).length?"수정됨":"AI 제안"}</span>`;
+  let main="",acts="";
+  if(t.status==="proposed"){main=tMode==="edit"?tEditHTML(t):tCardHTML(t);
+    if(tMode!=="edit")acts=`<button class="btn gold" type="button" data-t="apply">적용하기</button><button class="btn" type="button" data-t="edit">고치기</button><button class="btn" type="button" data-t="skip">이번엔 안 할래요</button>`}
+  else if(t.status==="applied"){
+    if(tMode==="edit")main=tEditHTML(t);
+    else if(tMode==="run")main=tCardHTML(t).replace(/<details class="tc-why">[\s\S]*?<\/details>/,"")+`<h4 class="tc-h4">결과 확인</h4>`+tRunHTML(t);
+    else{main=tCardHTML(t);acts=`<button class="btn gold" type="button" data-t="run">결과 입력하기</button><button class="btn" type="button" data-t="edit">고치기</button><button class="btn" type="button" data-t="stop">중단했어요 (통증·피로)</button>`}
+    if(tStop)acts=`<div class="tc-stop"><p style="margin:0">어떤 이유로 멈췄나요? 그 동작은 쉬고 코치님과 상의해 주세요.</p><div class="chips">${["통증","과도한 피로","기타"].map(r=>`<button type="button" class="chip" data-t="stop-go" data-r="${r}">${r}</button>`).join("")}</div><button class="btn sm" type="button" data-t="stop-no">계속할게요</button></div>`;
+  }else{
+    const n=t.next;
+    main=`<h4 class="tc-h4">결과 확인</h4>${tResultSummary(t)}
+      <h4 class="tc-h4">다음 훈련</h4>${n?`<p>${esc(n.text)}</p>`:`<p class="hint">결과를 바탕으로 다음 훈련을 맞추는 중이 아니에요. 아래 버튼을 눌러 주세요.</p>`}
+      <details class="tc-why"><summary>이번 훈련 다시 보기</summary>${tCardHTML(t)}</details>`;
+    acts=!n?`<button class="btn gold" type="button" data-t="review">다음 훈련 맞추기</button>`:n.tpl?`<button class="btn gold" type="button" data-t="next">다음 훈련 제안 받기</button>`:`<button class="btn" type="button" data-t="new">새 훈련 제안 받기</button>`;
+  }
+  box.innerHTML=`<div class="panel tcard">${head(pills)}${main}${acts?`<div class="actions">${acts}</div>`:""}${stLine}${hist}</div>`;
+}
+const tErr=(e)=>{const m=(e&&(e.message||""))+" "+(e&&e.code||"");
+  return /guardian-pending/.test(m)?"보호자 확인이 끝나면 훈련 제안을 받을 수 있어요.":/age-required/.test(m)?"나이 확인이 필요해요. 새로고침해 주세요.":/resource-exhausted/.test(m)?"오늘 훈련 제안 횟수를 다 썼어요. 내일 다시 받아 주세요.":/train-invalid/.test(m)?"이번에는 믿을 만한 제안을 만들지 못했어요. 레슨 기록은 그대로예요. 잠시 뒤 다시 눌러 주세요.":"제안을 받지 못했어요. 레슨 기록과 저장은 그대로예요. 잠시 뒤 다시 눌러 주세요."};
+async function tUpdate(t,patch,ev){
+  const upd={...patch,updatedAt:new Date().toISOString()};
+  if(ev)upd.events=[...(t.events||[]),{at:upd.updatedAt,by:uid,role:myRole(),...ev}];
+  await db.doc("players/"+uid+"/trainings/"+t.id).update(upd);Object.assign(t,upd);
+}
+async function tPropose(parent){
+  if(tBusy)return;if(!ai){toast("로그인한 뒤에 받을 수 있어요");return}
+  tBusy=true;const st=$("tc-st");if(st){st.className="status";st.innerHTML=`<div class="guide" id="g-tc"></div><div class="ld" aria-hidden="true"></div>`;say($("g-tc"),"레슨 기록을 보고 오늘 할 훈련을 맞추는 중이에요. 20초쯤 걸려요.",{now:true,who:"daryl",motion:"think"})}
+  try{await ai(parent?{task:"train",parent}:{task:"train"});tMode="";await loadTrainings();renderTCard();
+    say($("g-chart"),"오늘의 훈련을 준비했어요. 그대로 하거나, 코치님과 고쳐서 적용해 주세요.",{now:true,who:"daryl",motion:"point"})}
+  catch(e){const s2=$("tc-st");if(s2){s2.className="status err";s2.textContent=tErr(e)}}
+  finally{tBusy=false}
+}
+async function tReview(t){
+  const st=$("tc-st");
+  try{await ai({task:"train_review",id:t.id});await loadTrainings();tMode="";renderTCard()}
+  catch(e){if(st){st.className="status err";st.textContent="결과는 저장했어요. 다음 훈련 맞추기는 아직 못 했어요. '다음 훈련 맞추기'를 다시 눌러 주세요."}renderTCard()}
+}
+$("tcard").addEventListener("click",async e=>{
+  const ch=e.target.closest(".tc-edit .chip, .tc-run .chip");
+  if(ch){e.preventDefault();const g=ch.parentElement;if(g.dataset.multi==="true")ch.setAttribute("aria-pressed",ch.getAttribute("aria-pressed")!=="true");else g.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c===ch));return}
+  const b=e.target.closest("[data-t]");if(!b||tBusy)return;const a=b.dataset.t,t=trainings[0];
+  try{
+    if(a==="new"){tMode="";await tPropose(null);return}
+    if(a==="next"){await tPropose(t.id);return}
+    if(a==="review"){b.disabled=true;await tReview(t);return}
+    if(a==="cancel"){tMode="";renderTCard();return}
+    if(a==="edit"){tMode="edit";renderTCard();return}
+    if(a==="run"){tMode="run";tStart=Date.now();renderTCard();$("tcard").scrollIntoView({behavior:"smooth",block:"start"});return}
+    if(a==="stop"){tStop=true;renderTCard();return}
+    if(a==="stop-no"){tStop=false;renderTCard();return}
+    if(a==="apply"){await tUpdate(t,{status:"applied"},{action:"applied"});toast("오늘 훈련으로 적용했어요");renderTCard();return}
+    if(a==="skip"){await tUpdate(t,{status:"skipped"},{action:"skipped"});tMode="";renderTCard();return}
+    if(a==="stop-go"){tStop=false;const cur=t.current||t.proposal;
+      const run={at:new Date().toISOString(),by:uid,role:myRole(),stopped:b.dataset.r,planned:cur.setup,results:{}};
+      await tUpdate(t,{status:"stopped",runs:[...(t.runs||[]),run]},{action:"stopped",reason:b.dataset.r});tMode="view";
+      await tReview(t);tMode="view";renderTCard();return}
+  }catch(err){toast("저장하지 못했습니다. 다시 눌러 주세요")}
+});
+$("tcard").addEventListener("submit",async e=>{
+  e.preventDefault();const f=e.target,t=trainings[0];if(!t)return;const cur=t.current||t.proposal;
+  if(f.id==="tc-edit"){
+    const v=n=>f.elements[n]?f.elements[n].value.trim():"";const pick=n=>[...f.querySelectorAll(`[data-chips="${n}"] .chip[aria-pressed="true"]`)].map(c=>c.dataset.v);
+    const reps=Number(v("reps"));
+    if(!v("goal")||!v("drill")||!v("steps")){toast("목표·훈련·진행 방법은 비울 수 없어요");return}
+    if(!Number.isInteger(reps)||reps<1||reps>30){toast("반복 수를 1~30 사이로 적어 주세요");return}
+    const setup={...cur.setup,distance:v("distance"),slope:v("slope"),club:v("club"),reps,success:v("success")};
+    if(cur.setup.trigger){setup.trigger={situation:pick("situation"),visual:pick("visual")};setup.presentation=pick("presentation")[0]||"Single"}
+    const next={card:{...cur.card,goal:v("goal"),drill:v("drill"),steps:v("steps").split("\n").map(x=>x.trim()).filter(Boolean).slice(0,8),checks:v("checks").split(/[·,]/).map(x=>x.trim()).filter(Boolean).slice(0,4)},setup,conditions:cur.conditions};
+    /* 원래 비교 기준을 그대로 쓸 수 있는지 다시 확인 */
+    const notes=[],p=t.proposal.setup,min=(t.template&&t.template.minReps)||5;
+    if(reps<min)notes.push(`조건마다 ${min}번보다 적으면 비교하지 않고 한 번 더 하자고 할 수 있어요.`);
+    if(setup.trigger&&!(setup.trigger.situation.length||setup.trigger.visual.length))notes.push("압박 상황을 하나도 고르지 않아 압박 비교를 할 수 없어요.");
+    if((p.distance||"")!==setup.distance||(p.club||"")!==setup.club)notes.push("거리나 클럽이 처음 제안과 달라졌어요. 이번 결과는 고친 조건끼리만 비교해요.");
+    await tUpdate(t,{current:next,adjustments:[...(t.adjustments||[]),{at:new Date().toISOString(),by:uid,role:myRole(),before:cur,after:next}],compat:{ok:!notes.some(n=>/할 수 없어요|비교하지 않고/.test(n)),notes}},{action:"edited"});
+    tMode="";toast("고친 내용으로 저장했어요. 처음 제안도 그대로 남아 있어요");renderTCard();return;
+  }
+  if(f.id==="tc-run"){
+    const err=$("tr-err");err.textContent="";const results={},miss=[];
+    const nv=(x)=>{const s=String(x||"").trim();if(s==="")return null;const n=Number(s);return Number.isFinite(n)&&n>=0?n:NaN};
+    for(const fs of f.querySelectorAll(".tr-c")){const k=fs.dataset.k,g=n=>{const i=fs.querySelector(`[data-f="${n}"]`);return i?i.value:""};
+      const made=nv(g("made")),tries=nv(g("tries")),er=nv(g("err")),routine=nv(g("routine"));
+      const errs=String(g("errs")||"").split(/[,\s]+/).filter(Boolean).map(Number);
+      const name=fs.querySelector("legend").textContent;
+      if(made===null||tries===null||!tries||Number.isNaN(made)||Number.isNaN(tries)||!Number.isInteger(made)||!Number.isInteger(tries)||made>tries){miss.push(name);continue}
+      if(Number.isNaN(er)||Number.isNaN(routine)||(routine!==null&&routine>tries)||errs.some(x=>!Number.isFinite(x))){miss.push(name+" (숫자 확인)");continue}
+      const r={made,tries,err:er,errs,routine};
+      const pf=fs.querySelectorAll("[data-feel]");if(pf.length){r.perceived={};pf.forEach(g2=>{const on=g2.querySelector('.chip[aria-pressed="true"]');const [,fk]=g2.dataset.feel.split(".");r.perceived[fk]=on&&on.dataset.v!==""?Number(on.dataset.v):null})}
+      results[k]=r}
+    if(miss.length){err.textContent="성공 수와 시도 수를 확인해 주세요: "+miss.join(", ");return}
+    const run={at:new Date().toISOString(),by:uid,role:myRole(),source:$("tr-src").value,sameSetup:$("tr-same").checked,
+      order:condsOf(cur).map(c=>c.key),presented:$("tr-order")?$("tr-order").value.trim():"",planned:cur.setup,results,memo:$("tr-memo").value.trim(),inputMs:tStart?Date.now()-tStart:null};
+    f.querySelector('[type="submit"]').disabled=true;
+    try{await tUpdate(t,{status:"done",runs:[...(t.runs||[]),run]},{action:"result"});toast("결과를 저장했어요")}
+    catch(_){err.textContent="저장하지 못했어요. 다시 눌러 주세요.";f.querySelector('[type="submit"]').disabled=false;return}
+    tMode="";await tReview(t);
+  }
+});
+
+/* 운영 지표 (코치·관리자): 추천 수만이 아니라 채택·수정·실제 수행·결과 입력·재검을 따로 센다 */
+async function renderTMetrics(){
+  const box=$("t-metrics");if(!box)return;if(!isEditor||!db.group){box.hidden=true;return}
+  try{const s=await db.group("trainings").get();const all=s.docs.map(d=>({id:d.id,...d.data()}));
+    const has=(t,a)=>(t.events||[]).some(e=>e.action===a);
+    const n=all.length,applied=all.filter(t=>has(t,"applied")).length,edited=all.filter(t=>(t.adjustments||[]).length).length,
+      done=all.filter(t=>(t.runs||[]).some(r=>!r.stopped)).length,stopped=all.filter(t=>t.status==="stopped").length,skipped=all.filter(t=>t.status==="skipped").length,
+      reviewed=all.filter(t=>t.review&&t.review.decision!=="no_data").length,
+      retestAsk=all.filter(t=>t.next&&t.next.decision==="retest_other_day"),retestDone=retestAsk.filter(t=>{const c=all.find(x=>x.id===t.nextId);return c&&(c.runs||[]).some(r=>!r.stopped)}).length,
+      ms=all.flatMap(t=>(t.runs||[]).map(r=>r.inputMs).filter(x=>x>0)),avg=ms.length?Math.round(ms.reduce((a,b)=>a+b,0)/ms.length/1000):null;
+    box.hidden=false;
+    box.innerHTML=`<h4 class="eyebrow"><b>T</b>AI 훈련 카드 운영 지표 (시범)</h4>
+      <div class="bio-grid"><div><small>추천</small><b>${n}</b></div><div><small>적용(채택)</small><b>${applied} / ${n}</b></div><div><small>코치·선수 수정</small><b>${edited} / ${n}</b></div><div><small>실제 수행</small><b>${done} / ${n}</b></div>
+      <div><small>결과 검토까지</small><b>${reviewed} / ${n}</b></div><div><small>미수행 · 중단</small><b>${skipped} · ${stopped}</b></div><div><small>다른 날 재검 완료</small><b>${retestDone} / ${retestAsk.length}</b></div><div><small>결과 입력 평균 시간</small><b>${avg===null?"—":avg+"초"}</b></div></div>
+      <p class="hint" style="margin:0">추천 수만으로 성과를 보지 않아요. 목표 수치는 초기 사용 자료를 모은 뒤 정합니다.</p>`;
+  }catch(_){box.hidden=true}
+}
