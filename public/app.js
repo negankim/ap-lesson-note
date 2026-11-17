@@ -34,7 +34,7 @@ const STATUS={active:"사용 중",pending:"검토 대기",retired:"중지"};
 let profile={level:"A",goal:""},lessons=[],draft=null,pillarFilter=null,openId=null,busy=false;
 
 /* ===== 화면 전환: 광장(첫 화면) · 로건(레슨 기록) · 루크(진단) · 데릴(훈련장) · 파코(감각·실전) · 크루에게 묻기 · 라이브러리(코치) ===== */
-const VIEWS=["home","lesson","dx","train","feel","ask","lib"],ALIAS={today:"home",plaza:"home",chart:"dx"};
+const VIEWS=["home","lesson","dx","train","feel","me","ask","lib"],ALIAS={today:"home",plaza:"home",chart:"dx"};
 function show(tab){
   tab=ALIAS[tab]||tab;if(!VIEWS.includes(tab))tab="home";
   if(tab==="lib"&&!isEditor)tab="home";
@@ -46,6 +46,7 @@ function show(tab){
   if(tab==="train"){renderMandala();renderActive();renderTrain()}
   if(tab==="feel"){renderToday();renderFeelHist()}
   if(tab==="ask")renderSug();
+  if(tab==="me")renderMe();
   if(tab==="lib"){renderLib();loadStats()}
   window.scrollTo(0,0);
 }
@@ -693,6 +694,8 @@ async function boot(){
   uid=await user.id();
   const me=await user.me();$("who").textContent=(me&&me.name)||"내 기록";setMenuUser(me&&me.name,user.role?user.role():"");
   try{const p=await db.doc("players/"+uid).get();if(p.exists){profileExists=true;const v=p.data();profile={level:v.level||"A",goal:v.goal||""}}}catch(e){}
+  await loadStatement();
+  if(!stmt.bio)await askBio();
   await loadCoaches();
   await loadLessons();
   let gotLib=false;const lt=setTimeout(()=>{if(!gotLib)$("lib-list").innerHTML='<div class="empty">라이브러리를 아직 불러오지 못했습니다. 연결이 느릴 수 있습니다.</div>'},10000);
@@ -712,3 +715,76 @@ const MILO_HELP={
   ask:{title:"크루에게 묻기",meaning:"내 레슨 기록을 근거로 크루가 답하는 곳이야.",action:"하루 10번까지 물을 수 있어. 기록에 없는 내용은 'AI 추정'으로 표시돼."}
 };
 (function startMilo(){if(!window.MiloHelp)return setTimeout(startMilo,150);window.MiloHelp.mount({root:document,assetUrl:"img/milo.webp",help:MILO_HELP})})();
+
+/* ===== 나의 스테이트먼트 (골퍼의 기본 캐릭터) =====
+   기본 바이오는 처음 로그인 때 필수, 6개 영역은 천천히. 항목마다 1~5 자기평가 + 아는 숫자(측정값).
+   저장: players/{uid}/statement/current. 크루는 참고만 하고, 판정은 레슨 기록과 코치 말이 먼저. */
+const BIO=[
+  {k:"years",l:"구력",t:"num",u:"년",ph:"예: 3"},
+  {k:"age",l:"나이 (만)",t:"num",u:"세",ph:"예: 15"},
+  {k:"gender",l:"성별",t:"pick",o:["남","여","선택 안 함"]},
+  {k:"handicap",l:"핸디캡 또는 평균 타수",t:"text",ph:"예: 핸디 12 · 평균 95타"},
+  {k:"practice",l:"훈련량",t:"text",ph:"예: 주 3회 · 회당 2시간"},
+  {k:"play",l:"플레이 빈도",t:"text",ph:"예: 월 2라운드"},
+];
+const AREAS=[
+  {k:"mental",n:"멘탈",node:"N1",ic:"bulb",note:"정식 멘탈 테스트 문항지가 준비되면 이 칸이 문항지로 바뀝니다. 지금은 간단한 자기평가만 받아요.",
+   items:[{k:"tension",l:"긴장 조절 (평소·시합)"},{k:"attention",l:"주의력 (지금 샷에 집중)"},{k:"focus",l:"집중 지속 (18홀 내내)"},{k:"body",l:"압박 때 신체 변화 조절",hint:"심장·손떨림·호흡이 빨라지는 정도",mu:"",mph:"예: 손이 떨리고 숨이 빨라짐"}]},
+  {k:"short",n:"숏게임",node:"N5",ic:"flag",
+   items:[{k:"pitch",l:"피치샷",mu:"m",mph:"자신 있는 거리 예: 30~60"},{k:"chip",l:"칩샷"},{k:"scramble",l:"스크램블 능력",mu:"%",mph:"파 세이브율 예: 30"},{k:"skills",l:"스킬스 (벙커·로브 등)"}]},
+  {k:"shot",n:"샷",node:"N3",ic:"ball",
+   items:[{k:"driver",l:"드라이버",mu:"m",mph:"평균 비거리 예: 210"},{k:"iron",l:"아이언샷",mu:"m",mph:"7번 아이언 거리 예: 140"},{k:"shape",l:"샷셰이핑 능력 (구질)",mu:"",mph:"주 구질 예: 드로우"}]},
+  {k:"physical",n:"피지컬",node:"N7",ic:"glove",
+   items:[{k:"rom",l:"가동범위"},{k:"strength",l:"근력"},{k:"endurance",l:"근지구력"},{k:"agility",l:"민첩성"},{k:"power",l:"파워"}]},
+  {k:"course",n:"코스 매니지먼트",node:"N8",ic:"cart",
+   items:[{k:"club",l:"클럽 선택"},{k:"strategy",l:"코스 공략"},{k:"adapt",l:"코스 적응력"}]},
+  {k:"fitting",n:"클럽 피팅 (머터리얼)",node:"N3",ic:"bag",rate:false,
+   items:[{k:"weight",l:"클럽 무게",mu:"g",mph:"드라이버 예: 310"},{k:"flex",l:"샤프트 강도",mu:"",mph:"예: R · SR · S · X"},{k:"speed",l:"스윙 스피드",mu:"m/s",mph:"예: 42"},{k:"spin",l:"스핀량",mu:"rpm",mph:"드라이버 예: 2600"},{k:"fitted",l:"피팅 받은 적",mu:"",mph:"예: 2025년 드라이버 피팅"}]},
+];
+const RATE=["","많이 부족","부족","보통","좋음","강점"];
+let stmt={},meOpen="";
+async function loadStatement(){try{const d=await db.doc("players/"+uid+"/statement/current").get();stmt=d.exists?d.data():{}}catch(_){stmt={}}}
+async function saveStatement(){stmt.updatedAt=new Date().toISOString();await db.doc("players/"+uid+"/statement/current").set(stmt)}
+function bioFields(v={}){return BIO.map(f=>f.t==="pick"
+  ?`<fieldset class="cs-age"><legend>${f.l}</legend>${f.o.map(o=>`<label><input type="radio" name="b-${f.k}" value="${o}" ${v[f.k]===o?"checked":""}> ${o}</label>`).join("")}</fieldset>`
+  :`<label class="fld">${f.l}<input id="b-${f.k}" ${f.t==="num"?'inputmode="numeric"':""} maxlength="40" value="${esc(v[f.k]||"")}" placeholder="${f.ph}"></label>`).join("")}
+function readBio(form){const o={};BIO.forEach(f=>{if(f.t==="pick"){const c=form.querySelector(`input[name="b-${f.k}"]:checked`);o[f.k]=c?c.value:""}else o[f.k]=form.querySelector("#b-"+f.k).value.trim()});return o}
+function askBio(){
+  const ov=$("bio-ov"),form=$("bio-form");ov.hidden=false;document.body.style.overflow="hidden";
+  form.innerHTML=bioFields(stmt.bio||{})+`<p class="status err" id="bio-err" aria-live="polite"></p><button class="btn gold" type="submit">저장하고 광장으로</button>`;
+  say($("g-bio"),"반가워요, 루크예요. 지금의 나를 먼저 알아 두면 레슨을 훨씬 정확하게 정리할 수 있어요.",{now:true,who:"rook"});
+  return new Promise(done=>{form.onsubmit=async e=>{e.preventDefault();const b=readBio(form),err=$("bio-err");
+    const miss=BIO.filter(f=>!b[f.k]).map(f=>f.l);if(miss.length){err.textContent="아직 비어 있어요: "+miss.join(", ");return}
+    stmt.bio=b;try{await saveStatement()}catch(_){err.textContent="저장하지 못했습니다. 다시 눌러 주세요.";return}
+    ov.hidden=true;document.body.style.overflow="";done()}});
+}
+function areaDone(a){const v=(stmt.areas||{})[a.k]||{};return a.items.filter(i=>{const x=v[i.k]||{};return x.v||x.m}).length}
+function renderMe(){
+  if(!$("me-bio"))return;const b=stmt.bio||{};
+  $("me-bio").innerHTML=`<div class="panel"><div class="t-head"><span class="eyebrow"><b>B</b>기본 바이오</span><button class="btn sm" type="button" id="me-bio-edit">고치기</button></div>
+    <div class="bio-grid">${BIO.map(f=>`<div><small>${f.l}</small><b>${esc(b[f.k]||"—")}${b[f.k]&&f.u?f.u:""}</b></div>`).join("")}</div>
+    <form id="me-bio-form" class="me-bio-form" hidden></form></div>`;
+  $("me-areas").innerHTML=AREAS.map(a=>{const n=areaDone(a),open=meOpen===a.k,v=(stmt.areas||{})[a.k]||{};
+    return `<div class="panel me-area${open?" open":""}"><button type="button" class="me-head" data-area="${a.k}" aria-expanded="${open}">
+      <img src="img/icons3d/${a.ic}.webp" alt="" width="40" height="40"><span><b>${a.n}</b><small>${n}/${a.items.length} 작성 · 주로 ${a.node} ${esc(NODES[a.node].ko)}</small></span><i class="bar"><i style="width:${Math.round(n/a.items.length*100)}%"></i></i></button>
+      ${open?`<form class="me-form" data-form="${a.k}">${a.note?`<p class="notice" style="margin:0">${a.note}</p>`:""}
+        ${a.items.map(i=>{const x=v[i.k]||{};return `<div class="me-item"><div class="t-head"><b>${i.l}</b>${x.coach?`<span class="pill ok">코치 확인</span>`:`<span class="pill">자기평가</span>`}</div>${i.hint?`<small class="hint">${i.hint}</small>`:""}
+          ${a.rate===false?"":`<div class="chips rate" data-k="${i.k}">${[1,2,3,4,5].map(r=>`<button type="button" class="chip" data-r="${r}" aria-pressed="${x.v===r}" title="${RATE[r]}">${r}<small>${RATE[r]}</small></button>`).join("")}</div>`}
+          ${i.mph!==undefined?`<label class="fld">측정값·메모 ${i.mu?`(${i.mu})`:""} <span class="hint">선택</span><input data-m="${i.k}" maxlength="60" value="${esc(x.m||"")}" placeholder="${i.mph}"></label>`:""}</div>`}).join("")}
+        <div class="actions"><button class="btn gold" type="submit">저장</button></div></form>`:""}</div>`}).join("");
+}
+$("v-me").addEventListener("click",e=>{
+  const h=e.target.closest("[data-area]");if(h){meOpen=meOpen===h.dataset.area?"":h.dataset.area;renderMe();return}
+  const r=e.target.closest(".rate .chip");if(r){const g=r.parentElement;g.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c===r));return}
+  if(e.target.id==="me-bio-edit"){const f=$("me-bio-form");f.hidden=!f.hidden;if(!f.hidden)f.innerHTML=bioFields(stmt.bio||{})+`<div class="actions"><button class="btn gold" type="submit">저장</button></div>`}
+});
+$("v-me").addEventListener("submit",async e=>{
+  e.preventDefault();const f=e.target;
+  if(f.id==="me-bio-form"){stmt.bio={...(stmt.bio||{}),...readBio(f)}}
+  else{const k=f.dataset.form,a=AREAS.find(x=>x.k===k);const prev=(stmt.areas||{})[k]||{},o={};
+    a.items.forEach(i=>{const c=f.querySelector(`.rate[data-k="${i.k}"] .chip[aria-pressed="true"]`),m=f.querySelector(`[data-m="${i.k}"]`);
+      const v=c?Number(c.dataset.r):0,mv=m?m.value.trim():"";if(v||mv)o[i.k]={l:i.l,v,m:mv,u:i.mu||"",coach:false};});
+    stmt.areas={...(stmt.areas||{}),[k]:{...o,_n:a.n,_node:a.node,_at:new Date().toISOString()}};meOpen=""}
+  try{await saveStatement();toast("저장했어요");renderMe()}catch(_){toast("저장하지 못했습니다")}
+});
+MILO_HELP.me={title:"나의 스테이트먼트",meaning:"지금의 나를 기록해 두는 곳이야. 기본 바이오와 멘탈·숏게임·샷·피지컬·코스·클럽 피팅 6개 영역이 있어.",action:"영역을 눌러 1~5로 스스로 매기고, 아는 숫자가 있으면 적어 줘. 크루는 참고만 하고, 판정은 레슨 기록과 코치님 말이 먼저야."};

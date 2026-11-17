@@ -79,6 +79,8 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
   if (!req.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
   const d = req.data || {};
   const minor = (await ageOf(req.auth.uid)) !== "adult";
+  let statement = null;
+  try { const sd = await db.doc(`players/${req.auth.uid}/statement/current`).get(); statement = sd.exists ? sd.data() : null; } catch (_) {}
   if (d.task === "organize") {
     const text = String(d.text || "").slice(0, 12000);
     if (text.length < 20) throw new HttpsError("invalid-argument", "레슨 내용이 너무 짧습니다.");
@@ -87,7 +89,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
     const lib = libSnap.docs.map((x) => ({ id: x.id, ...x.data() }));
     const coach = String(d.coach || "").slice(0, 40);
     const r = await callClaude(MODEL.organize, organizePrompt({
-      text, coach, profile: d.profile || {}, history: (d.history || []).slice(0, 3), lib, minor,
+      text, coach, profile: d.profile || {}, history: (d.history || []).slice(0, 3), lib, minor, statement,
     }), 16000);
     /* 새 레슨 포인트는 서버가 보관해 둔다. 공동 레거시에는 이 보관본만 올라간다(브라우저가 보낸 값은 쓰지 않음). */
     const NODE = /^N[1-8]$/, DOM = ["tech", "mental", "fitting", "physical", "course"];
@@ -106,7 +108,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
   if (d.task === "feedback") {
     await countUse(req.auth.uid, "feedback");
     return callClaude(MODEL.feedback, feedbackPrompt({
-      lesson: d.lesson || {}, verdict: String(d.verdict || ""), text: String(d.text || "").slice(0, 300), minor,
+      lesson: d.lesson || {}, verdict: String(d.verdict || ""), text: String(d.text || "").slice(0, 300), minor, statement,
     }), 2000);
   }
   if (d.task === "chat") {
@@ -124,7 +126,7 @@ exports.ai = onCall({ secrets: [ANTHROPIC_API_KEY], region: "asia-northeast3", t
       .sort((a, b) => ((b.date || "") + (b.createdAt || "")).localeCompare((a.date || "") + (a.createdAt || ""))).slice(0, 5);
     const history = hs.docs.map((x) => x.data()).reverse();
     const r = await callClaude(MODEL.chat, chatPrompt({
-      question: q, lessons, profile: pf.exists ? pf.data() : {}, history, minor,
+      question: q, lessons, profile: pf.exists ? pf.data() : {}, history, minor, statement,
       today: new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10),
     }), 1500);
     const who = ["logan", "rook", "daryl", "paco"].includes(r.who) ? r.who : "logan";

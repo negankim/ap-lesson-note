@@ -56,6 +56,10 @@ service cloud.firestore {
     match /players/{uid} {
       allow read, write: if signedIn() && request.auth.uid == uid;
       allow read: if isStaff();
+      match /statement/{id} {
+        allow read, write: if signedIn() && request.auth.uid == uid;
+        allow read: if isStaff();
+      }
       match /coaches/{id} {
         allow read, write: if signedIn() && request.auth.uid == uid;
         allow read: if isStaff();

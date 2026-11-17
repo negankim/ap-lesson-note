@@ -111,6 +111,15 @@
       </div>
     </div>
   </div>
+  <!-- 골퍼 기본 바이오 (처음 한 번, 필수) -->
+  <div class="cs" id="bio-ov" hidden role="dialog" aria-modal="true" aria-labelledby="bio-h">
+    <div class="cs-box wrap">
+      <div class="guide" id="g-bio"></div>
+      <h1 id="bio-h">나의 기본 바이오</h1>
+      <p class="lead" style="margin:0">크루가 나에게 맞게 정리하고 답하려면 기본 정보가 필요해요. 1분이면 됩니다.</p>
+      <form id="bio-form" class="panel" novalidate></form>
+    </div>
+  </div>
 <div class="wrap">
   <header class="top">
     <div style="display:flex;align-items:center;gap:12px"><button class="menu-btn" type="button" id="menu" aria-label="메뉴 열기" aria-expanded="false"><span></span><span></span><span></span></button><button class="brand home-btn" type="button" data-show="home" aria-label="광장으로"><i class="ap-mono" aria-hidden="true"></i><span aria-hidden="true">LEGACY<small>SYSTEM</small></span></button></div>
@@ -231,6 +240,17 @@
     <div id="feel-hist"></div>
   </section>
 
+  <!-- ===== 나의 스테이트먼트: 기본 바이오 + 6개 영역 자기평가·측정값 ===== -->
+  <section id="v-me" class="wrap room" style="gap:16px" hidden>
+    <header class="room-head">
+      <img class="room-av" src="img/crew3d/rook-point.webp" alt="" width="96" height="160">
+      <div><p class="room-k">나의 기본 캐릭터</p><h1>나의 스테이트먼트</h1><p class="lead">지금의 나를 남겨 두면, 크루가 레슨을 정리하고 답할 때 참고합니다. 판정은 늘 레슨 기록과 코치님 말씀이 먼저예요.</p></div>
+      <button class="milo-q" type="button" data-milo-help="me" aria-label="스테이트먼트 도움말">?</button>
+    </header>
+    <div id="me-bio"></div>
+    <div id="me-areas" style="display:grid;gap:12px"></div>
+  </section>
+
   <!-- ===== 크루에게 묻기 ===== -->
   <section id="v-ask" class="wrap room" style="gap:16px" hidden>
     <header class="room-head">
@@ -290,6 +310,7 @@
     <button class="dw-main" type="button" data-go="dx"><img class="dw-img" src="img/crew3d/rook-idle.webp" alt="" width="34" height="34">Matrix 진단 <small>루크</small></button>
     <button class="dw-main" type="button" data-go="train"><img class="dw-img" src="img/crew3d/daryl-idle.webp" alt="" width="34" height="34">훈련장 <small>데릴</small></button>
     <button class="dw-main" type="button" data-go="feel"><img class="dw-img" src="img/crew3d/paco-idle.webp" alt="" width="34" height="34">감각 · 실전 <small>파코</small></button>
+    <button class="dw-main" type="button" data-go="me"><img class="dw-img" src="img/icons3d/glove.webp" alt="" width="34" height="34">나의 스테이트먼트</button>
     <button class="dw-main" type="button" data-go="ask"><img class="dw-img" src="img/icons3d/bulb.webp" alt="" width="34" height="34">크루에게 묻기</button>
     <details class="dw-grp" id="dw-lib" hidden>
       <summary><img class="dw-img" src="img/icons3d/bag.webp" alt="" width="34" height="34">훈련 라이브러리 <small>코치</small></summary>

@@ -38,7 +38,23 @@ const CAUSAL = `[인과 구조 — 판정의 바탕]
 - 거울 인과: N2↔N8, N3↔N7, N4↔N6. 유지(Sustaining) N6 → N7 → N8은 한 방향으로만 올라간다.
 - 회귀 경로: 유지 단계 문제는 1차로 거울 짝인 만들기 노드(via)로, 그래도 설명되지 않으면 2차로 바로 아래 인접 노드(via2)로 내려가 확인한다. (N6→via N4 · N7→via N3, 2차 N6 · N8→via N2, 2차 N7)`;
 
-function organizePrompt({ text, coach, profile, history, lib, minor }) {
+/* 골퍼 스테이트먼트(본인 작성 자기평가)를 프롬프트용 몇 줄로. 참고만 한다. */
+function statementText(st) {
+  if (!st || !st.bio) return "";
+  const b = st.bio, L = { years: "구력", age: "나이", gender: "성별", handicap: "핸디캡/평균 타수", practice: "훈련량", play: "플레이 빈도" };
+  const bio = Object.keys(L).filter((k) => b[k]).map((k) => `${L[k]} ${b[k]}${k === "years" ? "년" : k === "age" ? "세" : ""}`).join(" · ");
+  const areas = Object.entries(st.areas || {}).map(([k, a]) => {
+    const items = Object.entries(a).filter(([x]) => !x.startsWith("_")).map(([, v]) => `${v.l}${v.v ? " " + v.v + "/5" : ""}${v.m ? " (" + v.m + (v.u ? v.u : "") + ")" : ""}`).join(", ");
+    return items ? `${a._n || k}(${a._node || ""}): ${items}` : "";
+  }).filter(Boolean).join("\n");
+  return `[골퍼 기본 상태 · 본인이 적은 스테이트먼트, 참고만]
+바이오: ${bio}${areas ? "\n" + areas : ""}
+- 판정은 레슨 기록과 코치 말이 먼저다. 스테이트먼트는 설명 수준·훈련 강도·분량을 맞추는 데 참고한다.
+- 멘탈 자기평가는 mf 판단의 '본인 진술' 근거로만 쓰고, 이번 레슨에 근거가 없으면 멘탈 포커스를 낮음으로 단정하지 않는다.
+- 자기평가와 레슨 내용이 다르면 확인할 점으로 check에 남긴다.`;
+}
+
+function organizePrompt({ text, coach, profile, history, lib, minor, statement }) {
   const level = (profile && LV[profile.level]) ? profile.level : "A";
   const hist = (history || []).map((h) => `- ${h.date} ${h.title} (${h.node || "미정"})`).join("\n") || "없음";
   return `너는 AP 골프 아카데미의 레슨 기록 비서다. 레슨을 받은 골퍼가 남긴 레슨 내용을 정리한다.
@@ -46,6 +62,7 @@ function organizePrompt({ text, coach, profile, history, lib, minor }) {
 레슨한 코치: ${coach || "미기재"}
 최근 레슨:
 ${hist}
+${statementText(statement)}
 
 [AP Swing Learning Matrix 8노드]
 N1 Mental Focus(주의·긴장·루틴, 모든 노드에 곱해지는 계수) / N2 Perceived Impact(머릿속 임팩트·의도) / N3 Face & Lever(페이스·레버, 공의 출발 방향) / N4 Club Path(클럽 경로, 공의 휘어짐) / N5 Real Impact(컨택·타점·탄도) / N6 Consistency(재현성, 거울 N4) / N7 Efficiency(효율·비거리, 거울 N3) / N8 Adaptability(실전 적용, 거울 N2)
@@ -78,7 +95,7 @@ ${safety(minor)}
 ${text}`;
 }
 
-function feedbackPrompt({ lesson, verdict, text, minor }) {
+function feedbackPrompt({ lesson, verdict, text, minor, statement }) {
   const r = (lesson && lesson.result) || {};
   const prev = ((lesson && lesson.feedback) || [])
     .map((f) => `- ${f.date} ${f.verdict}: ${f.text || ""} → ${f.adjust || ""}`).join("\n") || "없음";
@@ -89,6 +106,7 @@ function feedbackPrompt({ lesson, verdict, text, minor }) {
 이전 피드백:
 ${prev}
 이번 반응: ${verdict}${text ? " / " + text : ""}
+${statementText(statement)}
 
 ${CAUSAL}
 [원칙] 코치의 처방을 뒤집지 말고 수행 방법·강도·설명을 조정한다. 반응이 같은 문제가 3번 이상이면 coach_needed=true. 근거가 본인 진술뿐이면 단정하지 말고 확인할 것을 말한다.
@@ -99,7 +117,7 @@ JSON 하나만: {"adjust":"다음 연습에서 바꿀 것 1~2문장","drill":{"n
 }
 
 /* 오늘의 대화: 내 레슨 기록을 근거로 답한다. 코치 말을 뒤집지 않는다. */
-function chatPrompt({ question, lessons, profile, history, minor, today }) {
+function chatPrompt({ question, lessons, profile, history, minor, today, statement }) {
   const level = (profile && LV[profile.level]) ? profile.level : "A";
   const L = (lessons || []).map((l, i) => {
     const r = l.result || {}, done = l.done || [];
@@ -130,6 +148,8 @@ ${CAUSAL}
 [내 레슨 기록 · 최신순]
 ${L}
 
+${statementText(statement)}
+
 [최근 대화]
 ${H}
 
@@ -149,4 +169,4 @@ ${safety(minor)}
 ${question}`;
 }
 
-module.exports = { organizePrompt, feedbackPrompt, chatPrompt };
+module.exports = { organizePrompt, feedbackPrompt, chatPrompt, statementText };
