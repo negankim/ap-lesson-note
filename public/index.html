@@ -246,6 +246,7 @@
     <div id="mandala"></div>
     <div id="bplan"></div>
     <div id="tcard"></div>
+    <div id="my-rx" hidden></div>
     <details class="panel" id="lesson-plan"><summary><span class="eyebrow"><b>L</b>최근 레슨의 6일 플랜</span></summary><div id="train-today"></div><div id="active"></div></details>
     <details class="panel mfold" id="mfold">
       <summary><span class="eyebrow"><b>M</b>선수 구분과 영역별 레슨 보기</span></summary>
@@ -325,6 +326,13 @@
   </section>
 
   <!-- ===== 훈련 라이브러리 ===== -->
+  <section id="v-tlib" class="wrap" style="gap:14px" hidden>
+    <div>
+      <h1>AP Training Library</h1>
+      <p class="lead">선수의 문제 관찰 → 원인 가설 → 드릴 추천 → 코치 처방 → 수행 결과 → 재평가를 잇는 훈련 데이터입니다. 수집 자료와 표준 드릴 초안은 승인·검증 전이에요.</p>
+    </div>
+    <div id="tl-box"></div>
+  </section>
   <section id="v-lib" class="wrap" style="gap:16px" hidden>
     <div>
       <h1>훈련 라이브러리</h1>
@@ -394,6 +402,7 @@
     </details>
     <details class="dw-grp" id="dw-lib" hidden>
       <summary><img class="dw-img" src="img/icons3d/bag.webp" alt="" width="34" height="34">훈련 라이브러리 <small>코치</small></summary>
+      <button type="button" data-go="tlib">Training Library · 처방</button>
       <button type="button" data-go="lib" data-node="">전체 보기</button>
       <div class="dw-nodes">
         <button type="button" data-go="lib" data-node="N1">N1 멘탈</button><button type="button" data-go="lib" data-node="N2">N2 머릿속 임팩트</button>

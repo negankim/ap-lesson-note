@@ -1084,3 +1084,220 @@
 1083	Mulakan dengan pelajaran atau masalah.
 1084	Hari ini: sesi {0} pelan tempur.
 1085	Pilih apa yang hendak direkod hari ini.
+1086	Data latihan yang menghubungkan pemerhatian masalah pemain → hipotesis punca → cadangan latihan → preskripsi jurulatih → hasil → penilaian semula. Bahan yang dikumpul dan draf latihan standard belum diluluskan atau disahkan.
+1087	Training Library · Preskripsi
+1088	Bahan sumber sahaja
+1089	Standard AP selesai
+1090	Semakan jurulatih selesai
+1091	Digunakan di lapangan
+1092	Kesan disahkan
+1093	Dinilai melalui kadar kejayaan berulang
+1094	Dinilai melalui penyesuaian apabila keadaan berubah
+1095	Dinilai mengikut kriteria latihan
+1096	Hayunan
+1097	Pengurusan padang
+1098	Menunggu kelulusan jurulatih
+1099	Diluluskan jurulatih
+1100	Pindaan diminta
+1101	Ditolak
+1102	(sementara)
+1103	Rujukan silang daripada Axis lain
+1104	ulangan
+1105	sisihan
+1106	perubahan
+1107	kemungkinan
+1108	perbezaan
+1109	peningkatan
+1110	Bidang sama ({0})
+1111	Berkaitan bidang semakan utama {0} {1} (sementara)
+1112	Rujukan silang {0}
+1113	Berkaitan bidang berkaitan untuk disemak
+1114	Gejala sama seperti yang diperhatikan: {0}
+1115	Tujuan atau nama bertindih dengan pemerhatian
+1116	Latihan yang menyemak hipotesis punca yang sama: {0}
+1117	Peraturan preskripsi diluluskan jurulatih
+1118	Draf peraturan preskripsi (belum diluluskan)
+1119	Pelaksanaan di bawah tekanan (R8 Pressure Execution)
+1120	Teroka latihan
+1121	Preskripsi pemain
+1122	Pengurusan data
+1123	Belum ada latihan dalam Training Library. Ia muncul di sini setelah pentadbir mengimport data Excel di 'Pengurusan data'.
+1124	Subkategori R8
+1125	Tiada latihan yang sepadan.
+1126	Cari gejala atau nama
+1127	Kesukaran
+1128	Peralatan
+1129	Tahap bukti
+1130	{0} / {1} latihan · {2} pemerhatian dikumpul · Draf latihan standard dan bahan yang dikumpul bukan latihan yang diluluskan atau disahkan.
+1131	cth. garisan mula ke kanan, putt pendek, gate
+1132	Kesukaran {0}
+1133	Draf standard
+1134	Perlu semak pendua
+1135	Belum disahkan · perlu kelulusan jurulatih
+1136	Gejala yang boleh diperhatikan
+1137	Hipotesis punca bersaing (jangan pastikan)
+1138	Syarat penggunaan
+1139	Cara melakukan (ringkasan AP)
+1140	Peralatan diperlukan
+1141	Kesukaran · dos disyorkan
+1142	Kriteria kejayaan
+1143	Metrik
+1144	Awas tafsiran
+1145	Gred bukti (Excel)
+1146	Variasi
+1147	· kesukaran
+1148	Sumber asal · hak penggunaan
+1149	Hak belum disahkan
+1150	Penggunaan dibenarkan
+1151	Penggunaan terhad
+1152	Milik AP
+1153	Sumber
+1154	Tiada sumber
+1155	{0} pemerhatian dikumpul (tajuk dan pautan sahaja)
+1156	Pautan
+1157	Semakan jurulatih
+1158	Indikasi:
+1159	Kontraindikasi:
+1160	Ukuran dipersetujui:
+1161	Calon pendua
+1162	{0} · {1}% serupa
+1163	Subkategori R8 (dipisah koma)
+1164	Tanda sebagai pendua '{0}'
+1165	Sejarah perubahan {0}
+1166	Tahap bukti · kelulusan · sunting
+1167	Indikasi (Indications)
+1168	Kontraindikasi (Contraindications)
+1169	Ukuran dipersetujui
+1170	Peralatan (dipisah koma)
+1171	Kesukaran 1–5
+1172	Kaedah penilaian
+1173	Nama Korea
+1174	Dos
+1175	Sebab perubahan (wajib)
+1176	Simpan (v{0})
+1177	cth. Digunakan pada 3 pemain, dos diselaraskan
+1178	Memuatkan sejarah penggunaan…
+1179	Butiran latihan
+1180	· jumlah {0}/{1} ({2}%)
+1181	{0} preskripsi · {1} hasil direkod{2}
+1182	Nombor hasil dipaparkan seperti direkod; jurulatih menilai pengesahan kesan secara berasingan.
+1183	Belum ada sejarah penggunaan.
+1184	Hasil latihan · sejarah penggunaan
+1185	· bidang selain hayunan hanya rujukan silang
+1186	Tulis pemerhatian dan hipotesis untuk mendapat cadangan latihan berdasarkan peraturan.
+1187	Simpan perubahan preskripsi
+1188	Sahkan preskripsi
+1189	Hasil · penilaian semula
+1190	Pilih pelajaran (pilihan)
+1191	Preskripsi tanpa pelajaran
+1192	Masalah yang diperhatikan
+1193	Apa yang dilihat (fenomena)
+1194	Bidang (AP Axis)
+1195	Tidak ditetapkan
+1196	Tag gejala (dipisah koma)
+1197	Hipotesis punca
+1198	Perlu semakan lanjut
+1199	Bidang semakan utama (nod Matrix, bukan punca yang disahkan{0})
+1200	Muat semula cadangan
+1201	Calon latihan disyorkan
+1202	Terima, ubah atau keluarkan, atau cari dan tambah sendiri
+1203	Cari dan tambah terus
+1204	Sahkan preskripsi jurulatih
+1205	cth. Pada putt pendek garisan mula kerap ke kanan
+1206	cth. Putting, Start Direction
+1207	cth. Kawalan arah muka kayu atau kemungkinan pengaruh laluan kayu
+1208	Nama latihan atau gejala
+1209	Pilih pemain
+1210	Pilih pemain
+1211	Terima
+1212	Diterima dengan pengubahsuaian
+1213	Keluarkan
+1214	Syarat
+1215	Kriteria penilaian
+1216	Cara melakukan
+1217	Cara hasil dinilai
+1218	Serta-merta
+1219	Garis asas
+1220	Ujian semula tertangguh
+1221	Pemindahan
+1222	Tekanan
+1223	{0}/{1}{2}
+1224	Cubaan
+1225	Berjaya
+1226	Jenis hasil
+1227	Hasil serta-merta
+1228	Garis asas (sebelum latihan)
+1229	Ujian semula tertangguh (hari lain)
+1230	Pemindahan (keadaan rawak atau padang)
+1231	Ukuran (pilihan)
+1232	Keadaan (kayu · jarak · lie)
+1233	Tekanan 0–5
+1234	Ketegangan 0–5
+1235	Kebimbangan 0–5
+1236	Keadaan · nota
+1237	Rekod hasil
+1238	Peningkatan diperhatikan
+1239	Tiada perubahan
+1240	Kemerosotan diperhatikan
+1241	Penilaian ditangguhkan
+1242	Asas (apa yang dilihat)
+1243	Rekod penilaian semula
+1244	Kadar kejayaan serta-merta sahaja tidak dikira sebagai hasil. Sila rekod juga ujian semula tertangguh pada hari lain dan hasil pemindahan dalam keadaan rawak atau padang (R15). Penilaian semula ialah pemerhatian; ia tidak bermakna punca telah disahkan, dan jurulatih menilai keberkesanan latihan secara berasingan merentasi pemain.
+1245	cth. purata ralat garisan mula 3 cm
+1246	cth. Putter · 1.5 m · rata
+1247	cth. 21 daripada 30 dalam keadaan sama, kali lepas 12
+1248	· {0} dikecualikan daripada sumber larangan kutipan
+1249	Import terakhir {0} · {1} · latihan baharu {2}·berubah {3}·sama {4} · pemerhatian baharu {5}·sama {6}{7}
+1250	Import data Excel
+1251	Mengimport data AP Global Training Library yang dihantar bersama aplikasi. Kandungan sama tidak diduplikasi, perubahan menaikkan versi, dan medan yang disunting jurulatih, tahap bukti dan kelulusan tidak ditimpa.
+1252	Import
+1253	({0} tanpa subkategori)
+1254	(nama lama {0} dibetulkan)
+1255	Taksonomi N8: {0}{1}
+1256	Rekod pembetulan versi
+1257	Calon semakan gabungan (pemerhatian hampir sama nama)
+1258	Nama payung (Towel, Gate, dll.) mesti dipecahkan kepada latihan khusus sebelum dipreskripsi (R04).
+1259	Nama payung
+1260	Belum dikelaskan
+1261	Latihan untuk dipautkan
+1262	{0} pemerhatian belum dikelaskan · pautkan kepada latihan standard
+1263	{0} peraturan tadbir urus data
+1264	Latihan dengan medan kosong {0}
+1265	Data semasa
+1266	Sumber asal
+1267	Pemerhatian dikumpul
+1268	Latihan standard
+1269	Pemerhatian dipautkan kepada latihan standard {0} · belum dikelaskan {1} · nama payung (perlu dipecahkan) {2}
+1270	Semakan R8 Adaptability
+1271	Consistency (mengulang prestasi yang sama) dan Adaptability (memilih dan melaksanakan prestasi yang diperlukan apabila keadaan berubah) dinilai secara berasingan.
+1272	Latihan standard dipautkan kepada R8: {0}{1}
+1273	Latihan dinilai melalui penyesuaian (adapt): {0} · kadar kejayaan berulang (repeat): {1}
+1274	{0} sumber asal · hak penggunaan
+1275	Ditanda sebagai pendua
+1276	Dipilih jurulatih
+1277	Sedang mengimport… mungkin mengambil beberapa minit.
+1278	Selesai · latihan baharu {0}, berubah {1}, sama {2} · sumber baharu {3}
+1279	Tidak dapat mengimport.
+1280	Dipautkan jurulatih
+1281	Dipautkan kepada latihan standard
+1282	Tidak dapat memautkan
+1283	Bilangan berjaya melebihi cubaan
+1284	Sila pilih pemain.
+1285	Sila tulis masalah yang diperhatikan.
+1286	Sekurang-kurangnya satu latihan mesti diterima.
+1287	Hipotesis · perlu semakan lanjut
+1288	Preskripsi disahkan
+1289	Tidak dapat menyimpan. Sila semak kebenaran jurulatih.
+1290	Hasil direkod
+1291	Penilaian semula direkod
+1292	Disimpan (v{0})
+1293	Tiada perubahan
+1294	Tidak dapat menyimpan.
+1295	Latihan preskripsi jurulatih
+1296	{0} · Diperhatikan: {1}
+1297	Cubaan
+1298	Rekod hasil
+1299	{0} rekod
+1300	Sila isi bilangan cubaan
+1301	Rekod pemain
+1302	Hasil direkod

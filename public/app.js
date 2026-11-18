@@ -1,3 +1,4 @@
+import { initTL, renderTL, bindTL, renderMyRx } from "./tlib.js";
 /* AP 레슨 노트 · 화면 로직. 데이터·AI·음성은 services.js가 넣어 준다. */
 /* ===== AP Swing Learning Matrix (진단 맵 기준) ===== */
 const NODES={
@@ -36,14 +37,14 @@ const STATUS={active:"사용 중",pending:"검토 대기",retired:"중지"};
 let profile={level:"A",goal:""},lessons=[],draft=null,pillarFilter=null,openId=null,busy=false;
 
 /* ===== 화면 전환: 광장(첫 화면) · 로건(레슨 기록) · 루크(진단) · 데릴(훈련장) · 파코(감각·실전) · 크루에게 묻기 · 라이브러리(코치) ===== */
-const VIEWS=["home","lesson","dx","train","feel","me","ask","lib","link","plan","set","watch"],ALIAS={today:"home",plaza:"home",chart:"dx"};
+const VIEWS=["home","lesson","dx","train","feel","me","ask","lib","link","plan","set","watch","tlib"],ALIAS={today:"home",plaza:"home",chart:"dx"};
 function show(tab){
   if(typeof crewStop==="function")crewStop();
   if(typeof miloStop==="function")miloStop(true);
   if(typeof crewPopClose==="function")crewPopClose();
   if(typeof miloPopClose==="function")miloPopClose();
   tab=ALIAS[tab]||tab;if(!VIEWS.includes(tab))tab="home";
-  if(tab==="lib"&&!isEditor)tab="home";
+  if((tab==="lib"||tab==="tlib")&&!isEditor)tab="home";
   for(const v of VIEWS)$("v-"+v).hidden=tab!==v;
   if(tab==="home"){openPlaza();setTimeout(crewWalk,300);setTimeout(miloEnter,500)}
   plazaTree&&plazaTree.pause(tab!=="home");
@@ -60,6 +61,8 @@ function show(tab){
   if(tab==="lib")renderTMetrics();
   if(tab==="me")renderMe();
   if(tab==="lib"){renderLib();loadStats()}
+  if(tab==="tlib"){bindTL();renderTL()}
+  if(tab==="train"&&uid)renderMyRx(uid,$("my-rx"));
   window.scrollTo(0,0);
 }
 document.addEventListener("click",e=>{const b=e.target.closest("[data-show]");if(b)show(b.dataset.show)});
@@ -669,6 +672,7 @@ function setMenuUser(name,role){
 /* ===== 시작 ===== */
 export function start(services){
   ({db,user,ai,dict,seedFn,consent,chat,legacy,account}=services);
+  initTL({db,tlib:services.tlib,toast,md,uid:()=>uid,role:()=>(user.role?user.role():"player"),isEditor:()=>isEditor});
   return boot();
 }
 /* ===== 나이 확인 · 보호자 동의 =====

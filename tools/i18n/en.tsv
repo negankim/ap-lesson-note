@@ -1084,3 +1084,220 @@
 1083	Start with a lesson or a problem.
 1084	Today: battle plan session {0}.
 1085	Choose what to record today.
+1086	Training data that links a player's observed problem → cause hypothesis → drill recommendation → coach prescription → results → reassessment. Collected sources and standard drill drafts are not yet approved or validated.
+1087	Training Library · Prescription
+1088	Source only
+1089	AP standardized
+1090	Coach reviewed
+1091	In field use
+1092	Effect validated
+1093	Evaluated by repeat success rate
+1094	Evaluated by adaptation to changing conditions
+1095	Evaluated by drill criteria
+1096	Swing
+1097	Course management
+1098	Awaiting coach approval
+1099	Coach approved
+1100	Revision requested
+1101	Rejected
+1102	(tentative)
+1103	Cross-reference from another Axis
+1104	repeat
+1105	deviation
+1106	variation
+1107	possibility
+1108	difference
+1109	increase
+1110	Same area ({0})
+1111	Linked to primary review area {0} {1} (tentative)
+1112	{0} cross-reference
+1113	Linked to a related area to check
+1114	Same symptom as observed: {0}
+1115	Purpose or name overlaps the observation
+1116	Drill that checks the same cause hypothesis: {0}
+1117	Coach-approved prescription rule
+1118	Draft prescription rule (not approved)
+1119	Pressure execution (R8 Pressure Execution)
+1120	Browse drills
+1121	Prescribe for player
+1122	Data management
+1123	No drills in the Training Library yet. They appear here once an admin imports the Excel data in 'Data management'.
+1124	R8 sub-category
+1125	No drills match these conditions.
+1126	Search symptom or name
+1127	Difficulty
+1128	Equipment
+1129	Evidence level
+1130	{0} / {1} drills · {2} collected observations · Standard drill drafts and collected sources are not approved or validated drills.
+1131	e.g. start line right, short putts, gate
+1132	Difficulty {0}
+1133	Standard draft
+1134	Check for duplicate
+1135	Not yet validated · coach approval needed
+1136	Observable symptom
+1137	Competing cause hypotheses (do not conclude)
+1138	Conditions of use
+1139	How to do it (AP summary)
+1140	Equipment needed
+1141	Difficulty · recommended dose
+1142	Success criterion
+1143	Metrics
+1144	Interpretation caution
+1145	Evidence grade (Excel)
+1146	Variants
+1147	· difficulty
+1148	Original source · usage rights
+1149	Rights not yet confirmed
+1150	Use permitted
+1151	Use restricted
+1152	AP original
+1153	Source
+1154	No source
+1155	{0} collected observations (title and link only)
+1156	Link
+1157	Coach review
+1158	Indications:
+1159	Contraindications:
+1160	Measure agreed:
+1161	Duplicate candidates
+1162	{0} · {1}% similar
+1163	R8 sub-categories (comma-separated)
+1164	Mark as duplicate of '{0}'
+1165	Change history {0}
+1166	Evidence level · approval · edit
+1167	Indications
+1168	Contraindications
+1169	Measure agreed
+1170	Equipment (comma-separated)
+1171	Difficulty 1–5
+1172	Evaluation method
+1173	Korean name
+1174	Dose
+1175	Reason for change (required)
+1176	Save (v{0})
+1177	e.g. Applied to 3 players, dose adjusted
+1178	Loading usage history…
+1179	Drill details
+1180	· total {0}/{1} ({2}%)
+1181	{0} prescriptions · {1} results recorded{2}
+1182	Result numbers are shown as recorded; coaches judge effect validation separately.
+1183	No usage history yet.
+1184	Training results · usage history
+1185	· non-swing areas are cross-referenced only
+1186	Write an observation and hypothesis to get rule-based drill recommendations.
+1187	Save prescription changes
+1188	Confirm prescription
+1189	Results · reassessment
+1190	Choose a lesson (optional)
+1191	Prescribe without a lesson
+1192	Observed problem
+1193	What you saw (phenomenon)
+1194	Area (AP Axis)
+1195	Not set
+1196	Symptom tags (comma-separated)
+1197	Cause hypothesis
+1198	Needs further checking
+1199	Primary review area (Matrix node, not a confirmed cause{0})
+1200	Refresh recommendations
+1201	Recommended drill candidates
+1202	Adopt, modify or exclude, or search and add your own
+1203	Search and add directly
+1204	Confirm coach prescription
+1205	e.g. On short putts the start line often goes right
+1206	e.g. Putting, Start Direction
+1207	e.g. Face direction control or possible club path influence
+1208	Drill name or symptom
+1209	Select player
+1210	Choose a player
+1211	Adopt
+1212	Adopted with changes
+1213	Exclude
+1214	Conditions
+1215	Evaluation criterion
+1216	How to do it
+1217	How results are evaluated
+1218	Immediate
+1219	Baseline
+1220	Retention retest
+1221	Transfer
+1222	Pressure
+1223	{0}/{1}{2}
+1224	Attempts
+1225	Successes
+1226	Result type
+1227	Immediate result
+1228	Baseline (before drill)
+1229	Retention retest (another day)
+1230	Transfer (random or course conditions)
+1231	Measurement (optional)
+1232	Conditions (club · distance · lie)
+1233	Pressure 0–5
+1234	Tension 0–5
+1235	Anxiety 0–5
+1236	Conditions · notes
+1237	Record result
+1238	Improvement observed
+1239	No change
+1240	Worsening observed
+1241	Judgment withheld
+1242	Basis (what you saw)
+1243	Record reassessment
+1244	Immediate success rate alone does not count as an outcome. Please also record a retention retest on another day and transfer results under random or course conditions (R15). Reassessment is an observation; it does not mean a cause is confirmed, and coaches judge drill effectiveness separately across players.
+1245	e.g. average start-line error 3 cm
+1246	e.g. Putter · 1.5 m · flat
+1247	e.g. 21 of 30 under the same conditions, last time 12
+1248	· {0} excluded from no-collection sources
+1249	Last import {0} · {1} · drills new {2}·changed {3}·same {4} · observations new {5}·same {6}{7}
+1250	Import Excel data
+1251	Imports the AP Global Training Library data deployed with the app. Identical content is not duplicated, changes raise the version, and coach-edited fields, evidence levels and approvals are not overwritten.
+1252	Import
+1253	({0} without sub-category)
+1254	(old name {0} corrected)
+1255	Taxonomy N8: {0}{1}
+1256	Version corrections
+1257	Merge review candidates (near-identical observations)
+1258	Umbrella names (Towel, Gate, etc.) must be split into specific drills before prescribing (R04).
+1259	Umbrella name
+1260	Unclassified
+1261	Drill to link
+1262	{0} unclassified observations · link to standard drills
+1263	{0} data governance rules
+1264	Drills with empty fields {0}
+1265	Current data
+1266	Original sources
+1267	Collected observations
+1268	Standard drills
+1269	Observations linked to standard drills {0} · unclassified {1} · umbrella names (need splitting) {2}
+1270	R8 Adaptability check
+1271	Consistency (repeating the same performance) and Adaptability (choosing and executing the needed performance as conditions change) are evaluated separately.
+1272	Standard drills linked to R8: {0}{1}
+1273	Adaptation-evaluated (adapt) drills: {0} · repeat success-rate (repeat): {1}
+1274	{0} original sources · usage rights
+1275	Marked as duplicate
+1276	Chosen by coach
+1277	Importing… this may take a few minutes.
+1278	Done · drills new {0}, changed {1}, same {2} · sources new {3}
+1279	Could not import.
+1280	Linked by coach
+1281	Linked to standard drill
+1282	Could not link
+1283	Successes exceed attempts
+1284	Please choose a player.
+1285	Please write the observed problem.
+1286	At least one drill must be adopted.
+1287	Hypothesis · needs further checking
+1288	Prescription confirmed
+1289	Could not save. Please check coach permission.
+1290	Result recorded
+1291	Reassessment recorded
+1292	Saved (v{0})
+1293	Nothing changed
+1294	Could not save.
+1295	Coach-prescribed training
+1296	{0} · Observed: {1}
+1297	Attempts
+1298	Record result
+1299	{0} records
+1300	Please enter the number of attempts
+1301	Player record
+1302	Result recorded

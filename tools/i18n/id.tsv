@@ -1084,3 +1084,220 @@
 1083	Mulai dari pelajaran atau masalah.
 1084	Hari ini: sesi {0} rencana tempur.
 1085	Pilih yang mau dicatat hari ini.
+1086	Data latihan yang menghubungkan pengamatan masalah pemain → hipotesis penyebab → rekomendasi latihan → resep pelatih → hasil → evaluasi ulang. Bahan yang dikumpulkan dan draf latihan standar belum disetujui atau divalidasi.
+1087	Training Library · Resep
+1088	Hanya bahan sumber
+1089	Standardisasi AP selesai
+1090	Tinjauan pelatih selesai
+1091	Sedang diterapkan di lapangan
+1092	Efek tervalidasi
+1093	Dinilai dari tingkat keberhasilan berulang
+1094	Dinilai dari adaptasi saat kondisi berubah
+1095	Dinilai menurut kriteria latihan
+1096	Ayunan
+1097	Manajemen lapangan
+1098	Menunggu persetujuan pelatih
+1099	Disetujui pelatih
+1100	Perlu revisi
+1101	Ditolak
+1102	(sementara)
+1103	Rujukan silang dari Axis lain
+1104	ulang
+1105	deviasi
+1106	variasi
+1107	kemungkinan
+1108	perbedaan
+1109	peningkatan
+1110	Area sama ({0})
+1111	Terkait area tinjauan utama {0} {1} (sementara)
+1112	Rujukan silang {0}
+1113	Terkait area terkait yang perlu dilihat
+1114	Gejala sama dengan yang diamati: {0}
+1115	Tujuan atau nama tumpang tindih dengan pengamatan
+1116	Latihan yang memeriksa hipotesis penyebab yang sama: {0}
+1117	Aturan resep yang disetujui pelatih
+1118	Draf aturan resep (belum disetujui)
+1119	Eksekusi di bawah tekanan (R8 Pressure Execution)
+1120	Jelajahi latihan
+1121	Resep untuk pemain
+1122	Manajemen data
+1123	Belum ada latihan di Training Library. Akan muncul di sini setelah admin mengimpor data Excel di 'Manajemen data'.
+1124	Subkategori R8
+1125	Tidak ada latihan yang cocok.
+1126	Cari gejala atau nama
+1127	Kesulitan
+1128	Peralatan
+1129	Tingkat bukti
+1130	{0} / {1} latihan · {2} pengamatan terkumpul · Draf latihan standar dan bahan terkumpul bukan latihan yang disetujui atau divalidasi.
+1131	mis. garis awal ke kanan, putt pendek, gate
+1132	Kesulitan {0}
+1133	Draf standar
+1134	Perlu cek duplikat
+1135	Belum divalidasi · perlu persetujuan pelatih
+1136	Gejala yang dapat diamati
+1137	Hipotesis penyebab yang bersaing (jangan simpulkan)
+1138	Syarat penerapan
+1139	Cara melakukan (ringkasan AP)
+1140	Peralatan yang dibutuhkan
+1141	Kesulitan · dosis yang disarankan
+1142	Kriteria berhasil
+1143	Metrik
+1144	Peringatan tafsiran
+1145	Tingkat bukti (Excel)
+1146	Varian
+1147	· kesulitan
+1148	Sumber asli · hak penggunaan
+1149	Hak belum dikonfirmasi
+1150	Penggunaan diizinkan
+1151	Penggunaan dibatasi
+1152	Milik AP
+1153	Sumber
+1154	Tidak ada sumber
+1155	{0} pengamatan terkumpul (judul dan tautan saja)
+1156	Tautan
+1157	Tinjauan pelatih
+1158	Indikasi:
+1159	Kontraindikasi:
+1160	Ukuran disepakati:
+1161	Kandidat duplikat
+1162	{0} · {1}% mirip
+1163	Subkategori R8 (pisahkan dengan koma)
+1164	Tandai sebagai duplikat '{0}'
+1165	Riwayat perubahan {0}
+1166	Tingkat bukti · persetujuan · edit
+1167	Indikasi (Indications)
+1168	Kontraindikasi (Contraindications)
+1169	Ukuran disepakati
+1170	Peralatan (pisahkan dengan koma)
+1171	Kesulitan 1–5
+1172	Metode penilaian
+1173	Nama Korea
+1174	Dosis
+1175	Alasan perubahan (wajib)
+1176	Simpan (v{0})
+1177	mis. Diterapkan pada 3 pemain, dosis disesuaikan
+1178	Memuat riwayat penggunaan…
+1179	Detail latihan
+1180	· total {0}/{1} ({2}%)
+1181	{0} resep · {1} hasil tercatat{2}
+1182	Angka hasil ditampilkan sesuai catatan; validasi efek dinilai terpisah oleh tim pelatih.
+1183	Belum ada riwayat penggunaan.
+1184	Hasil latihan · riwayat penggunaan
+1185	· area selain ayunan hanya rujukan silang
+1186	Tulis pengamatan dan hipotesis untuk mendapat rekomendasi latihan berbasis aturan.
+1187	Simpan perubahan resep
+1188	Konfirmasi resep
+1189	Hasil · evaluasi ulang
+1190	Pilih pelajaran (opsional)
+1191	Resep tanpa pelajaran
+1192	Masalah yang diamati
+1193	Apa yang dilihat (fenomena)
+1194	Area (AP Axis)
+1195	Tidak ditentukan
+1196	Tag gejala (pisahkan dengan koma)
+1197	Hipotesis penyebab
+1198	Perlu pemeriksaan lebih lanjut
+1199	Area tinjauan utama (simpul Matrix, bukan penyebab yang dipastikan{0})
+1200	Muat ulang rekomendasi
+1201	Kandidat latihan yang direkomendasikan
+1202	Terima, ubah, atau keluarkan, atau cari dan tambahkan sendiri
+1203	Cari dan tambahkan langsung
+1204	Konfirmasi resep pelatih
+1205	mis. Pada putt pendek garis awal sering melenceng ke kanan
+1206	mis. Putting, Start Direction
+1207	mis. Masalah kontrol arah muka stik atau kemungkinan pengaruh jalur stik
+1208	Nama latihan atau gejala
+1209	Pilih pemain
+1210	Pilih pemain
+1211	Terima
+1212	Diterima dengan perubahan
+1213	Keluarkan
+1214	Kondisi
+1215	Kriteria penilaian
+1216	Cara melakukan
+1217	Cara hasil dinilai
+1218	Langsung
+1219	Baseline
+1220	Uji ulang tertunda
+1221	Transfer
+1222	Tekanan
+1223	{0}/{1}{2}
+1224	Percobaan
+1225	Berhasil
+1226	Jenis hasil
+1227	Hasil langsung
+1228	Baseline (sebelum latihan)
+1229	Uji ulang tertunda (hari lain)
+1230	Transfer (kondisi acak atau lapangan)
+1231	Pengukuran (opsional)
+1232	Kondisi (stik · jarak · lie)
+1233	Tekanan 0–5
+1234	Ketegangan 0–5
+1235	Kecemasan 0–5
+1236	Kondisi · catatan
+1237	Catat hasil
+1238	Perbaikan teramati
+1239	Tidak ada perubahan
+1240	Pemburukan teramati
+1241	Penilaian ditunda
+1242	Dasar (apa yang dilihat)
+1243	Catat evaluasi ulang
+1244	Tingkat keberhasilan langsung saja tidak dihitung sebagai hasil. Catat juga uji ulang tertunda di hari lain dan hasil transfer dalam kondisi acak atau lapangan (R15). Evaluasi ulang adalah pengamatan; bukan berarti penyebab sudah dipastikan, dan tim pelatih menilai efektivitas latihan secara terpisah dari hasil banyak pemain.
+1245	mis. rata-rata galat garis awal 3 cm
+1246	mis. Putter · 1,5 m · datar
+1247	mis. 21 dari 30 dalam kondisi sama, sebelumnya 12
+1248	· {0} dikecualikan dari sumber yang dilarang dikumpulkan
+1249	Impor terakhir {0} · {1} · latihan baru {2}·berubah {3}·sama {4} · pengamatan baru {5}·sama {6}{7}
+1250	Impor data Excel
+1251	Mengimpor data AP Global Training Library yang disertakan dengan aplikasi. Konten yang sama tidak diduplikasi, perubahan menaikkan versi, dan kolom yang diedit pelatih, tingkat bukti, serta persetujuan tidak ditimpa.
+1252	Impor
+1253	({0} tanpa subkategori)
+1254	(nama lama {0} sudah dikoreksi)
+1255	Taksonomi N8: {0}{1}
+1256	Catatan koreksi versi
+1257	Kandidat tinjauan penggabungan (pengamatan dengan nama hampir sama)
+1258	Nama payung (Towel, Gate, dll.) harus dipecah menjadi latihan spesifik sebelum diresepkan (R04).
+1259	Nama payung
+1260	Belum diklasifikasi
+1261	Latihan yang akan ditautkan
+1262	{0} pengamatan belum diklasifikasi · tautkan ke latihan standar
+1263	{0} aturan tata kelola data
+1264	Latihan dengan kolom kosong {0}
+1265	Data saat ini
+1266	Sumber asli
+1267	Pengamatan terkumpul
+1268	Latihan standar
+1269	Pengamatan tertaut ke latihan standar {0} · belum diklasifikasi {1} · nama payung (perlu dipecah) {2}
+1270	Pemeriksaan R8 Adaptability
+1271	Consistency (mengulang kinerja yang sama) dan Adaptability (memilih dan menjalankan kinerja yang dibutuhkan saat situasi berubah) dinilai terpisah.
+1272	Latihan standar yang tertaut ke R8: {0}{1}
+1273	Latihan dinilai dengan adaptasi (adapt): {0} · tingkat keberhasilan berulang (repeat): {1}
+1274	{0} sumber asli · hak penggunaan
+1275	Ditandai sebagai duplikat
+1276	Dipilih pelatih
+1277	Mengimpor… mungkin perlu beberapa menit.
+1278	Selesai · latihan baru {0}, berubah {1}, sama {2} · sumber baru {3}
+1279	Tidak dapat mengimpor.
+1280	Ditautkan pelatih
+1281	Ditautkan ke latihan standar
+1282	Tidak dapat menautkan
+1283	Jumlah berhasil melebihi percobaan
+1284	Silakan pilih pemain.
+1285	Silakan tulis masalah yang diamati.
+1286	Minimal satu latihan harus diterima.
+1287	Hipotesis · perlu pemeriksaan lebih lanjut
+1288	Resep dikonfirmasi
+1289	Tidak dapat menyimpan. Periksa izin pelatih.
+1290	Hasil dicatat
+1291	Evaluasi ulang dicatat
+1292	Tersimpan (v{0})
+1293	Tidak ada perubahan
+1294	Tidak dapat menyimpan.
+1295	Latihan resep pelatih
+1296	{0} · Diamati: {1}
+1297	Jumlah percobaan
+1298	Catat hasil
+1299	{0} catatan
+1300	Silakan isi jumlah percobaan
+1301	Catatan pemain
+1302	Hasil dicatat

@@ -172,5 +172,5 @@ onAuthStateChanged(auth, async (u) => {
     if (d.exists()) { role = d.data().role || "player"; extra = { nickname: d.data().nickname || "", tone: d.data().tone || "coach", research: !!d.data().research, lang: d.data().lang || "", country: d.data().country || "" }; await updateDoc(ref, { name: u.displayName || "", lastSeen: serverTimestamp() }); }
     else await setDoc(ref, { name: u.displayName || "", role: "player", createdAt: serverTimestamp(), lastSeen: serverTimestamp() });
   } catch (e) { console.warn("users doc", e); }
-  await start({ db, account: httpsCallable(fn, "account", { timeout: 120000 }), user: makeUser(u, role, extra), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation(), consent: makeConsent(u, role), chat: makeChat(u), legacy: { ...legacy, add: httpsCallable(fn, "legacy", { timeout: 60000 }) }, seedFn: httpsCallable(fn, "seedLibrary", { timeout: 120000 }) });
+  await start({ db, account: httpsCallable(fn, "account", { timeout: 120000 }), tlib: httpsCallable(fn, "tlib", { timeout: 540000 }), user: makeUser(u, role, extra), ai: httpsCallable(fn, "ai", { timeout: 120000 }), dict: makeDictation(), consent: makeConsent(u, role), chat: makeChat(u), legacy: { ...legacy, add: httpsCallable(fn, "legacy", { timeout: 60000 }) }, seedFn: httpsCallable(fn, "seedLibrary", { timeout: 120000 }) });
 });

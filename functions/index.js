@@ -448,3 +448,36 @@ exports.account = onCall({ region: "asia-northeast3", timeoutSeconds: 120 }, asy
   await admin.auth().deleteUser(uid).catch(() => {});
   return { ok: true };
 });
+
+/* ===== AP Training Library (독립 모듈 functions/tlib.js) =====
+ * import: 관리자만. 기본은 함께 배포된 tlib-seed.json(엑셀에서 tools/tl_import.py 로 만든 것), 같은 내용은 새로 만들지 않는다.
+ * edit:   코치·관리자. 버전·이력 보존, 근거 단계 올리기(효과 검증은 관리자만). */
+const TL = require("./tlib");
+exports.tlib = onCall({ region: "asia-northeast3", timeoutSeconds: 540, memory: "512MiB" }, async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
+  const me = await db.doc("users/" + req.auth.uid).get();
+  const role = me.exists ? me.data().role : "player";
+  if (!["coach", "admin"].includes(role)) throw new HttpsError("permission-denied", "코치·관리자만 할 수 있습니다.");
+  const d = req.data || {};
+  if (d.task === "import") {
+    if (role !== "admin") throw new HttpsError("permission-denied", "관리자만 가져올 수 있습니다.");
+    let bundle;
+    try { bundle = require("./tlib-seed.json"); } catch (_) { throw new HttpsError("not-found", "가져올 자료가 아직 없습니다."); }
+    const rep = await TL.importBundle(db, bundle, req.auth.uid);
+    return { ok: true, report: rep };
+  }
+  if (d.task === "link") {
+    try { return await TL.linkObserved(db, String(d.id || ""), d.family, { by: req.auth.uid, note: d.note }); }
+    catch (e) { throw new HttpsError("failed-precondition", e.message === "not-found" ? "레코드나 드릴을 찾지 못했습니다." : "저장하지 못했습니다."); }
+  }
+  if (d.task === "edit") {
+    const id = String(d.id || "");
+    if (!/^[A-Za-z0-9_-]{3,40}$/.test(id)) throw new HttpsError("invalid-argument", "드릴 번호가 맞지 않습니다.");
+    try { return { ok: true, ...(await TL.editDrill(db, id, d.patch || {}, { by: req.auth.uid, role, note: d.note })) }; }
+    catch (e) {
+      const m = { "note-required": "바꾸는 이유를 한 줄 적어 주세요.", "not-found": "드릴을 찾지 못했습니다.", "admin-only": "효과 검증 완료는 관리자만 정할 수 있습니다.", "metric-required": "측정 지표나 성공 기준이 없으면 승인할 수 없습니다(R11)." }[e.message];
+      throw new HttpsError(m ? "failed-precondition" : "internal", m || "저장하지 못했습니다.");
+    }
+  }
+  throw new HttpsError("invalid-argument", "알 수 없는 요청입니다.");
+});

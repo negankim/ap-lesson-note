@@ -113,6 +113,15 @@ service cloud.firestore {
         allow read, write: if signedIn() && request.auth.uid == uid;
         allow read: if isStaff();
       }
+      // 훈련 처방·결과(Training Library 연결): 선수 본인과 코치가 만들고 덧붙인다. 결과·재평가는 지우지 못한다.
+      match /tlRx/{id} {
+        allow read: if (signedIn() && request.auth.uid == uid) || isStaff() || isViewer(uid);
+        allow create: if (signedIn() && request.auth.uid == uid) || isStaff();
+        allow update: if ((signedIn() && request.auth.uid == uid) || isStaff())
+          && request.resource.data.results.size() >= resource.data.results.size()
+          && request.resource.data.reassess.size() >= resource.data.reassess.size();
+        allow delete: if false;
+      }
       match /lessons/{id} {
         allow read, write: if signedIn() && request.auth.uid == uid;
         allow read: if isStaff() || isViewer(uid);
@@ -124,6 +133,14 @@ service cloud.firestore {
       allow read: if isStaff();
     }
 
+    // AP Training Library: 원본·표준 드릴·변형·처방 규칙은 서버(tlib 함수)만 쓴다. 로그인하면 읽기.
+    match /tl_sources/{id} { allow read: if signedIn(); allow write: if false; }
+    match /tl_drills/{id} { allow read: if signedIn(); allow write: if false; }
+    match /tl_variants/{id} { allow read: if signedIn(); allow write: if false; }
+    match /tl_rx/{id} { allow read: if signedIn(); allow write: if false; }
+    match /tl_meta/{id} { allow read: if isStaff(); allow write: if false; }
+    // 적용 이력(드릴별): 코치·관리자는 모든 선수의 처방 기록을 읽는다
+    match /{path=**}/tlRx/{id} { allow read: if isStaff(); }
     match /library/{id} {
       allow read: if signedIn();
       allow write: if isStaff();
