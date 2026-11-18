@@ -1,4 +1,4 @@
-import { initTL, renderTL, bindTL, renderMyRx } from "./tlib.js";
+import { initTL, renderTL, bindTL, renderMyRx, myRxItems } from "./tlib.js";
 /* AP 레슨 노트 · 화면 로직. 데이터·AI·음성은 services.js가 넣어 준다. */
 /* ===== AP Swing Learning Matrix (진단 맵 기준) ===== */
 const NODES={
@@ -36,9 +36,17 @@ const KIND={point:"레슨 포인트",drill:"드릴",training:"훈련"};
 const STATUS={active:"사용 중",pending:"검토 대기",retired:"중지"};
 let profile={level:"A",goal:""},lessons=[],draft=null,pillarFilter=null,openId=null,busy=false;
 
-/* ===== 화면 전환: 광장(첫 화면) · 로건(레슨 기록) · 루크(진단) · 데릴(훈련장) · 파코(감각·실전) · 크루에게 묻기 · 라이브러리(코치) ===== */
-const VIEWS=["home","lesson","dx","train","feel","me","ask","lib","link","plan","set","watch","tlib"],ALIAS={today:"home",plaza:"home",chart:"dx"};
+/* ===== 화면 전환. 선수의 한 바퀴: 오늘의 대화 → 말하기(코치님 레슨·내 얘기) → 정리 → 오늘의 훈련(같이 짜기) → 했어요 → 다시
+   예전 이름(dx=내 문제 진술, feel=파코 느낌)은 새 화면으로 연결한다 ===== */
+const VIEWS=["home","lesson","train","me","ask","lib","link","plan","set","watch","tlib"],ALIAS={today:"home",plaza:"home",chart:"lesson",dx:"lesson",feel:"train"};
+let recMode="coach";
+function setRec(m){recMode=m==="self"?"self":"coach";
+  document.querySelectorAll("#rec-mode [data-rec-m]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.recM===recMode)));
+  $("rec-coach").hidden=recMode!=="coach";$("rec-self").hidden=recMode!=="self";
+  if(recMode==="self"){renderProbForm();chartSay()}}
+$("rec-mode").addEventListener("click",e=>{const b=e.target.closest("[data-rec-m]");if(b)setRec(b.dataset.recM)});
 function show(tab){
+  if(tab==="dx")recMode="self";
   if(typeof crewStop==="function")crewStop();
   if(typeof miloStop==="function")miloStop(true);
   if(typeof crewPopClose==="function")crewPopClose();
@@ -48,11 +56,9 @@ function show(tab){
   for(const v of VIEWS)$("v-"+v).hidden=tab!==v;
   if(tab==="home"){openPlaza();setTimeout(crewWalk,300);setTimeout(miloEnter,500)}
   plazaTree&&plazaTree.pause(tab!=="home");
-  if(tab==="lesson"){renderList();renderLegacy()}
-  if(tab==="dx"){renderProbForm();renderProbList();chartSay();$("coach-zone").hidden=!isEditor;if(isEditor)renderDx()}
-  if(tab==="train"){renderMandala();renderActive();renderTrain();renderMandalaAP();renderPlan()}
-  if(tab==="feel"){renderToday();renderFeelHist()}
-  if(tab==="ask"){renderSug();renderTalk()}
+  if(tab==="lesson"){setRec(recMode);renderList();renderLegacy();$("coach-zone").hidden=!isEditor;if(isEditor)renderDx()}
+  if(tab==="train"){renderMandala();renderActive();renderTrain();renderMandalaAP();renderPlan();renderFeelHist();chartSay();renderDay();if(uid)myRxItems(uid).then(x=>{rxPool=x}).catch(()=>{})}
+  if(tab==="ask"){renderSug();renderTalk();renderTalkQ()}
   if(tab==="link"){renderLink();loadViewers().then(renderLink)}
   if(tab==="plan")renderPlanPage();
   if(tab==="set")renderSet();
@@ -65,7 +71,7 @@ function show(tab){
   if(tab==="train"&&uid)renderMyRx(uid,$("my-rx"));
   window.scrollTo(0,0);
 }
-document.addEventListener("click",e=>{const b=e.target.closest("[data-show]");if(b)show(b.dataset.show)});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-show]");if(!b)return;if(b.dataset.rec)recMode=b.dataset.rec;show(b.dataset.show)});
 
 /* ===== Matrix mini map ===== */
 function mapSVG(on,via,mf,leaves={}){
@@ -160,7 +166,7 @@ $("out").addEventListener("click",async e=>{
     await loadLessons();
     if(lg.added||lg.echoed){plazaStats=null;show("home");
       say($("g-plaza"),`NEW 레슨 포인트! ${cname||"코치"}님의 레슨이 ${npNodes.map(n=>n+" "+NODES[n].ko).join(", ")}에 ${lg.added?`새 잎 ${lg.added}개`:""}${lg.added&&lg.echoed?", ":""}${lg.echoed?`이미 있던 잎에 출처 ${lg.echoed}개`:""}로 더해졌어요.`,{now:true,who:"rook",motion:"success"})}
-    else{toast("저장했어요. 데릴의 훈련장에서 오늘의 훈련 제안을 받아 보세요");show("train")}
+    else{toast("저장했어요. 오늘의 훈련을 같이 짜 봐요");show("train")}
   }catch(err){toast("저장하지 못했습니다. 잠시 뒤 다시 눌러 주세요");e.target.disabled=false}
 });
 
@@ -195,21 +201,9 @@ $("mgrid").addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(
 function sameCount(l){return (l.feedback||[]).filter(f=>f.verdict==="여전하다").length}
 function chartSay(){
   const l=lessons[0];const g=$("g-chart"),gp=$("g-pos");if(!g)return;g.dataset.who="daryl";
-  if(!l){if(gp)say(gp,"지금 겪는 문제를 골라서 알려 주세요. 글은 안 써도 돼요. 문제와 솔루션, 훈련 방법을 바로 정리해 줄게요.",{who:"rook"});say(g,mandala?"만다라트가 준비됐어요. 설정을 고르고 배틀플랜을 만들어요.":"아직 기록이 없어요. 먼저 만다라트를 만들거나, 루크에게 문제를 말해 주세요.");return}
-  const plan=l.result.plan||[],done=l.done||[];const next=plan.find(p=>!done.includes(p.day));
-  const nd=l.result.node&&NODES[l.result.node];
-  if(gp){
-    if(sameCount(l)>=3)say(gp,"같은 문제가 세 번 넘게 반복됐어요. 혼자 더 하기보다 코치님과 원인을 다시 확인해 보는 게 좋겠어요.",{who:"rook",motion:"guide"});
-    else say(gp,"지금 겪는 문제를 골라서 알려 주세요. 글은 짧아도, 안 써도 돼요. 문제와 솔루션, 훈련 방법을 바로 정리해 줄게요.",{who:"rook"});
-  }
-  if(sameCount(l)>=3){say(g,"훈련은 잠시 멈추고, 코치님 확인 뒤에 다시 이어 가요.");return}
-  /* 데릴은 만다라트·배틀플랜 기준으로 말한다 (레슨의 6일 플랜은 접어 둔 칸에) */
-  const ss=(mandala&&mandala.sessions)||[];
-  if(!mandala){say(g,"새 기록이 있어요. 만다라트를 만들면 그 내용에 맞춰 훈련을 채워 줄게요.");return}
-  if(!ss.length){say(g,"만다라트가 준비됐어요. 주 몇 회, 회당 시간, 기간을 밀어서 고르고 배틀플랜을 만들어요.");return}
-  const nx=ss.find(x=>x.done.length<x.items.length),fin=ss.filter(x=>x.items.length&&x.done.length===x.items.length).length;
-  if(!nx){say(g,`배틀플랜 ${ss.length}회차를 다 마쳤어요. 잘했어요! 달라진 점을 루크나 코치님께 들려주세요.`,{motion:"success"});return}
-  say(g,`배틀플랜 ${fin}/${ss.length}회차 했어요. 오늘은 ${nx.n}회차예요. 끝난 훈련은 체크하고, 느낌은 파코에게 남겨 주세요.`);
+  if(gp)say(gp,l&&sameCount(l)>=3?"같은 문제가 세 번 넘게 반복됐어요. 혼자 더 하기보다 코치님과 원인을 다시 확인해 보는 게 좋겠어요.":"지금 겪는 고민을 골라서 알려 주세요. 글은 짧아도, 안 써도 돼요. 문제와 해법, 할 훈련을 바로 정리해 줄게요.",{who:"rook",motion:l&&sameCount(l)>=3?"guide":"hello"});
+  if(l&&sameCount(l)>=3){say(g,"같은 문제가 세 번 넘게 그대로예요. 훈련은 잠시 멈추고, 코치님 확인 뒤에 다시 이어 가요.",{motion:"guide"});return}
+  g.innerHTML="";delete g.dataset.said;
 }
 function renderActive(){
   chartSay();
@@ -223,7 +217,6 @@ function renderActive(){
     <div><h2>${esc(r.title)}</h2><p class="hint">${esc(md(l.date))} · ${esc(l.source==="self"?"본인 진술":l.coach||"코치 미기재")}${isEditor?" · "+esc(r.node?r.node+" "+NODES[r.node].ko:"위치 미정"):""}</p></div>
     ${fails>=3?`<div class="notice bad"><b>같은 문제가 ${fails}번 해결되지 않았습니다.</b> 혼자 계속하기보다 코치와 확인할 때입니다.<div class="actions" style="margin-top:8px"><button class="btn sm" type="button" data-copy="${esc(l.id)}">코치에게 보낼 요약 복사</button></div></div>`:""}
     <div class="days">${(r.plan||[]).map(p=>{const d=done.includes(p.day);return `<label class="day ck${d?" done":""}" for="ck-${p.day}"><input type="checkbox" id="ck-${p.day}" data-day="${p.day}" ${d?"checked":""}><span class="dn">D${p.day}</span><div><b>${esc(p.focus)}</b><small>${esc((p.tasks||[]).join(" · "))}</small></div></label>`}).join("")}</div>
-    <div class="actions"><button class="btn sm" type="button" data-show="feel">해 본 느낌 남기기 · 파코</button></div>
   </div>`;
 }
 $("active").addEventListener("change",async e=>{
@@ -232,7 +225,7 @@ $("active").addEventListener("change",async e=>{
   const day=Number(ck.dataset.day);const done=new Set(l.done||[]);ck.checked?done.add(day):done.delete(day);
   l.done=[...done].sort((a,b)=>a-b);
   try{await db.doc("players/"+uid+"/lessons/"+l.id).update({done:l.done})}catch(err){toast("저장하지 못했습니다")}
-  renderMandala();renderActive();renderTrain();renderToday();
+  renderMandala();renderActive();renderTrain();
 });
 $("active").addEventListener("click",async e=>{
   if(e.target.closest("[data-go-lesson]")){show("lesson");return}
@@ -250,7 +243,7 @@ function renderTrain(){
   const r=l.result,nx=nextDay(l),n=(r.plan||[]).length,dn=(l.done||[]).length;
   box.innerHTML=nx?`<div class="panel today"><div class="t-head"><span class="eyebrow"><b>T</b>오늘 할 훈련</span><span class="pill gold">${dn}/${n}일</span></div>
     <div class="day t-day"><span class="dn">D${nx.day}</span><div><b>${esc(nx.focus)}</b><small>${esc((nx.tasks||[]).join(" · "))}</small></div></div>
-    <div class="actions"><button class="btn gold" type="button" data-show="feel">했어요 · 느낌 남기기</button></div></div>`
+    <p class="hint" style="margin:0">오늘의 훈련에서 '바로 짜 줘'를 누르면 이 과제가 먼저 들어가요.</p></div>`
     :`<div class="notice">이번 배틀플랜을 다 마쳤어요. 다음 레슨에서 달라진 점을 코치님께 보여 드리세요.</div>`;
 }
 function renderFeelHist(){
@@ -258,48 +251,6 @@ function renderFeelHist(){
   const fbs=l?(l.feedback||[]).slice().reverse():[];
   box.innerHTML=fbs.length?`<div class="panel"><span class="eyebrow"><b>F</b>내 연습 기록</span>${fbs.map(f=>`<div class="fb"><div class="h"><span>${esc(md(f.date))}${f.day?" · D"+f.day:""}${f.amount?" · "+esc(f.amount):""}</span><span class="pill ${f.verdict==="잘 맞았다"?"ok":f.verdict==="여전하다"?"warn":""}">${esc(f.verdict)}</span></div>${f.text?`<div>${esc(f.text)}</div>`:""}${f.adjust?`<div><b>파코의 조율</b> · ${esc(f.adjust)}</div>`:""}${f.drill&&f.drill.name?`<div class="hint">추가 훈련: ${esc(f.drill.name)} ${esc(f.drill.dose||"")} <span class="pill">AI 보완</span></div>`:""}</div>`).join("")}</div>`:"";
 }
-function renderToday(){
-  const box=$("today-card");if(!box)return;
-  const l=lessons[0];
-  if(!l){box.innerHTML=`<div class="panel"><div class="guide" id="g-today"></div><div class="actions"><button class="btn gold" type="button" data-show="lesson">로건에게 첫 레슨 들려주기</button></div></div>`;
-    say($("g-today"),"아직 저장된 레슨이 없어요. 레슨이 하나 생기면 연습해 본 느낌을 여기서 같이 맞춰 가요.",{who:"paco"});return}
-  const r=l.result,nx=nextDay(l),fails=sameCount(l);
-  box.innerHTML=`<div class="panel today"><div class="guide" id="g-today"></div>
-    <p class="hint" style="margin:0">${esc(md(l.date))} · ${esc(l.coach||"코치 미기재")} · ${esc(r.title)}</p>
-    ${nx?`<label class="day ck t-day" for="t-done"><input type="checkbox" id="t-done" data-tday="${nx.day}"><span class="dn">D${nx.day}</span><div><b>${esc(nx.focus)}</b><small>오늘 과제를 다 했으면 체크해 주세요</small></div></label>`:""}
-    ${fails>=3?`<div class="notice bad"><b>같은 문제가 ${fails}번 해결되지 않았어요.</b> 혼자 더 하기보다 코치님과 확인할 때예요.</div>`:""}
-    <div class="t-log">
-      <span class="eyebrow"><b>F</b>연습해 본 느낌 · 30초</span>
-      <div class="chips" id="t-v"><button type="button" class="chip" data-v="잘 맞았다" aria-pressed="false">잘 맞았다</button><button type="button" class="chip" data-v="여전하다" aria-pressed="false">여전하다</button><button type="button" class="chip" data-v="느낌을 모르겠다" aria-pressed="false">느낌을 모르겠다</button></div>
-      <div class="row2"><label for="t-amt">얼마나 <span class="hint">선택</span><input id="t-amt" maxlength="40" placeholder="예: 30개 · 40분"></label>
-      <label for="t-memo">느낌 한 줄 <span class="hint">선택</span><input id="t-memo" maxlength="200" placeholder="예: 하프스윙은 되는데 풀스윙에서 다시 오른쪽"></label></div>
-      <div class="actions"><button class="btn gold" type="button" id="t-go">느낌 남기기</button></div>
-      <p class="status" id="t-st" role="status"></p>
-    </div></div>`;
-  const last=(l.feedback||[]).slice(-1)[0];
-  if(last&&last.date===today()&&last.adjust)say($("g-today"),"다음엔 이렇게 해 봐요. "+last.adjust,{who:"paco",motion:"point"});
-  else if(nx)say($("g-today"),`D${nx.day} '${nx.focus}' 해 보니 어땠어요? 맞았는지, 그대로인지, 느낌이 안 오는지만 골라 주셔도 돼요.`,{who:"paco"});
-  else say($("g-today"),"6일을 끝까지 해냈어요. 실전에서 써 본 느낌도 남겨 주세요.",{who:"paco",motion:"success"});
-}
-$("today-card").addEventListener("click",async e=>{
-  const chip=e.target.closest("#t-v .chip");
-  if(chip){document.querySelectorAll("#t-v .chip").forEach(c=>c.setAttribute("aria-pressed",c===chip?"true":"false"));return}
-  if(e.target.id!=="t-go")return;
-  const l=lessons[0];if(!l)return;
-  const v=(document.querySelector('#t-v .chip[aria-pressed="true"]')||{}).dataset;const st=$("t-st");
-  if(!v||!v.v){st.textContent="어땠는지 하나만 골라 주세요.";st.className="status err";return}
-  const nx=nextDay(l),text=$("t-memo").value.trim(),amount=$("t-amt").value.trim(),doneNow=$("t-done")&&$("t-done").checked;
-  e.target.disabled=true;st.className="status";st.innerHTML="다음 연습을 맞추는 중이에요.<div class=\"ld\" aria-hidden=\"true\"></div>";
-  let adj={adjust:"",drill:null,ask_coach:""};
-  try{if(ai)adj=(await ai({task:"feedback",lesson:{result:l.result,feedback:l.feedback||[]},verdict:v.v,text:[amount&&("분량 "+amount),text].filter(Boolean).join(" / ")})).data||adj}catch(err){}
-  const f={date:today(),day:nx?nx.day:null,amount,verdict:v.v,text,adjust:adj.adjust||"",drill:adj.drill||null,ask:adj.ask_coach||"",createdAt:new Date().toISOString()};
-  l.feedback=[...(l.feedback||[]),f];
-  const upd={feedback:l.feedback};
-  if(doneNow&&nx){l.done=[...new Set([...(l.done||[]),nx.day])].sort((a,b)=>a-b);upd.done=l.done}
-  try{await db.doc("players/"+uid+"/lessons/"+l.id).update(upd);toast("연습 기록을 남겼어요")}catch(err){toast("저장하지 못했습니다")}
-  renderToday();renderFeelHist();renderTrain();renderActive();renderMandala();renderSug();
-});
-
 /* ===== 오늘의 대화 ===== */
 let chatLog=[],chatBusy=false;
 const LIMIT_CHAT=10;
@@ -387,7 +338,7 @@ function renderList(){
 }
 $("list").addEventListener("click",e=>{const b=e.target.closest(".lrow");if(!b)return;openId=openId===b.dataset.id?null:b.dataset.id;renderList();if(openId)$("detail").scrollIntoView({behavior:"smooth",block:"start"})});
 
-function renderChart(){renderMandala();renderActive();renderLegacy();renderList();renderDx();renderTrain();renderToday();renderFeelHist()}
+function renderChart(){renderMandala();renderActive();renderLegacy();renderList();renderDx();renderTrain();renderFeelHist()}
 
 /* ===== 내 코치 · 레슨 레거시 =====
    선수가 적은 코치 이름으로 코치 목록을 만든다. 새 레슨 포인트는 그 코치 아래 새싹으로 쌓인다.
@@ -746,8 +697,10 @@ async function boot(){
   await loadLessons();
   await loadTrainings();
   await loadMandala();
+  await loadDay();
+  myRxItems(uid).then(x=>{rxPool=x}).catch(()=>{});
   let gotLib=false;const lt=setTimeout(()=>{if(!gotLib)$("lib-list").innerHTML='<div class="empty">라이브러리를 아직 불러오지 못했습니다. 연결이 느릴 수 있습니다.</div>'},10000);
-  db.collection("library").onSnapshot(snap=>{gotLib=true;clearTimeout(lt);lib=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$("v-lib").hidden)renderLib();if(!$("v-train").hidden){renderMandalaAP();renderPlan()}},()=>{clearTimeout(lt)});
+  db.collection("library").onSnapshot(snap=>{gotLib=true;clearTimeout(lt);lib=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$("v-lib").hidden)renderLib();if(!$("v-train").hidden){renderMandalaAP();renderPlan()}if(!$("v-ask").hidden)renderTalkQ()},()=>{clearTimeout(lt)});
   renderChart();
   show("ask");
   loadViewers().then(handleInvite);
@@ -758,11 +711,11 @@ async function boot(){
 /* ===== 밀로(두더지 길잡이): ? 버튼에서 장소의 이름 → 의미 → 할 수 있는 일 ===== */
 const MILO_HELP={
   tree:{title:"레거시 나무",meaning:"코치와 선수들이 남긴 레슨 포인트가 잎으로 쌓이는 모두의 나무야. 내 진척도가 아니라 골프 지식이 모이는 곳이지.",action:"열매(N1~N8)를 누르면 그 영역에 쌓인 레슨과 누가 남겼는지 볼 수 있어."},
-  logan:{title:"로건 · 레슨 기록",meaning:"오늘 받은 레슨을 말이나 글로 남기는 곳이야.",action:"정리하기를 누르면 문제·솔루션·훈련·6일 배틀플랜까지 한 번에 정리돼.",goLabel:"레슨 기록으로",onGo:()=>show("lesson")},
-  rook:{title:"루크 · 내 문제 진술",meaning:"지금 겪는 문제를 내 말로 남기는 곳이야. 어떤 샷인지, 공이 어떻게 가는지, 언제 심한지를 고르기만 하면 돼.",action:"문제·솔루션·훈련 방법이 바로 나오고, 저장하면 만다라트와 배틀플랜으로 이어져.",goLabel:"문제 말하러 가기",onGo:()=>show("dx")},
-  daryl:{title:"데릴 · 훈련장",meaning:"가운데 목표와 8개 영역의 만다라트, 그리고 설정대로 만든 배틀플랜이 있는 곳이야.",action:"칸을 누르면 그 영역 훈련과 수행률이 보이고, 배틀플랜은 회차마다 체크하면 돼. 해 본 느낌은 파코에게.",goLabel:"훈련장으로",onGo:()=>show("train")},
-  paco:{title:"파코 · 감각과 실전",meaning:"연습해 본 느낌을 30초 만에 남기는 곳이야.",action:"맞았다·여전하다·느낌을 모르겠다 중 하나만 골라도 다음 연습을 조율해 줘.",goLabel:"느낌 남기러 가기",onGo:()=>show("feel")},
-  ask:{title:"크루에게 묻기",meaning:"내 레슨 기록을 근거로 크루가 답하는 곳이야.",action:"하루 10번까지 물을 수 있어. 기록에 없는 내용은 'AI 추정'으로 표시돼."}
+  logan:{title:"말하기 · 코치님 레슨",meaning:"코치님 레슨을 말이나 글로 남기는 곳이야. 위에서 '내 얘기'로 바꾸면 내 고민도 같은 곳에 남길 수 있어.",action:"정리하기를 누르면 문제·해법·할 훈련이 카드 한 장으로 나와. 저장하면 오늘의 훈련에 들어가.",goLabel:"말하러 가기",onGo:()=>{recMode="coach";show("lesson")}},
+  rook:{title:"말하기 · 내 얘기",meaning:"지금 겪는 고민을 남기는 곳이야. 어떤 샷인지, 공이 어떻게 가는지, 언제 심한지를 고르기만 하면 돼.",action:"문제·해법·할 훈련이 바로 나오고, 저장하면 오늘의 훈련에 들어가.",goLabel:"내 얘기 하러 가기",onGo:()=>show("dx")},
+  daryl:{title:"데릴 · 오늘의 훈련",meaning:"오늘 할 훈련을 같이 짜는 곳이야. '바로 짜 줘'나 '얘기하면서 짜자'를 고르면 돼.",action:"레슨·내 얘기·코치 처방·배틀플랜에서 오늘 할 것만 모아 줘. 만다라트와 배틀플랜은 아래에 접혀 있어.",goLabel:"오늘의 훈련으로",onGo:()=>show("train")},
+  paco:{title:"파코 · 했어요",meaning:"연습이 끝나면 어땠는지 듣는 친구야.",action:"오늘의 훈련 아래에서 맞았어요·그대로예요·잘 모르겠어요 중 하나만 고르면 다음 연습을 맞춰 줘.",goLabel:"오늘의 훈련으로",onGo:()=>show("train")},
+  ask:{title:"오늘의 대화",meaning:"하루를 시작하는 곳이야. 말하기와 오늘의 훈련으로 바로 가고, 크루에게 물어볼 수도 있어.",action:"크루는 내 기록을 근거로 답해. 하루 10번까지 물을 수 있고, 기록에 없는 내용은 'AI 추정'으로 표시돼."}
 };
 (function startMilo(){if(!window.MiloHelp)return setTimeout(startMilo,150);window.MiloHelp.mount({root:document,assetUrl:"img/milo.webp",help:MILO_HELP})})();
 
@@ -859,7 +812,7 @@ $("v-me").addEventListener("submit",async e=>{
     stmt.areas={...(stmt.areas||{}),[k]:{...o,_n:a.n,_at:new Date().toISOString()}};meOpen=""}
   try{await saveStatement();toast("저장했어요");renderMe()}catch(_){toast("저장하지 못했습니다")}
 });
-MILO_HELP.me={title:"나의 스테이트먼트",meaning:"지금의 나를 남겨 두는 곳이야. 기본 바이오와 멘탈·숏게임·샷·피지컬·코스·클럽 피팅 6개 영역이 있어.",action:"글은 안 써도 돼. 밀어서 1~5로 매기고, 아는 숫자도 밀어서 고르면 돼. 약한 영역은 만다라트와 배틀플랜이 먼저 챙겨."};
+MILO_HELP.me={title:"나의 스테이트먼트",meaning:"지금의 나를 남겨 두는 곳이야. 기본 바이오와 멘탈·숏게임·샷·피지컬·코스·클럽 피팅 6개 영역이 있어. 메뉴의 '내 계정'에 있어.",action:"한꺼번에 채울 필요 없어. 오늘의 대화에서 루크가 하루에 하나씩 물어봐. 약한 영역은 오늘의 훈련이 먼저 챙겨."};
 
 /* ===== AI 훈련 카드 (데릴의 훈련장) =====
    선수 기록 확인 → 오늘의 훈련 제안 → 수정·적용 → 결과 확인 → 다음 훈련.
@@ -1134,8 +1087,8 @@ $("prob-form").addEventListener("submit",async e=>{
     (r.drills||[]).forEach(d=>{const it=d.lib_id&&lib.find(x=>x.id===d.lib_id);if(it){d.source="AP 라이브러리";d.lib_rev=it.rev||1}else{d.source="AI 보완";d.lib_id=""}});
     probDraft={date:today(),coach:"",source:"self",statement:s,transcript:[s.shots.join("·")+" / "+s.misses.join("·"),s.when.join("·"),s.words].filter(Boolean).join(" — "),result:r};
     st.textContent="";
-    $("prob-out").innerHTML=resultHTML(r,"",probDraft.date,{self:true})+`<div class="actions" style="margin-top:12px"><button class="btn" type="button" id="p-redo">다시 고르기</button><button class="btn gold" type="button" id="p-save">내 기록에 저장 · 만다라트로</button></div>`;
-    say($("g-pos"),"정리했어요. 원인은 아직 '확인할 것'이에요. 저장하면 데릴이 만다라트와 배틀플랜에 바로 넣어 줘요.",{now:true,who:"rook",motion:"success"});
+    $("prob-out").innerHTML=resultHTML(r,"",probDraft.date,{self:true})+`<div class="actions" style="margin-top:12px"><button class="btn" type="button" id="p-redo">다시 고르기</button><button class="btn gold" type="button" id="p-save">내 기록에 저장 · 오늘의 훈련으로</button></div>`;
+    say($("g-pos"),"정리했어요. 원인은 아직 '확인할 것'이에요. 저장하면 오늘의 훈련에 바로 들어가요.",{now:true,who:"rook",motion:"success"});
     $("prob-out").scrollIntoView({behavior:"smooth",block:"start"});
   }catch(err){st.className="status err";const m=(err&&(err.message||""))+" "+(err&&err.code||"");
     st.textContent=/guardian-pending/.test(m)?"보호자 확인이 끝나면 볼 수 있어요.":/age-required/.test(m)?"나이 확인이 필요해요. 새로고침해 주세요.":/resource-exhausted/.test(m)?"오늘 횟수를 다 썼어요. 내일 다시 해 주세요.":"정리하지 못했어요. 다시 눌러 주세요."}
@@ -1146,15 +1099,9 @@ $("prob-out").addEventListener("click",async e=>{
   if(e.target.id!=="p-save"||!probDraft)return;e.target.disabled=true;
   try{await db.collection("players/"+uid+"/lessons").add({...probDraft,done:[],feedback:[],createdAt:new Date().toISOString()});
     probDraft=null;$("prob-out").innerHTML="";delete $("prob-form").dataset.ready;renderProbForm();await loadLessons();
-    toast("저장했어요. 만다라트와 배틀플랜을 맞춰 보세요");show("train");mandalaHint=true;renderMandalaAP()}
+    mandalaHint=true;toast("저장했어요. 오늘의 훈련을 같이 짜 봐요");show("train")}
   catch(_){toast("저장하지 못했어요. 다시 눌러 주세요");e.target.disabled=false}
 });
-function renderProbList(){
-  const box=$("prob-list");if(!box)return;const ls=lessons.filter(l=>l.source==="self").slice(0,6);
-  box.innerHTML=ls.length?`<div class="panel"><span class="eyebrow"><b>S</b>내가 남긴 문제 진술</span>${ls.map(l=>`<div class="fb"><div class="h"><span>${esc(md(l.date))}</span><span class="pill">본인 진술</span></div><div>${esc(l.result.title)}</div><button class="btn sm" type="button" data-open-lesson="${esc(l.id)}">자세히</button></div>`).join("")}</div>`:"";
-}
-$("prob-list").addEventListener("click",e=>{const b=e.target.closest("[data-open-lesson]");if(!b)return;openId=b.dataset.openLesson;show("lesson");renderList();setTimeout(()=>$("detail").scrollIntoView({behavior:"smooth",block:"start"}),80)});
-
 /* ===== 만다라트 (오타니식 3×3) + 설정에 따른 배틀플랜 (데릴의 훈련장) =====
    파일럿: AP 라이브러리 훈련으로 자동 생성(규칙, AI 아님). 가운데는 본인 목표, 둘레 8칸은 8개 영역.
    칸을 누르면 그 영역 훈련과 수행률(%)이 보인다. 최근 문제·레슨과 스테이트먼트의 약한 영역을 먼저 챙긴다.
@@ -1229,7 +1176,7 @@ function renderPlan(){
     ${weeks.map(w=>`<div class="bp-week"><span class="eyebrow">${w}주차</span>${ss.filter(s=>s.week===w).map(s=>{const isNext=next&&s.n===next.n,ok=s.items.length&&s.done.length===s.items.length;
       return `<div class="bp-s${isNext?" next":""}${ok?" done":""}"><div class="h"><b>${s.n}회차</b>${isNext?`<span class="pill gold">오늘 할 세션</span>`:ok?`<span class="pill ok">완료</span>`:""}</div>
         ${s.items.map(id=>{const it=lib.find(x=>x.id===id);return it?`<label class="ck-line"><input type="checkbox" data-sess="${s.n}" data-item="${esc(id)}" ${s.done.includes(id)?"checked":""}> <span>${esc(it.name)} <small class="hint">${esc(PNAME[it.pillar]||"")} · ${esc(doseFor(it))}</small></span></label>`:""}).join("")}</div>`}).join("")}</div>`).join("")}
-    ${ss.length?`<div class="actions"><button class="btn sm" type="button" data-show="feel">해 본 느낌 남기기 · 파코</button></div>`:""}</div>`;
+</div>`;
 }
 async function makeMandala(keepGoal){
   const goal=keepGoal!==undefined?keepGoal:(($("m-goal")&&$("m-goal").value.trim())||"");
@@ -1261,6 +1208,154 @@ $("bplan").addEventListener("change",async e=>{const c=e.target.closest("input[d
   try{await saveMandala()}catch(_){toast("저장하지 못했어요")}renderPlan();renderMandalaAP();chartSay()});
 
 
+/* ===== 오늘의 훈련 (데릴·파코): 바로 짜기 / 얘기하면서 짜기 → 확정 → 체크 → 했어요 =====
+   여러 곳의 훈련(최근 코치님 레슨·내 얘기의 6일 플랜, 코치 처방, 적용한 AI 훈련 카드, 배틀플랜 회차, 만다라트 칸)을 한 목록으로 모은다.
+   고르는 건 규칙이다(AI 아님): 시간 → 개수, 장소 → 할 수 있는 영역, 컨디션 → 개수 줄임, 챙길 것 → 순서. 선수가 빼거나 더한 뒤 확정한다.
+   저장 players/{uid}/days/{날짜}. 체크하면 배틀플랜 회차·레슨 6일 플랜에도 같이 체크된다.
+   '했어요'는 그 레슨의 피드백으로도 남아 '여전하다' 3회 → 코치 확인 규칙이 그대로 돈다. */
+let day=null,dayDraft=null,dayAsk=null,dayBusy=false,rxPool=[];
+const D_TIME=[["30","30분"],["60","1시간"],["120","2시간 이상"]];
+const D_PLACE=[["range","연습장"],["green","퍼팅그린·숏게임장"],["course","코스"],["home","집·실내"]];
+const D_PLACE_OK={range:["drive","iron","short","putt","body","mind","life"],green:["putt","short","mind","life"],course:null,home:["putt","body","mind","life"]};
+const D_COND=[["good","좋아요"],["ok","보통"],["tired","피곤해요"]];
+const D_FOCUS=[["recent","최근 레슨·고민"],["weak","약한 영역"],["drive","드라이버"],["iron","아이언"],["short","숏게임"],["putt","퍼팅"],["mind","멘탈"]];
+const D_Q=[["time","오늘 연습 시간은 얼마나 돼요?",D_TIME],["place","어디서 해요?",D_PLACE],["cond","몸 상태는 어때요?",D_COND],["focus","오늘 특히 챙기고 싶은 게 있어요?",D_FOCUS]];
+const D_MAND="만다라트";
+const D_VERD=[["잘 맞았다","맞았어요"],["여전하다","그대로예요"],["느낌을 모르겠다","잘 모르겠어요"]];
+const AXIS_P={PUTTING:"putt",SHORT_GAME:"short",SWING:"drive",COURSE:"course",MENTAL:"mind",PHYSICAL:"body"};
+const dLabel=(list,v)=>(list.find(x=>x[0]===v)||[,""])[1];
+async function loadDay(){if(!db||!uid){day=null;return}try{const d=await db.doc(`players/${uid}/days/${today()}`).get();day=d.exists?d.data():null}catch(_){day=null}}
+async function saveDay(){day.updatedAt=new Date().toISOString();await db.doc(`players/${uid}/days/${day.date}`).set(day)}
+function libDay(id,src,key){const it=lib.find(x=>x.id===id);if(!it||it.status!=="active")return null;return {key,src,name:it.name,dose:doseFor(it),how:it.how||it.point||"",pillar:it.pillar||"",round:roundOnly(it),kind:"lib"}}
+function dayPool(){
+  const out=[],l=lessons[0];
+  if(l){const nx=nextDay(l);if(nx&&sameCount(l)<3)out.push({key:`ls:${l.id}:${nx.day}`,src:(l.source==="self"?"내 얘기":"레슨 · "+(l.coach||"코치님"))+` · D${nx.day}`,name:nx.focus,dose:"",how:(nx.tasks||[]).join(" · "),pillar:l.result.pillar||"",kind:"lesson"})}
+  rxPool.forEach(x=>out.push({...x,pillar:AXIS_P[x.axis]||"",kind:"rx"}));
+  const t=trainings[0];if(t&&t.status==="applied"){const cur=t.current||t.proposal;out.push({key:"tc:"+t.id,src:"AI 훈련 카드",name:cur.card.drill,dose:"",how:cur.card.goal,pillar:{Putt:"putt",Approach:"short",Shot:"drive"}[cur.setup.task]||"",kind:"tc"})}
+  const ss=(mandala&&mandala.sessions)||[],nx=ss.find(s=>s.done.length<s.items.length);
+  if(nx)nx.items.filter(id=>!nx.done.includes(id)).forEach(id=>{const x=libDay(id,`배틀플랜 ${nx.n}회차`,`bp:${nx.n}:${id}`);if(x)out.push({...x,kind:"bp"})});
+  return out;
+}
+/* 모자라면 만다라트 칸(없으면 라이브러리)에서 영역을 돌아가며 하나씩 더한다 */
+function dayExtra(pillars,haveKeys,fits,n){
+  const used=new Set(haveKeys.map(k=>k.split(":").pop())),lists=pillars.map(p=>((mandala&&mandala.cells&&mandala.cells[p])||lib.filter(x=>x.status==="active"&&!x.example&&x.pillar===p).map(x=>x.id)).slice()),out=[];
+  let guard=0;while(out.length<n&&lists.some(x=>x.length)&&guard++<200){for(let i=0;i<lists.length&&out.length<n;i++){while(lists[i].length){const id=lists[i].shift();if(used.has(id))continue;const x=libDay(id,D_MAND+" · "+PNAME[pillars[i]],`lib:${id}`);if(x&&fits(x)){out.push(x);used.add(id);break}}}}
+  return out;
+}
+function dayCount(ask){const b=(stmt.bio&&stmt.bio.num)||{};const min=ask&&ask.time?Number(ask.time):Math.round((b.phours||1)*60);let n=Math.max(2,Math.min(5,Math.round(min/25)));if(ask&&ask.cond==="tired")n=Math.max(1,n-1);return n}
+function dayFits(ask){const ok=ask&&D_PLACE_OK[ask.place];return x=>(!ok||!x.pillar||ok.includes(x.pillar))&&(!x.round||(ask&&ask.place==="course"))}
+function buildDay(ask){
+  const n=dayCount(ask),fits=dayFits(ask),ok=ask&&D_PLACE_OK[ask.place];
+  const focus=!ask||ask.focus==="recent"?[]:ask.focus==="weak"?focusPillars():[ask.focus];
+  let pool=dayPool().filter(fits);
+  const rank=x=>(focus.length?(focus.includes(x.pillar)?4:0):0)+({lesson:3,rx:3,tc:2,bp:1}[x.kind]||0);
+  pool=pool.map((x,i)=>({x,i})).sort((a,b)=>rank(b.x)-rank(a.x)||a.i-b.i).map(o=>o.x);
+  let items=pool.slice(0,n);
+  if(items.length<n){const want=[...focus,...focusPillars(),...PILLARS.map(p=>p[0])].filter((p,i,a)=>a.indexOf(p)===i&&(!ok||ok.includes(p)));
+    items=[...items,...dayExtra(want,items.map(x=>x.key),fits,n-items.length)]}
+  return items;
+}
+function dItemHTML(x,mode,done){
+  const meta=[x.dose,x.how].filter(Boolean).join(" · ");
+  const ck=mode==="run"?`<input type="checkbox" data-dk="${esc(x.key)}" ${done?"checked":""} aria-label="${esc(x.name)} 했어요">`:"";
+  const rm=mode==="draft"?`<button class="d-rm" type="button" data-d="rm" data-k="${esc(x.key)}" aria-label="빼기">×</button>`:"";
+  return `<${mode==="run"?"label":"div"} class="d-it${done?" done":""}">${ck}<span class="d-tx"><span class="pill${x.kind==="lesson"||x.kind==="rx"?" gold":""}">${esc(x.src)}</span><b>${esc(x.name)}</b>${meta?`<small>${esc(meta)}</small>`:""}</span>${rm}</${mode==="run"?"label":"div"}>`;
+}
+function renderDay(){
+  const box=$("today-plan");if(!box)return;if(!uid){box.innerHTML="";return}
+  const g=`<div class="guide" id="g-day"></div>`;
+  if(dayAsk){ /* 얘기하면서 짜기: 하나씩 묻는다 */
+    const step=D_Q.findIndex(([k])=>!dayAsk[k]);
+    const said=D_Q.filter(([k])=>dayAsk[k]).map(([k,,opts])=>`<span class="pill">${esc(dLabel(opts,dayAsk[k]))}</span>`).join("");
+    if(step>=0){const [k,q,opts]=D_Q[step];
+      box.innerHTML=`<div class="panel dday">${g}${said?`<div class="d-said">${said}</div>`:""}<div class="chips d-opts">${opts.map(([v,l])=>`<button type="button" class="chip" data-d="ans" data-k="${k}" data-v="${v}">${esc(l)}</button>`).join("")}</div>
+        <div class="actions"><button class="btn sm" type="button" data-d="back">${step?"이전 질문":"그만두기"}</button></div></div>`;
+      say($("g-day"),q,{now:true,who:"daryl",motion:step?"point":"hello"});return}
+    box.innerHTML=`<div class="panel dday">${g}<div class="d-said">${said}</div>
+      <label class="fld">한마디 <span class="hint">선택</span><input id="d-words" maxlength="200" placeholder="예: 내일 시합이라 퍼팅 위주로 가볍게"></label>
+      <div class="actions"><button class="btn gold" type="button" data-d="make">계획 보기</button><button class="btn sm" type="button" data-d="back">이전 질문</button></div></div>`;
+    say($("g-day"),"좋아요. 더 할 말이 있으면 한마디 남겨 주세요. 없으면 바로 짜 줄게요.",{now:true,who:"daryl",motion:"point"});return}
+  if(dayDraft){ /* 짜 본 계획: 빼고 더하고 확정 */
+    const it=dayDraft.items;
+    box.innerHTML=`<div class="panel dday">${g}${dayDraft.ask?`<div class="d-said">${D_Q.map(([k,,o])=>`<span class="pill">${esc(dLabel(o,dayDraft.ask[k]))}</span>`).join("")}</div>`:""}
+      ${it.length?`<div class="d-list">${it.map(x=>dItemHTML(x,"draft")).join("")}</div>`:`<p class="notice" style="margin:0">지금 넣을 훈련이 없어요. 먼저 레슨이나 내 얘기를 남기거나, 아래에서 만다라트를 만들어 주세요.</p>`}
+      <div class="actions">${it.length?`<button class="btn gold" type="button" data-d="ok">이걸로 할게요</button>`:`<button class="btn gold" type="button" data-show="lesson">말하러 가기</button>`}<button class="btn sm" type="button" data-d="more">하나 더</button><button class="btn sm" type="button" data-d="reset">다시 짜기</button></div></div>`;
+    say($("g-day"),it.length?"이렇게 짜 봤어요. 빼고 싶은 건 ×를 누르고, 괜찮으면 '이걸로 할게요'를 눌러 주세요.":"오늘 넣을 훈련을 찾지 못했어요.",{now:true,who:"daryl",motion:it.length?"point":"guide"});return}
+  if(day&&day.items){ /* 오늘 할 것 → 체크 → 했어요 */
+    const n=day.items.length,dn=(day.done||[]).length,fin=!!day.verdict;
+    const l=lessons[0],warn=l&&sameCount(l)>=3?`<div class="notice bad"><b>같은 문제가 ${sameCount(l)}번 그대로예요.</b> 혼자 더 하기보다 코치님과 확인할 때예요.</div>`:"";
+    box.innerHTML=`<div class="panel dday"><div class="t-head"><span class="eyebrow"><b>T</b>오늘 할 훈련</span><span class="pill ${dn===n?"ok":"gold"}">${dn}/${n}</span></div>${g}
+      <div class="d-list">${day.items.map(x=>dItemHTML(x,"run",(day.done||[]).includes(x.key))).join("")}</div>${warn}
+      ${fin?`<div class="d-fin"><span class="pill ${day.verdict==="잘 맞았다"?"ok":day.verdict==="여전하다"?"warn":""}">${esc(dLabel(D_VERD,day.verdict))}</span>${day.text?`<span>${esc(day.text)}</span>`:""}</div>
+        <div class="actions"><button class="btn sm" type="button" data-d="again">다시 짜기</button></div>`
+      :`<div class="d-done"><span class="eyebrow"><b>F</b>했어요 · 어땠어요?</span>
+        <div class="chips" id="d-v">${D_VERD.map(([v,l])=>`<button type="button" class="chip" data-d="v" data-v="${v}" aria-pressed="false">${esc(l)}</button>`).join("")}</div>
+        <label class="fld">한마디 <span class="hint">선택</span><input id="d-memo" maxlength="200" placeholder="예: 하프스윙은 되는데 풀스윙에서 다시 오른쪽"></label>
+        <div class="actions"><button class="btn gold" type="button" data-d="fin">했어요</button><button class="btn sm" type="button" data-d="again">다시 짜기</button></div><p class="status" id="d-st" role="status"></p></div>`}</div>`;
+    if(fin)say($("g-day"),day.adjust?"다음엔 이렇게 해 봐요. "+day.adjust:"기록했어요. 수고했어요! 내일 또 같이 짜요.",{now:true,who:"paco",motion:day.adjust?"point":"success"});
+    else say($("g-day"),dn===n?"다 했네요! 어땠는지 하나만 골라 주세요.":"한 것은 체크하고, 끝나면 어땠는지 하나만 골라 주세요.",{now:true,who:dn===n?"paco":"daryl",motion:dn===n?"success":"point"});return}
+  box.innerHTML=`<div class="panel dday start">${g}<div class="d-start"><button class="btn gold" type="button" data-d="quick">응, 바로 짜 줘</button><button class="btn" type="button" data-d="talk">얘기하면서 짜자</button></div></div>`;
+  say($("g-day"),lessons.length||mandala?"오늘 연습 계획 같이 짤까?":"오늘 연습 계획 같이 짤까? 레슨이나 고민을 먼저 남겨 두면 더 잘 맞춰 줄 수 있어.",{now:true,who:"daryl"});
+}
+async function syncDone(key,on){
+  const [k,a,...r]=key.split(":"),b=r.join(":");
+  if(k==="bp"&&mandala){const s=(mandala.sessions||[]).find(x=>x.n===Number(a));if(s){s.done=on?[...new Set([...s.done,b])]:s.done.filter(x=>x!==b);await saveMandala()}}
+  if(k==="ls"){const l=lessons.find(x=>x.id===a);if(l){const d=new Set(l.done||[]);on?d.add(Number(b)):d.delete(Number(b));l.done=[...d].sort((x,y)=>x-y);await db.doc(`players/${uid}/lessons/${l.id}`).update({done:l.done})}}
+}
+$("today-plan").addEventListener("change",async e=>{const c=e.target.closest("[data-dk]");if(!c||!day)return;const k=c.dataset.dk;
+  day.done=c.checked?[...new Set([...(day.done||[]),k])]:(day.done||[]).filter(x=>x!==k);
+  try{await saveDay();await syncDone(k,c.checked);buzz()}catch(_){toast("저장하지 못했어요")}
+  renderDay();renderActive();renderTrain();renderPlan();renderMandalaAP()});
+$("today-plan").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-d]");if(!b||dayBusy)return;const a=b.dataset.d;
+  if(a==="quick"){dayDraft={mode:"quick",ask:null,items:buildDay(null)};renderDay();return}
+  if(a==="talk"){dayAsk={};renderDay();return}
+  if(a==="ans"){dayAsk[b.dataset.k]=b.dataset.v;renderDay();return}
+  if(a==="back"){const done=D_Q.filter(([k])=>dayAsk[k]);if(!done.length){dayAsk=null}else delete dayAsk[done[done.length-1][0]];renderDay();return}
+  if(a==="make"){const ask={...dayAsk,words:($("d-words")||{}).value?$("d-words").value.trim():""};dayAsk=null;dayDraft={mode:"talk",ask,items:buildDay(ask)};renderDay();return}
+  if(a==="rm"){dayDraft.items=dayDraft.items.filter(x=>x.key!==b.dataset.k);renderDay();return}
+  if(a==="more"){const ask=dayDraft.ask,fits=dayFits(ask),ok=ask&&D_PLACE_OK[ask.place],have=dayDraft.items.map(x=>x.key);
+    let nx=dayPool().filter(fits).find(x=>!have.includes(x.key));
+    if(!nx){const want=[...focusPillars(),...PILLARS.map(p=>p[0])].filter((p,i,a2)=>a2.indexOf(p)===i&&(!ok||ok.includes(p)));nx=dayExtra(want,have,fits,1)[0]}
+    if(nx)dayDraft.items.push(nx);else toast("더 넣을 훈련이 없어요");renderDay();return}
+  if(a==="reset"){dayDraft=null;dayAsk=null;renderDay();return}
+  if(a==="again"){if(day&&day.items&&!confirm(T("오늘 계획을 다시 짤까요? 지금 계획은 기록으로 남아요.")))return;dayDraft=null;dayAsk=null;day={...(day||{}),prevItems:(day&&day.items)||[],items:null,againFrom:true};renderDay();return}
+  if(a==="ok"){if(!dayDraft.items.length)return;const prev=day&&day.againFrom?day:null;
+    day={date:today(),mode:dayDraft.mode,ask:dayDraft.ask,items:dayDraft.items,done:[],createdAt:new Date().toISOString(),history:prev?[...(prev.history||[]),{at:prev.createdAt||"",items:prev.prevItems||[],done:prev.done||[],verdict:prev.verdict||""}].slice(-5):[]};
+    try{await saveDay();dayDraft=null;toast("오늘의 훈련을 정했어요");buzz()}catch(_){toast("저장하지 못했어요. 다시 눌러 주세요")}renderDay();return}
+  if(a==="v"){document.querySelectorAll("#d-v .chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b)));return}
+  if(a==="fin"){const v=(document.querySelector('#d-v .chip[aria-pressed="true"]')||{}).dataset,st=$("d-st");
+    if(!v||!v.v){st.className="status err";st.textContent="어땠는지 하나만 골라 주세요.";return}
+    const text=$("d-memo").value.trim();dayBusy=true;b.disabled=true;st.className="status";st.innerHTML=`다음 연습을 맞추는 중이에요.<div class="ld" aria-hidden="true"></div>`;
+    const li=day.items.find(x=>x.kind==="lesson"),l=(li&&lessons.find(x=>x.id===li.key.split(":")[1]))||lessons[0];
+    const amount=`${(day.done||[]).length}/${day.items.length}개`;let adj={adjust:"",drill:null,ask_coach:""};
+    try{if(l&&ai)adj=(await ai({task:"feedback",lesson:{result:l.result,feedback:l.feedback||[]},verdict:v.v,text:["오늘 "+amount,text].filter(Boolean).join(" / ")})).data||adj}catch(_){}
+    try{
+      if(l){const f={date:today(),day:li?Number(li.key.split(":")[2]):null,amount,verdict:v.v,text,adjust:adj.adjust||"",drill:adj.drill||null,ask:adj.ask_coach||"",createdAt:new Date().toISOString()};
+        l.feedback=[...(l.feedback||[]),f];await db.doc(`players/${uid}/lessons/${l.id}`).update({feedback:l.feedback})}
+      Object.assign(day,{verdict:v.v,text,adjust:adj.adjust||"",finishedAt:new Date().toISOString()});await saveDay();toast("오늘 연습을 기록했어요");buzz()}
+    catch(_){toast("저장하지 못했어요. 다시 눌러 주세요")}
+    finally{dayBusy=false}
+    renderDay();renderFeelHist();renderActive();chartSay();renderSug();return}
+});
+
+/* ===== 오늘의 대화: 루크가 하루에 하나씩 묻는 스테이트먼트 (한꺼번에 채우지 않게) ===== */
+function nextStmtQ(){for(const a of AREAS){if(a.rate===false)continue;const v=(stmt.areas||{})[a.k]||{};const i=a.items.find(x=>!(v[x.k]&&(v[x.k].v||v[x.k].m)));if(i)return {a,i}}return null}
+function renderTalkQ(){
+  const box=$("talk-q");if(!box)return;const q=uid&&stmt.bio?nextStmtQ():null;
+  if(!q||prefGet("q-skip","")===today()){box.innerHTML="";return}
+  box.dataset.a=q.a.k;box.dataset.i=q.i.k;
+  box.innerHTML=`<div class="panel tq"><div class="guide" id="g-tq"></div><div class="fld"><b>${esc(q.a.n)} · ${esc(q.i.l)}</b>${slider("tq-r",{min:1,max:5,start:3,fmt:v=>v+" · "+RATE[v],label:q.i.l},null)}</div>
+    <div class="actions"><button class="btn sm gold" type="button" data-tq="save">저장</button><button class="btn sm" type="button" data-tq="skip">오늘은 그만</button></div></div>`;
+  say($("g-tq"),"하나만 물어볼게요. 지금 내 실력을 1~5로 밀어서 골라 주세요.",{who:"rook"});
+}
+$("talk-q").addEventListener("click",async e=>{const b=e.target.closest("[data-tq]");if(!b)return;const box=$("talk-q");
+  if(b.dataset.tq==="skip"){prefSet("q-skip",today());renderTalkQ();return}
+  const v=slVal(box,"tq-r");if(v===null){toast("밀어서 골라 주세요");return}
+  const a=AREAS.find(x=>x.k===box.dataset.a),i=a&&a.items.find(x=>x.k===box.dataset.i);if(!i)return;
+  const old=(stmt.areas||{})[a.k]||{};stmt.areas={...(stmt.areas||{}),[a.k]:{...old,[i.k]:{...(old[i.k]||{}),l:i.l,v,m:(old[i.k]||{}).m||"",mn:(old[i.k]||{}).mn??null,u:(old[i.k]||{}).u||"",coach:false},_n:a.n,_at:new Date().toISOString()}};
+  try{await saveStatement();toast("저장했어요");buzz()}catch(_){toast("저장하지 못했어요")}renderTalkQ()});
+
 /* ===== 나의 데이터 (오른쪽 패널) =====
    휴대폰에서 오른쪽 가장자리 탭을 누르거나 왼쪽으로 밀면 펼쳐진다. 내 기록을 한눈에 보고 각 방으로 바로 간다. */
 function dpOpen(){renderDataPanel();$("dpanel").hidden=false;requestAnimationFrame(()=>$("dpanel").classList.add("on"));$("dp-tab").setAttribute("aria-expanded","true");document.body.style.overflow="hidden";setTimeout(()=>$("dpanel").querySelector(".dp-x").focus(),250)}
@@ -1269,7 +1364,7 @@ function renderDataPanel(){
   const coachL=lessons.filter(l=>l.source!=="self"),selfL=lessons.filter(l=>l.source==="self");
   const ss=(mandala&&mandala.sessions)||[],fin=ss.filter(x=>x.items.length&&x.done.length===x.items.length).length;
   const last=lessons[0]?lessons[0].date:"";$("dp-last").textContent=last?"마지막 기록 "+last.replace(/-/g,"."):"";
-  $("dp-tiles").innerHTML=[["레슨 기록",coachL.length,"개"],["문제 진술",selfL.length,"개"],["배틀플랜",ss.length?fin:"—",ss.length?" / "+ss.length:""]]
+  $("dp-tiles").innerHTML=[["코치님 레슨",coachL.length,"개"],["내 얘기",selfL.length,"개"],["배틀플랜",ss.length?fin:"—",ss.length?" / "+ss.length:""]]
     .map(([l,v,u])=>`<div class="dp-tile"><small>${l}</small><b>${v}<i>${u}</i></b></div>`).join("");
   const b=stmt.bio||{},areas=AREAS.filter(a=>a.rate!==false).map(a=>[a.n,areaAvg(a)]);
   const row=(n,title,sub,body,go,cls="")=>`<details class="dp-item${cls}"><summary><span class="dp-n">${n}</span><span class="dp-t"><b>${title}</b><small>${sub}</small></span><span class="dp-chev" aria-hidden="true">⌄</span></summary><div class="dp-body">${body}${go?`<button class="btn sm gold" type="button" data-dp-go="${go}">열기</button>`:""}</div></details>`;
@@ -1277,10 +1372,10 @@ function renderDataPanel(){
   $("dp-list").innerHTML=
     row("01","나의 스테이트먼트",[b.years,b.handicap].filter(Boolean).map(esc).join(" · ")||"아직 비어 있어요",
       `<p class="hint" style="margin:0">스페셜 · 입스: ${esc(yipsLine())}</p><div class="dp-bars">${areas.map(([n,v])=>`<div><span>${esc(n)}</span><i><i style="width:${v?v/5*100:0}%"></i></i><small>${v?v.toFixed(1):"—"}</small></div>`).join("")}</div>`,"me")+
-    row("02","내 문제 진술",selfL[0]?esc(selfL[0].result.title):"아직 남긴 진술이 없어요",selfL.slice(0,3).map(lessonRow).join("")||`<p class="hint">루크에게 지금 겪는 문제를 골라서 알려 주세요.</p>`,"dx")+
-    row("03","레슨 기록",coachL[0]?esc(md(coachL[0].date)+" · "+(coachL[0].coach||"코치 미기재")):"아직 레슨 기록이 없어요",coachL.slice(0,3).map(lessonRow).join("")||`<p class="hint">로건에게 코치님 말씀을 들려주세요.</p>`,"lesson")+
+    row("02","내 얘기",selfL[0]?esc(selfL[0].result.title):"아직 남긴 얘기가 없어요",selfL.slice(0,3).map(lessonRow).join("")||`<p class="hint">말하기에서 '내 얘기'를 골라 지금 겪는 고민을 알려 주세요.</p>`,"dx")+
+    row("03","코치님 레슨",coachL[0]?esc(md(coachL[0].date)+" · "+(coachL[0].coach||"코치 미기재")):"아직 레슨 기록이 없어요",coachL.slice(0,3).map(lessonRow).join("")||`<p class="hint">말하기에서 코치님 말씀을 들려주세요.</p>`,"lesson")+
     row("04","만다라트 · 배틀플랜",mandala?(ss.length?`배틀플랜 ${fin}/${ss.length}회차`:"배틀플랜을 만들어 보세요"):"아직 만다라트가 없어요",
-      mandala?`<div class="dp-mini">${[0,1,2,3,null,4,5,6,7].map(i=>i===null?`<span class="g">${esc(mandala.goal||profile.goal||DEF_GOAL[profile.level])}</span>`:(()=>{const [p,n]=PILLARS[i],st=cellStat(p);return `<span style="--p:${st.pct||0}%">${esc(n)}<small>${st.pct===null?"—":st.pct+"%"}</small></span>`})()).join("")}</div>`:`<p class="hint">데릴의 훈련장에서 만다라트를 만들 수 있어요.</p>`,"train")+
+      mandala?`<div class="dp-mini">${[0,1,2,3,null,4,5,6,7].map(i=>i===null?`<span class="g">${esc(mandala.goal||profile.goal||DEF_GOAL[profile.level])}</span>`:(()=>{const [p,n]=PILLARS[i],st=cellStat(p);return `<span style="--p:${st.pct||0}%">${esc(n)}<small>${st.pct===null?"—":st.pct+"%"}</small></span>`})()).join("")}</div>`:`<p class="hint">오늘의 훈련 아래 '만다라트 · 배틀플랜'에서 만들 수 있어요.</p>`,"train")+
     `<div class="dp-item soon"><span class="dp-n">05</span><span class="dp-t"><b>맞는 레슨자 추천</b><small>곧 열려요</small></span></div>`;
 }
 $("dp-tab").addEventListener("click",dpOpen);
@@ -1299,12 +1394,12 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("dpanel").hidden
 function renderTalk(){
   const d=new Date();$("talk-date").textContent=(window.AP_LANG&&window.AP_LANG!=="ko")?d.toLocaleDateString({en:"en-US",ja:"ja-JP",zh:"zh-CN",ms:"ms-MY",id:"id-ID"}[window.AP_LANG]||"en-US",{month:"long",day:"numeric",weekday:"long"}):`${d.getMonth()+1}월 ${d.getDate()}일 ${"일월화수목금토"[d.getDay()]}요일`;
   const name=($("who").textContent||"").trim();const nm=name&&name!=="내 기록"&&name!=="연결 중"?((window.AP_LANG||"ko")!=="ko"?" "+name:name+"님"):"";
-  const ss=(mandala&&mandala.sessions)||[],nx=ss.find(x=>x.done.length<x.items.length);
   /* 크루 말투(설정)에 따라 첫 인사도 다르게 */
   const tone=(user&&user.info&&user.info().tone)||"coach";
-  const line2=tone==="friend"?(!lessons.length?"오늘도 반가워요! 받은 레슨이나 고민부터 편하게 남겨 봐요.":nx?`오늘은 배틀플랜 ${nx.n}회차 하는 날이에요! 같이 해 봐요.`:"오늘은 뭐 남겨 볼까요? 편하게 말해 줘요!")
-    :tone==="direct"?(!lessons.length?"레슨이나 문제부터 남기세요.":nx?`오늘: 배틀플랜 ${nx.n}회차.`:"오늘 남길 것을 고르세요.")
-    :(!lessons.length?"오늘 받은 레슨이나 지금 겪는 문제부터 남겨 볼까요?":nx?`오늘은 배틀플랜 ${nx.n}회차가 기다리고 있어요. 무엇부터 해 볼까요?`:"오늘은 무엇을 남겨 볼까요?");
+  const dn=day&&day.items?(day.verdict?"done":"plan"):"";
+  const line2=tone==="friend"?(!lessons.length?"오늘도 반가워요! 받은 레슨이나 고민부터 편하게 남겨 봐요.":dn==="done"?"오늘 연습 끝! 수고했어요. 더 남길 게 있으면 말해 줘요.":dn==="plan"?"오늘 짠 훈련 기다리고 있어요! 끝나면 '했어요' 눌러 줘요.":"오늘 연습 같이 짜 볼까요? 편하게 말해 줘요!")
+    :tone==="direct"?(!lessons.length?"레슨이나 고민부터 남기세요.":dn==="done"?"오늘 훈련 완료.":dn==="plan"?"오늘 훈련 진행 중. 끝나면 '했어요'.":"오늘 훈련부터 짜세요.")
+    :(!lessons.length?"오늘 받은 레슨이나 지금 겪는 고민부터 남겨 볼까요?":dn==="done"?"오늘 연습을 기록했어요. 새로 남길 레슨이나 고민이 있나요?":dn==="plan"?"오늘 짠 훈련이 기다리고 있어요. 끝나면 '했어요'만 눌러 주세요.":"오늘 연습 계획부터 같이 짜 볼까요?");
   $("talk-hi").innerHTML=`<p>안녕하세요${nm?", "+esc(nm):""}.</p><p>${esc(line2)}</p>`;
 }
 function renderDrawerStatus(){
@@ -1316,7 +1411,7 @@ function renderDrawerStatus(){
 }
 $("talk-plus").addEventListener("click",()=>{const sh=$("talk-sheet"),open=sh.hidden;sh.hidden=!open;$("talk-plus").setAttribute("aria-expanded",open);$("talk-plus").textContent=open?"×":"+"});
 $("talk-sheet").addEventListener("click",e=>{const b=e.target.closest("[data-tk]");if(!b)return;$("talk-sheet").hidden=true;$("talk-plus").textContent="+";$("talk-plus").setAttribute("aria-expanded","false");
-  const a=b.dataset.tk;if(a==="rec"){show("lesson");setTimeout(()=>{$("f-coach").focus();if(dict&&!$("mic-row").hidden)toast("코치 이름을 적고 '레슨 듣기 시작'을 누르면 녹음돼요")},120);return}show(a)});
+  const a=b.dataset.tk;if(a==="rec"){recMode="coach";show("lesson");setTimeout(()=>{$("f-coach").focus();if(dict&&!$("mic-row").hidden)toast("코치 이름을 적고 '레슨 듣기 시작'을 누르면 녹음돼요")},120);return}show(a)});
 
 
 /* ===== 레거시 나무가 자라는 모습 =====
@@ -1385,7 +1480,7 @@ function crewStop(){WALK.on=false;WALK.timers.forEach(clearTimeout);WALK.timers=
 
 /* ===== 광장 크루를 누르면 소개가 나온다 (? 없이) =====
    이름 → 무엇을 하는 곳 → 할 수 있는 일, 그리고 '들어가기'. 보는 동안 그 크루는 걷기를 멈춘다. */
-const CREW_VIEW={logan:"lesson",rook:"dx",daryl:"train",paco:"feel"};
+const CREW_VIEW={logan:"lesson",rook:"dx",daryl:"train",paco:"train"};
 let popCrew=null;
 function crewPop(id,st){
   const h=MILO_HELP[id];if(!h)return;const pop=$("crew-pop");
@@ -1397,7 +1492,7 @@ function crewPopClose(){const pop=$("crew-pop");if(pop.hidden)return;pop.classLi
   const st=popCrew&&document.querySelector(`#v-home .crew-go[data-crew="${popCrew}"]`);popCrew=null;if(st)st.focus({preventScroll:true})}
 $("v-home").addEventListener("click",e=>{
   const b=e.target.closest(".crew-go[data-crew]");if(b){e.stopPropagation();crewPop(b.dataset.crew,b.closest(".station"));return}
-  if(e.target.closest("#crew-pop-go")){const v=CREW_VIEW[popCrew];crewPopClose();if(v)show(v);return}
+  if(e.target.closest("#crew-pop-go")){const v=CREW_VIEW[popCrew];if(popCrew==="logan")recMode="coach";crewPopClose();if(v)show(v);return}
   if(e.target.closest("#crew-pop-x")){crewPopClose();return}
   if(!e.target.closest("#crew-pop"))crewPopClose();
 });
@@ -1406,7 +1501,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")crewPopClose()});
 
 /* ===== 광장의 밀로 (도움말 안내) =====
    크루 옆 ?를 없앤 대신, 광장 구석 굴의 밀로를 누르면 궁금한 것을 골라 설명을 듣는다. 밀로는 걸어 다니지 않는다. */
-MILO_HELP.data={title:"나의 데이터",meaning:"화면 오른쪽 가장자리의 금색 '내 데이터' 탭이야. 누르거나 왼쪽으로 밀면 펼쳐져.",action:"레슨 기록 수, 문제 진술, 배틀플랜 진행, 스테이트먼트를 한눈에 보고 각 방으로 바로 갈 수 있어.",goLabel:"열어 보기",onGo:()=>dpOpen()};
+MILO_HELP.data={title:"나의 데이터",meaning:"화면 오른쪽 가장자리의 금색 '내 데이터' 탭이야. 누르거나 왼쪽으로 밀면 펼쳐져.",action:"코치님 레슨과 내 얘기, 배틀플랜 진행, 스테이트먼트를 한눈에 보고 각 화면으로 바로 갈 수 있어.",goLabel:"열어 보기",onGo:()=>dpOpen()};
 function miloPopClose(){const p=$("milo-pop");if(!p||p.hidden)return;p.classList.remove("on");p.hidden=true;$("milo-pop-d").hidden=true;p.querySelectorAll("[data-mh]").forEach(x=>x.removeAttribute("aria-pressed"))}
 $("milo-spot").addEventListener("click",e=>{e.stopPropagation();crewPopClose();if(miloBusy){miloStop();miloIdleLoop()}const p=$("milo-pop");if(!p.hidden){miloPopClose();return}p.hidden=false;requestAnimationFrame(()=>p.classList.add("on"))});
 $("milo-pop").addEventListener("click",e=>{

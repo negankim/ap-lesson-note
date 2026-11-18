@@ -1301,3 +1301,130 @@
 1300	Sila isi bilangan cubaan
 1301	Rekod pemain
 1302	Hasil direkod
+1303	Logan · Pelajaran jurulatih
+1304	Rook · Cerita saya
+1305	Daryl · Latihan hari ini
+1306	Paco · Siap
+1307	Cerita saya
+1308	Latihan hari ini
+1309	Siap
+1310	Catat pelajaran atau masalah
+1311	Logan · Rook
+1312	Sama ada pelajaran jurulatih atau masalah anda sendiri, tinggalkan di sini dan ia menjadi satu kad: masalah, penyelesaian dan latihan.
+1313	Bantuan bercakap
+1314	Apa yang mahu dicatat
+1315	Pelajaran jurulatih
+1316	Rekod saya · pelajaran jurulatih dan cerita saya
+1317	Daryl · Paco
+1318	Rancang latihan hari ini bersama, kemudian tekan 'Siap' apabila selesai.
+1319	Bantuan latihan hari ini
+1320	Menentukan susunan latihan hari ini
+1321	Latihan yang dibandingkan dengan rekod
+1322	Bandingkan situasi biasa dan bertekanan dengan angka
+1323	Pelan 6 hari dari rekod terkini
+1324	Tahap pemain dan matlamat
+1325	Setiap petak terisi dari bawah mengikut pelan tempur yang anda siapkan dalam bidang itu. Tekan petak untuk melihat rekod bidang itu sahaja.
+1326	1 · Bercakap
+1327	Pelajaran jurulatih dan cerita anda di satu tempat. Masalah, penyelesaian dan latihan disusun
+1328	2 · Latihan hari ini
+1329	Rancang latihan hari ini bersama
+1330	Rancang terus atau sambil berbual. Bila selesai, tekan 'Siap' sahaja
+1331	Ceritakan masalah saya
+1332	Latihan hari ini · Siap
+1333	Pelajaran jurulatih · Cerita saya
+1334	Rancang bersama · Siap
+1335	Bio asas · 6 bidang · Yips
+1336	Disimpan. Jom rancang latihan hari ini bersama
+1337	Pilih masalah yang anda hadapi sekarang. Tulisan pendek atau tiada pun tak apa. Saya akan susun masalah, penyelesaian dan latihan dengan segera.
+1338	Masalah yang sama tidak berubah lebih daripada tiga kali. Hentikan latihan sebentar dan sambung selepas jurulatih menyemaknya.
+1339	Tekan 'Rancang terus' dalam Latihan hari ini dan tugasan ini masuk dahulu.
+1340	Bercakap · Pelajaran jurulatih
+1341	Di sini anda simpan pelajaran jurulatih dengan suara atau tulisan. Tukar ke 'Cerita saya' di atas untuk simpan masalah sendiri di tempat yang sama.
+1342	Tekan Susun dan anda dapat satu kad: masalah, penyelesaian dan latihan. Simpan dan ia masuk ke Latihan hari ini.
+1343	Pergi bercakap
+1344	Bercakap · Cerita saya
+1345	Di sini anda simpan masalah yang dihadapi. Pilih sahaja pukulan mana, bagaimana bola pergi dan bila ia lebih teruk.
+1346	Masalah, penyelesaian dan latihan keluar segera, dan selepas disimpan ia masuk ke Latihan hari ini.
+1347	Pergi ceritakan masalah saya
+1348	Di sini kita rancang latihan hari ini bersama. Pilih 'Rancang terus' atau 'Jom bincang sambil rancang'.
+1349	Saya kumpul hanya apa yang perlu dibuat hari ini daripada pelajaran, cerita anda, preskripsi jurulatih dan pelan tempur. Mandalart dan pelan tempur dilipat di bawah.
+1350	Ke latihan hari ini
+1351	Kawan yang bertanya bagaimana latihan anda selepas selesai.
+1352	Di bawah Latihan hari ini, pilih satu daripada Berkesan · Masih sama · Tak pasti, dan saya akan laraskan latihan seterusnya.
+1353	Tempat hari anda bermula. Terus ke Bercakap atau Latihan hari ini, atau tanya krew.
+1354	Krew menjawab berdasarkan rekod anda. Boleh tanya sehingga 10 kali sehari, dan apa yang tiada dalam rekod ditanda 'Anggaran AI'.
+1355	Di sini anda simpan diri anda sekarang: bio asas dan 6 bidang — mental, permainan pendek, pukulan, fizikal, padang dan pemasangan kelab. Ia ada di 'Akaun saya' dalam menu.
+1356	Tak perlu isi sekaligus. Rook tanya satu soalan sehari dalam Perbualan hari ini. Latihan hari ini menjaga bidang lemah dahulu.
+1357	Simpan ke rekod saya · ke latihan hari ini
+1358	Siap disusun. Puncanya masih 'perlu disemak'. Simpan dan ia terus masuk ke Latihan hari ini.
+1359	30 minit
+1360	1 jam
+1361	2 jam atau lebih
+1362	Lapang sasar
+1363	Green putting · kawasan permainan pendek
+1364	Padang
+1365	Rumah · dalam bangunan
+1366	Baik
+1367	Penat
+1368	Pelajaran terkini · masalah
+1369	Bidang lemah
+1370	Berapa lama masa untuk berlatih hari ini?
+1371	Di mana anda berlatih?
+1372	Bagaimana keadaan badan anda?
+1373	Ada apa-apa yang anda mahu fokus hari ini?
+1374	Berkesan
+1375	Masih sama
+1376	Tak pasti
+1377	Kad latihan AI
+1378	Pelan tempur sesi {0}
+1379	Mandalart ·
+1380	Siap: {0}
+1381	Buang
+1382	Soalan sebelumnya
+1383	Berhenti
+1384	Sepatah kata
+1385	Lihat pelan
+1386	cth: Esok ada pertandingan, jadi ringan sahaja, kebanyakannya putting
+1387	Bagus. Kalau ada apa-apa lagi, tinggalkan sepatah kata. Kalau tiada, saya rancang terus.
+1388	Belum ada latihan untuk dimasukkan. Catat pelajaran atau cerita anda dahulu, atau buat mandalart di bawah.
+1389	Saya pilih ini
+1390	Satu lagi
+1391	Rancang semula
+1392	Begini rancangannya. Tekan × untuk buang apa-apa, dan tekan 'Saya pilih ini' jika sesuai.
+1393	Tiada latihan yang boleh dimasukkan hari ini.
+1394	Masalah yang sama tidak berubah {0} kali.
+1395	Siap · Bagaimana tadi?
+1396	Dicatat. Syabas! Esok kita rancang lagi.
+1397	Semua siap! Pilih satu: bagaimana tadi?
+1398	Tandakan yang sudah dibuat, dan bila selesai pilih satu: bagaimana tadi?
+1399	Ya, rancang terus
+1400	Jom bincang sambil rancang
+1401	Jom rancang latihan hari ini bersama?
+1402	Jom rancang latihan hari ini bersama? Kalau catat pelajaran atau masalah dahulu, saya boleh sesuaikan lebih baik.
+1403	Tiada lagi latihan untuk ditambah
+1404	Rancang semula hari ini? Pelan sekarang kekal dalam rekod.
+1405	Latihan hari ini sudah ditetapkan
+1406	{0}/{1}
+1407	Hari ini
+1408	Latihan hari ini sudah dicatat
+1409	Cukup untuk hari ini
+1410	Satu soalan sahaja. Leret untuk menilai kemahiran anda sekarang dari 1 hingga 5.
+1411	Sila leret untuk memilih
+1412	Belum ada cerita
+1413	Dalam Bercakap, pilih 'Cerita saya' dan beritahu masalah yang anda hadapi.
+1414	Dalam Bercakap, ceritakan apa kata jurulatih.
+1415	Boleh dibuat di 'Mandalart · Pelan tempur' di bawah Latihan hari ini.
+1416	Latihan hari ini selesai! Syabas. Beritahu kalau ada lagi untuk dicatat.
+1417	Latihan hari ini sedang menunggu! Tekan 'Siap' bila selesai.
+1418	Jom rancang latihan hari ini bersama? Cakap sahaja!
+1419	Catat pelajaran atau masalah dahulu.
+1420	Latihan hari ini: selesai.
+1421	Latihan hari ini sedang berjalan. Tekan 'Siap' bila selesai.
+1422	Rancang latihan hari ini dahulu.
+1423	Mahu mula dengan pelajaran hari ini atau masalah yang anda hadapi?
+1424	Latihan hari ini sudah dicatat. Ada pelajaran atau masalah baru untuk disimpan?
+1425	Latihan hari ini sedang menunggu. Tekan 'Siap' sahaja bila selesai.
+1426	Jom mula dengan merancang latihan hari ini bersama?
+1427	Lihat pelajaran jurulatih, cerita anda, kemajuan pelan tempur dan penyata anda sekali pandang, dan terus ke setiap skrin.
+1428	Mandalart
+1429	Pelajaran ·

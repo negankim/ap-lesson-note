@@ -94,6 +94,11 @@ service cloud.firestore {
       }
       // AI 훈련 카드: 제안·내부 연결·검토는 서버만 쓴다. 본인·코치는 수정본·수행 기록·상태만 덧붙인다(지우지 못함).
       // 만다라트와 배틀플랜 (본인 작성, 코치·관리자는 읽기)
+      // 오늘의 훈련(날짜별 계획·체크·했어요): 본인 작성, 코치·관리자·연결된 사람은 읽기
+      match /days/{d} {
+        allow read, write: if signedIn() && request.auth.uid == uid;
+        allow read: if isStaff() || isViewer(uid);
+      }
       match /mandala/{id} {
         allow read, write: if signedIn() && request.auth.uid == uid;
         allow read: if isStaff() || isViewer(uid);

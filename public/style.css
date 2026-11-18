@@ -708,3 +708,31 @@ body{background:linear-gradient(#eaf6fb,var(--bg) 340px)}
 .tl-obs-row small{display:block;color:var(--muted)}
 .linkish{background:none;border:0;padding:0;color:var(--green);text-decoration:underline;cursor:pointer;font:inherit}
 .tl-my{display:grid;gap:6px}
+
+/* ===== 한 바퀴 흐름 (2026-11-18): 말하기 토글 · 접힌 칸 · 오늘의 훈련 ===== */
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;border:1px solid var(--line);border-radius:999px;background:var(--raise)}
+.seg button{appearance:none;display:flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:999px;padding:8px 10px;background:transparent;font:inherit;font-weight:700;color:var(--muted);cursor:pointer;min-height:44px}
+.seg button img{width:20px;height:34px;object-fit:contain}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 2px 8px rgba(60,45,10,.12);outline:1.5px solid var(--gold-line)}
+.fold>summary{cursor:pointer;list-style:none;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary::after{content:"＋";color:var(--muted);margin-left:auto}
+.fold[open]>summary::after{content:"－"}
+.fold>summary small{font-size:12px}
+.dday{border-color:var(--gold-line)}
+.d-start{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.d-start .btn{min-height:52px;border-radius:999px}
+.d-said{display:flex;flex-wrap:wrap;gap:6px}
+.d-opts .chip{min-height:44px;padding:0 16px}
+.d-list{display:grid;gap:8px}
+.d-it{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--raise)}
+label.d-it{cursor:pointer}
+.d-it input{width:22px;height:22px;margin-top:2px;flex:none;accent-color:var(--gold)}
+.d-it.done{opacity:.6}.d-it.done b{text-decoration:line-through}
+.d-tx{display:grid;gap:4px;min-width:0;flex:1}
+.d-tx .pill{justify-self:start}
+.d-tx small{color:var(--muted);font-size:13px;line-height:1.45}
+.d-rm{appearance:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;width:32px;height:32px;font-size:18px;line-height:1;color:var(--muted);cursor:pointer;flex:none}
+.d-done{display:grid;gap:10px;border-top:1px dashed var(--line);padding-top:12px}
+.d-fin{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tq .fld{display:grid;gap:6px}

@@ -145,10 +145,10 @@
         <div class="cp-body"><b id="milo-pop-h">밀로예요. 뭐가 궁금해?</b>
           <div class="chips" id="milo-pop-list">
             <button type="button" class="chip" data-mh="tree">레거시 나무</button>
-            <button type="button" class="chip" data-mh="logan">로건 · 레슨 기록</button>
-            <button type="button" class="chip" data-mh="rook">루크 · 내 문제 진술</button>
-            <button type="button" class="chip" data-mh="daryl">데릴 · 훈련장</button>
-            <button type="button" class="chip" data-mh="paco">파코 · 감각·실전</button>
+            <button type="button" class="chip" data-mh="logan">로건 · 코치님 레슨</button>
+            <button type="button" class="chip" data-mh="rook">루크 · 내 얘기</button>
+            <button type="button" class="chip" data-mh="daryl">데릴 · 오늘의 훈련</button>
+            <button type="button" class="chip" data-mh="paco">파코 · 했어요</button>
             <button type="button" class="chip" data-mh="ask">오늘의 대화</button>
             <button type="button" class="chip" data-mh="me">나의 스테이트먼트</button>
             <button type="button" class="chip" data-mh="data">나의 데이터</button>
@@ -162,15 +162,15 @@
           <div class="actions"><button class="btn gold sm" type="button" id="crew-pop-go">들어가기</button><button class="btn sm" type="button" id="crew-pop-x">닫기</button></div></div>
       </div>
       <div class="station st-logan"><button class="crew-go" type="button" data-crew="logan" aria-haspopup="dialog" aria-label="로건 소개 보기"><img src="img/crew3d/logan-idle.webp" alt="" width="120" height="200"><span class="plate"><b>로건</b>레슨 기록</span></button></div>
-      <div class="station st-rook"><button class="crew-go" type="button" data-crew="rook" aria-haspopup="dialog" aria-label="루크 소개 보기"><img src="img/crew3d/rook-idle.webp" alt="" width="120" height="200"><span class="plate"><b>루크</b>내 문제 진술</span></button></div>
-      <div class="station st-daryl"><button class="crew-go" type="button" data-crew="daryl" aria-haspopup="dialog" aria-label="데릴 소개 보기"><img src="img/crew3d/daryl-idle.webp" alt="" width="120" height="200"><span class="plate"><b>데릴</b>훈련장</span></button></div>
-      <div class="station st-paco"><button class="crew-go" type="button" data-crew="paco" aria-haspopup="dialog" aria-label="파코 소개 보기"><img src="img/crew3d/paco-idle.webp" alt="" width="120" height="200"><span class="plate"><b>파코</b>감각 · 실전</span></button></div>
+      <div class="station st-rook"><button class="crew-go" type="button" data-crew="rook" aria-haspopup="dialog" aria-label="루크 소개 보기"><img src="img/crew3d/rook-idle.webp" alt="" width="120" height="200"><span class="plate"><b>루크</b>내 얘기</span></button></div>
+      <div class="station st-daryl"><button class="crew-go" type="button" data-crew="daryl" aria-haspopup="dialog" aria-label="데릴 소개 보기"><img src="img/crew3d/daryl-idle.webp" alt="" width="120" height="200"><span class="plate"><b>데릴</b>오늘의 훈련</span></button></div>
+      <div class="station st-paco"><button class="crew-go" type="button" data-crew="paco" aria-haspopup="dialog" aria-label="파코 소개 보기"><img src="img/crew3d/paco-idle.webp" alt="" width="120" height="200"><span class="plate"><b>파코</b>했어요</span></button></div>
     </div>
     <p class="plaza-n" id="plaza-n"></p>
     <div id="plaza-detail"></div>
     <div class="guide" id="g-plaza"></div>
     <div class="home-row">
-      <button class="btn gold" type="button" data-show="lesson">오늘 받은 레슨 기록하기</button>
+      <button class="btn gold" type="button" data-show="lesson">레슨이나 고민 남기기</button>
       <button class="btn" type="button" data-show="ask">크루에게 묻기</button>
     </div>
   </section>
@@ -179,11 +179,16 @@
   <section id="v-lesson" class="wrap room" style="gap:16px" hidden>
     <header class="room-head">
       <img class="room-av" src="img/crew3d/logan-greet.webp" alt="" width="96" height="160">
-      <div><p class="room-k">로건 · 기록 담당</p><h1>레슨 기록</h1><p class="lead">레슨을 들려주거나 받아 적으면 문제·레슨 정리·솔루션·훈련·배틀플랜으로 정리합니다.</p></div>
-      <button class="milo-q" type="button" data-milo-help="logan" aria-label="레슨 기록 도움말">?</button>
+      <div><p class="room-k">로건 · 루크</p><h1>말하기</h1><p class="lead">코치님 레슨이든 내 고민이든 여기에 남기면, 문제·해법·할 훈련이 카드 한 장으로 정리돼요.</p></div>
+      <button class="milo-q" type="button" data-milo-help="logan" aria-label="말하기 도움말">?</button>
     </header>
+    <div class="flow"><span><b>1</b>말하기</span><span><b>2</b>정리</span><span><b>3</b>오늘의 훈련</span><span><b>4</b>했어요</span></div>
+    <div class="seg" id="rec-mode" role="group" aria-label="무엇을 남길까요">
+      <button type="button" data-rec-m="coach" aria-pressed="true"><img src="img/crew3d/logan-idle.webp" alt="" width="24" height="40">코치님 레슨</button>
+      <button type="button" data-rec-m="self" aria-pressed="false"><img src="img/crew3d/rook-idle.webp" alt="" width="24" height="40">내 얘기</button>
+    </div>
+    <div id="rec-coach" style="display:grid;gap:16px">
     <div class="guide" id="g-lesson" data-who="logan" data-say="코치님이 한 말, 공이 어떻게 갔는지, 내가 느낀 것. 그대로 들려주시면 제가 빠짐없이 기록할게요."></div>
-    <div class="flow"><span><b>1</b>말하기</span><span><b>2</b>정리</span><span><b>3</b>솔루션·훈련</span><span><b>4</b>배틀플랜</span><span><b>5</b>피드백</span></div>
 
     <div class="panel">
       <div class="row2">
@@ -205,9 +210,15 @@
     </div>
 
     <div id="out"></div>
+    </div>
+    <div id="rec-self" style="display:grid;gap:16px" hidden>
+      <div class="guide" id="g-pos" data-who="rook"></div>
+      <form id="prob-form" class="panel prob-form" novalidate></form>
+      <div id="prob-out"></div>
+    </div>
     <div class="panel">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
-        <span class="eyebrow"><b>L</b>레슨 기록</span>
+        <span class="eyebrow"><b>L</b>내 기록 · 코치님 레슨과 내 얘기</span>
         <span class="hint" id="filter-l"></span>
       </div>
       <div class="list" id="list"><div class="empty">불러오는 중</div></div>
@@ -219,37 +230,26 @@
       <div class="actions"><button class="btn sm" type="button" data-show="home">레거시 나무 보러 가기</button></div>
       <div id="legacy-list" style="display:grid;gap:10px"></div>
     </div>
-  </section>
-
-  <!-- ===== 루크: 내 문제 진술 (Matrix 지도는 코치 영역에서만) ===== -->
-  <section id="v-dx" class="wrap room" style="gap:16px" hidden>
-    <header class="room-head">
-      <img class="room-av" src="img/crew3d/rook-greet.webp" alt="" width="96" height="160">
-      <div><p class="room-k">루크 · 진단 담당</p><h1>내 문제 진술</h1><p class="lead">지금 겪는 문제를 골라서 알려 주세요. 문제·솔루션·훈련 방법이 바로 나오고, 만다라트와 배틀플랜으로 이어집니다.</p></div>
-      <button class="milo-q" type="button" data-milo-help="rook" aria-label="내 문제 진술 도움말">?</button>
-    </header>
-    <div class="guide" id="g-pos" data-who="rook"></div>
-    <form id="prob-form" class="panel prob-form" novalidate></form>
-    <div id="prob-out"></div>
-    <div id="prob-list"></div>
     <details class="panel coach-zone" id="coach-zone" hidden><summary><span class="eyebrow"><b>C</b>코치 영역 · Matrix 위치와 근거</span></summary><div id="dx-box"></div></details>
   </section>
 
-  <!-- ===== 데릴: 훈련장 ===== -->
+
+  <!-- ===== 데릴: 오늘의 훈련 (같이 짜기 → 했어요). 만다라트·배틀플랜·AI 훈련 카드는 아래에 접어 둔다 ===== -->
   <section id="v-train" class="wrap room" style="gap:16px" hidden>
     <header class="room-head">
       <img class="room-av" src="img/crew3d/daryl-greet.webp" alt="" width="96" height="160">
-      <div><p class="room-k">데릴 · 훈련 담당</p><h1>훈련장</h1><p class="lead">만다라트와 배틀플랜으로 오늘 할 훈련을 끝까지 함께합니다.</p></div>
-      <button class="milo-q" type="button" data-milo-help="daryl" aria-label="훈련장 도움말">?</button>
+      <div><p class="room-k">데릴 · 파코</p><h1>오늘의 훈련</h1><p class="lead">오늘 할 훈련을 같이 짜고, 끝나면 '했어요'만 눌러 주세요.</p></div>
+      <button class="milo-q" type="button" data-milo-help="daryl" aria-label="오늘의 훈련 도움말">?</button>
     </header>
     <div class="guide" id="g-chart"></div>
-    <div id="mandala"></div>
-    <div id="bplan"></div>
-    <div id="tcard"></div>
+    <div id="today-plan"></div>
     <div id="my-rx" hidden></div>
-    <details class="panel" id="lesson-plan"><summary><span class="eyebrow"><b>L</b>최근 레슨의 6일 플랜</span></summary><div id="train-today"></div><div id="active"></div></details>
+    <details class="panel fold" id="fold-mandala"><summary><span class="eyebrow"><b>M</b>만다라트 · 배틀플랜</span><small class="hint">오늘의 훈련 순서를 정하는 곳</small></summary><div id="mandala"></div><div id="bplan"></div></details>
+    <details class="panel fold" id="fold-tcard"><summary><span class="eyebrow"><b>AI</b>기록으로 비교하는 훈련</span><small class="hint">평소·압박 상황을 숫자로 비교</small></summary><div id="tcard"></div></details>
+    <details class="panel fold" id="lesson-plan"><summary><span class="eyebrow"><b>L</b>최근 기록의 6일 플랜</span></summary><div id="train-today"></div><div id="active"></div></details>
+    <details class="panel fold" id="fold-hist"><summary><span class="eyebrow"><b>F</b>내 연습 기록</span></summary><div id="feel-hist"></div></details>
     <details class="panel mfold" id="mfold">
-      <summary><span class="eyebrow"><b>M</b>선수 구분과 영역별 레슨 보기</span></summary>
+      <summary><span class="eyebrow"><b>G</b>선수 구분과 목표</span></summary>
       <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap">
         <button class="btn sm" type="button" id="prof-btn">목표 바꾸기</button>
       </div>
@@ -259,19 +259,8 @@
         <div class="actions"><button class="btn gold" type="button" id="prof-save">저장</button></div>
       </div>
       <div class="mgrid" id="mgrid"></div>
-      <p class="hint">칸은 그 영역 배틀플랜을 수행한 만큼 아래부터 차오릅니다. 칸을 누르면 그 영역 레슨만 봅니다.</p>
+      <p class="hint">칸은 그 영역 배틀플랜을 수행한 만큼 아래부터 차오릅니다. 칸을 누르면 그 영역 기록만 봅니다.</p>
     </details>
-  </section>
-
-  <!-- ===== 파코: 감각 · 실전 ===== -->
-  <section id="v-feel" class="wrap room" style="gap:16px" hidden>
-    <header class="room-head">
-      <img class="room-av" src="img/crew3d/paco-greet.webp" alt="" width="96" height="160">
-      <div><p class="room-k">파코 · 감각과 실전 담당</p><h1>감각 · 실전</h1><p class="lead">연습해 본 느낌을 30초만 남기면, 다음 연습과 실전에 맞게 조율해 드려요.</p></div>
-      <button class="milo-q" type="button" data-milo-help="paco" aria-label="감각 · 실전 도움말">?</button>
-    </header>
-    <div id="today-card"></div>
-    <div id="feel-hist"></div>
   </section>
 
   <!-- ===== 나의 스테이트먼트: 기본 바이오 + 6개 영역 자기평가·측정값 ===== -->
@@ -302,9 +291,10 @@
     </div>
     <div class="talk-hi" id="talk-hi"></div>
     <div class="talk-cards">
-      <button class="tk-card" type="button" data-show="lesson"><img src="img/crew3d/logan-point.webp" alt="" width="72" height="120"><small>레슨 레코드 · 로건</small><b>레슨 기록하기</b><span>코치 이름과 레슨을 말이나 글로 남기면 문제·솔루션·훈련으로 정리돼요</span><i>시작하기 ›</i></button>
-      <button class="tk-card" type="button" data-show="dx"><img src="img/crew3d/rook-point.webp" alt="" width="72" height="120"><small>내 문제 진술 · 루크</small><b>지금 내 문제 말하기</b><span>고르기만 해도 솔루션과 훈련 방법, 배틀플랜까지 나와요</span><i>시작하기 ›</i></button>
+      <button class="tk-card" type="button" data-show="lesson"><img src="img/crew3d/logan-point.webp" alt="" width="72" height="120"><small>1 · 말하기</small><b>레슨이나 고민 남기기</b><span>코치님 레슨도, 내 얘기도 여기 하나로. 문제·해법·할 훈련이 정리돼요</span><i>시작하기 ›</i></button>
+      <button class="tk-card" type="button" data-show="train"><img src="img/crew3d/daryl-point.webp" alt="" width="72" height="120"><small>2 · 오늘의 훈련</small><b>오늘 연습 같이 짜기</b><span>바로 짜거나 얘기하면서 짜요. 끝나면 '했어요'만 누르면 돼요</span><i>시작하기 ›</i></button>
     </div>
+    <div id="talk-q"></div>
     <button class="talk-plaza" type="button" data-show="home">닫고 광장 보기 ›</button>
     <div class="chat-log" id="chat-log" aria-live="polite"></div>
     <div class="chips" id="chat-sug" aria-label="추천 질문"></div>
@@ -312,9 +302,8 @@
       <p class="hint" id="chat-use">하루 10번까지 물을 수 있어요.</p>
       <div class="talk-sheet" id="talk-sheet" hidden>
         <button type="button" data-tk="rec"><img src="img/crew3d/logan-idle.webp" alt="" width="30" height="50">레슨 녹음 · 기록하기</button>
-        <button type="button" data-tk="dx"><img src="img/crew3d/rook-idle.webp" alt="" width="30" height="50">내 문제 말하기</button>
-        <button type="button" data-tk="feel"><img src="img/crew3d/paco-idle.webp" alt="" width="30" height="50">연습 느낌 남기기</button>
-        <button type="button" data-tk="train"><img src="img/crew3d/daryl-idle.webp" alt="" width="30" height="50">오늘 할 훈련 보기</button>
+        <button type="button" data-tk="dx"><img src="img/crew3d/rook-idle.webp" alt="" width="30" height="50">내 얘기 하기</button>
+        <button type="button" data-tk="train"><img src="img/crew3d/daryl-idle.webp" alt="" width="30" height="50">오늘의 훈련 · 했어요</button>
       </div>
       <form class="talk-in" id="chat-form">
         <button class="talk-plus" type="button" id="talk-plus" aria-expanded="false" aria-controls="talk-sheet" aria-label="기록 메뉴 열기">+</button>
@@ -377,29 +366,13 @@
   <nav class="dw-panel" aria-label="메뉴">
     <div class="dw-head">
       <div class="dw-av"><img src="img/crew3d/logan-idle.webp" alt="" width="54" height="90"></div>
-      <div class="dw-who"><b id="dw-name">내 기록</b><span class="dw-sub" id="dw-sub"></span><span class="pill gold" id="dw-role">선수</span></div>
+      <div class="dw-who"><b id="dw-name">내 기록</b><span class="pill gold" id="dw-role">선수</span></div>
       <button class="dw-x" type="button" data-close aria-label="메뉴 닫기">‹</button>
     </div>
     <button class="dw-talk" type="button" data-go="ask"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><b>오늘의 대화</b><img src="img/crew3d/logan-point.webp" alt="" width="44" height="74"></button>
-    <details class="dw-sec" open>
-      <summary><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 13l2 2 4-4"/></svg>진단</summary>
-      <div class="dw-card">
-        <small>진단 · 나의 스테이트먼트</small><b>나는 어떤 골퍼일까?</b>
-        <button type="button" class="dw-step" data-go="me" id="dw-s1"><i>1</i>기본 바이오<em></em></button>
-        <button type="button" class="dw-step" data-go="me" id="dw-s2"><i>2</i>6개 영역 스테이트먼트<em></em></button>
-        <div class="dw-step lock"><i>3</i>멘탈 테스트<em>🔒 준비 중</em></div>
-        <button type="button" class="dw-step sp" data-go="me" data-sec="me-special" id="dw-s4"><i>S</i>스페셜 · 입스 체크<em></em></button>
-        <button type="button" class="dw-wide" data-dp-open>결과는 나의 데이터에서</button>
-      </div>
-      <button type="button" class="dw-row" data-go="dx"><img src="img/crew3d/rook-idle.webp" alt="" width="28" height="46">내 문제 진술<small>루크</small></button>
-    </details>
-    <button type="button" class="dw-sec-row" data-go="lesson"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/></svg>기록<small>레슨 레코드 · 로건</small></button>
-    <details class="dw-sec" open>
-      <summary><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>훈련</summary>
-      <button type="button" class="dw-row" data-go="train"><img src="img/icons3d/flag.webp" alt="" width="30" height="30">만다라트 · 배틀플랜<small>데릴</small></button>
-      <button type="button" class="dw-row" data-go="train" data-sec="tcard"><img src="img/icons3d/bulb.webp" alt="" width="30" height="30">오늘의 훈련 제안</button>
-      <button type="button" class="dw-row" data-go="feel"><img src="img/crew3d/paco-idle.webp" alt="" width="28" height="46">감각 · 실전 느낌<small>파코</small></button>
-    </details>
+    <button type="button" class="dw-sec-row" data-go="lesson"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>말하기<small>코치님 레슨 · 내 얘기</small></button>
+    <button type="button" class="dw-sec-row" data-go="train"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>오늘의 훈련<small>같이 짜기 · 했어요</small></button>
+    <button type="button" class="dw-sec-row" data-dp-open><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"/></svg>내 데이터<small id="dw-sub"></small></button>
     <details class="dw-grp" id="dw-lib" hidden>
       <summary><img class="dw-img" src="img/icons3d/bag.webp" alt="" width="34" height="34">훈련 라이브러리 <small>코치</small></summary>
       <button type="button" data-go="tlib">Training Library · 처방</button>
@@ -416,6 +389,7 @@
       <summary><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>내 계정</summary>
       <button type="button" class="dw-row" data-go="link">연결<small id="dw-link-n">없음</small></button>
       <button type="button" class="dw-row" data-go="plan">구독<small>파일럿</small></button>
+      <button type="button" class="dw-row" data-go="me">나의 스테이트먼트<small>기본 바이오 · 6개 영역 · 입스</small></button>
       <button type="button" class="dw-row" data-go="set">설정</button>
     </details>
     <button type="button" class="dw-plaza" data-go="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-7M12 14c-4 0-6-3-6-6a6 6 0 0 1 12 0c0 3-2 6-6 6z"/></svg><b>레거시 광장</b><small>나무와 크루가 있는 곳</small></button>

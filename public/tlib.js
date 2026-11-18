@@ -398,3 +398,16 @@ export async function renderMyRx(uid, el) {
     });
   }
 }
+
+/* 오늘의 훈련(app.js)이 한 목록으로 모을 때 쓰는 '코치 처방 훈련' 항목: 가장 최근 처방에서 채택·수정한 드릴 */
+export async function myRxItems(uid) {
+  let list = [];
+  try { const s = await C.db.collection(`players/${uid}/tlRx`).get(); list = s.docs.map((x) => ({ id: x.id, ...x.data() })).sort((a, b) => (b.confirmedAt || "").localeCompare(a.confirmedAt || "")); } catch (_) { return []; }
+  if (!list.length) return [];
+  await loadTL();
+  const r = list[0];
+  return (r.picks || []).filter((p) => p.status === "adopted" || p.status === "modified").map((p) => {
+    const d = drills.find((x) => x.id === p.drillId) || { id: p.drillId };
+    return { key: `rx:${r.id}:${p.drillId}`, src: "코치 처방", name: dname(d), dose: (p.mods && p.mods.dose) || d.dose || "", how: d.how || "", axis: d.axis || "" };
+  });
+}
