@@ -464,6 +464,11 @@ exports.tlib = onCall({ region: "asia-northeast3", timeoutSeconds: 540, memory: 
     let bundle;
     try { bundle = require("./tlib-seed.json"); } catch (_) { throw new HttpsError("not-found", "가져올 자료가 아직 없습니다."); }
     const rep = await TL.importBundle(db, bundle, req.auth.uid);
+    /* AP 실전 인지 드릴(tlib-ap.json): 엑셀과 따로 관리하는 AP 자체 초안. 같은 방식으로 이어서 가져온다 */
+    let ap = null; try { ap = require("./tlib-ap.json"); } catch (_) {}
+    if (ap) { const r2 = await TL.importBundle(db, ap, req.auth.uid);
+      ["added", "updated", "same"].forEach((k) => { rep.drills[k] += r2.drills[k]; rep.sources[k] += r2.sources[k]; });
+      rep.drills.problems = [...rep.drills.problems, ...r2.drills.problems]; rep.ap = { batch: r2.batch, drills: r2.drills }; }
     return { ok: true, report: rep };
   }
   if (d.task === "link") {

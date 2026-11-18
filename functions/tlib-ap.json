@@ -1,0 +1,1218 @@
+{
+ "batch": "AP_Real_Practice_v0_1",
+ "importedFrom": "AP 실전 인지 드릴 초안",
+ "builtAt": "2026-11-18",
+ "sources": [
+  {
+   "id": "SRC-AP",
+   "title": "AP 코치진 · 실전 인지 드릴",
+   "publisher": "(주)에이피골프",
+   "url": "https://ap-lesson-note.web.app",
+   "listed": "25",
+   "focus": "실전 인지 능력(선택→경험→판단→인사이트→인내·기억)",
+   "capturePolicy": "OWN",
+   "lang": "한국어",
+   "license": "own",
+   "licenseNote": "AP 자체 초안. 다른 곳의 연습 카드·글을 옮기지 않음. 코치 검토 뒤 승인",
+   "checkedOn": "2026-11-18",
+   "clearance": "CLEARED"
+  }
+ ],
+ "observed": [],
+ "drills": [
+  {
+   "id": "RP-001",
+   "nameKo": "샷 메뉴 선언 9구",
+   "nameEn": "Declare-the-Shot 9",
+   "axis": "SWING",
+   "nodes": [
+    "N8"
+   ],
+   "nodeStatus": "tentative",
+   "nodeCrossRef": [],
+   "r8sub": [
+    "Shot Selection Range",
+    "Intentional Curve Creation"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "CHOICE",
+   "places": [
+    "range"
+   ],
+   "ability": "선택",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "연습장에서는 되는데 코스에서 고르지 못함",
+    "구질을 의도하지 않고 결과만 봄"
+   ],
+   "hypotheses": [
+    "선택 경험 부족",
+    "의도 없이 반복하는 연습 습관"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 공마다 치기 전에 세 가지를 소리 내어 정한다: 목표(깃발 둘 중 하나) · 구질(스트레이트·드로우·페이드) · 높이(낮게·보통·높게). ② 친다. ③ 선언과 결과가 맞았는지 기록지에 ○/△/× 로 바로 적는다. ④ 9구 뒤 가장 자주 맞은 선언과 가장 안 맞은 선언을 한 줄씩 적는다.",
+   "dose": "9구 × 2세트 · 주 2회",
+   "success": "선언 일치(○) 9구 중 5구 이상",
+   "metrics": "선언 일치율(%)|선언 종류별 일치율",
+   "equipment": [
+    "목표 깃발 2개",
+    "기록지"
+   ],
+   "difficulty": 2,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-002",
+   "nameKo": "속도 3단 선택 퍼트",
+   "nameEn": "Pick-Your-Speed Putting",
+   "axis": "PUTTING",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Adaptive Decision"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "CHOICE",
+   "places": [
+    "green"
+   ],
+   "ability": "선택",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "거리감이 그날그날 다름",
+    "라인만 보고 속도는 정하지 않음"
+   ],
+   "hypotheses": [
+    "속도 의도 부재",
+    "경사 읽기와 속도 선택 연결 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 4~8m 퍼트마다 치기 전에 속도를 하나 고른다: 홀에서 멈추기 · 30cm 지나가기 · 60cm 지나가기. ② 경사를 보고 고른 이유를 한 마디로 말한다. ③ 친 뒤 고른 속도대로 멈췄는지(±30cm) 기록한다.",
+   "dose": "10개 × 2세트",
+   "success": "고른 속도대로 멈춤 10개 중 6개 이상",
+   "metrics": "선택 속도 성공률(%)|멈춘 거리 오차(cm)",
+   "equipment": [
+    "티 또는 마커 3개",
+    "기록지"
+   ],
+   "difficulty": 2,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-003",
+   "nameKo": "착지점 먼저 고르기",
+   "nameEn": "Choose the Landing Spot First",
+   "axis": "SHORT_GAME",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Shot Selection Range"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "CHOICE",
+   "places": [
+    "short"
+   ],
+   "ability": "선택",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "칩이 들쭉날쭉",
+    "클럽을 늘 하나만 씀"
+   ],
+   "hypotheses": [
+    "착지점 선택 없이 결과만 봄",
+    "클럽 선택 폭이 좁음"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 그린 주변 한 자리에서 핀까지 착지점을 먼저 고르고 수건(또는 마커)을 놓는다. ② 클럽을 고르고 이유를 말한다. ③ 친다. ④ 착지가 수건 1m 안이면 선택 실행 성공, 핀 2m 안이면 결과 성공으로 따로 센다.",
+   "dose": "자리 3곳 × 5구",
+   "success": "착지 성공 15구 중 8구 이상",
+   "metrics": "착지 성공률(%)|핀 2m 안 비율(%)",
+   "equipment": [
+    "수건 또는 마커",
+    "웨지 2~3개"
+   ],
+   "difficulty": 2,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-004",
+   "nameKo": "홀 공략 3안 중 하나",
+   "nameEn": "Pick One of Three Plans",
+   "axis": "COURSE",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Adaptive Decision",
+    "Strategic Reproduction"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "CHOICE",
+   "places": [
+    "screen"
+   ],
+   "ability": "선택",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "코스에서 무리한 선택이 잦음",
+    "계획 없이 티샷"
+   ],
+   "hypotheses": [
+    "선택지를 비교하지 않음",
+    "결과에 끌려가는 판단"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 스크린 티잉 구역에서 이 홀을 치는 세 가지 길을 적는다: 공격 · 보통 · 안전(목표·클럽). ② 하나를 고르고 고른 이유를 한 줄 적는다. ③ 그 길대로 친다. ④ 홀이 끝나면 고른 길을 지켰는지와 타수를 적는다.",
+   "dose": "9홀",
+   "success": "고른 길을 지킨 홀 9홀 중 7홀 이상",
+   "metrics": "계획 준수율(%)|고른 길별 평균 타수",
+   "equipment": [
+    "스크린 골프",
+    "기록지"
+   ],
+   "difficulty": 3,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-005",
+   "nameKo": "티샷 한 줄 선언",
+   "nameEn": "One-Line Tee Shot Declaration",
+   "axis": "COURSE",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Adaptive Decision"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "CHOICE",
+   "places": [
+    "field",
+    "screen"
+   ],
+   "ability": "선택",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "양쪽으로 다 미스가 남",
+    "티샷에서 OB가 잦음"
+   ],
+   "hypotheses": [
+    "허용 미스 방향 미설정",
+    "목표만 있고 피할 곳이 없음"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 티샷 전에 한 줄로 선언한다: '목표 ○○, 미스는 ○쪽까지 괜찮다'. ② 친다. ③ 공이 선언한 미스 쪽에 있는지 기록한다(목표 안 · 허용한 쪽 · 반대쪽).",
+   "dose": "라운드 전 홀",
+   "success": "반대쪽 미스 18홀 중 3번 이하",
+   "metrics": "반대쪽 미스 횟수|목표 안 비율(%)",
+   "equipment": [
+    "스코어카드"
+   ],
+   "difficulty": 2,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-006",
+   "nameKo": "선택 루틴 리허설",
+   "nameEn": "Choice Routine Rehearsal",
+   "axis": "MENTAL",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Pressure Execution"
+   ],
+   "evalType": "repeat",
+   "drillType": "ROUTINE",
+   "stage": "CHOICE",
+   "places": [
+    "home",
+    "range"
+   ],
+   "ability": "선택",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "샷 전에 망설임이 길다",
+    "결정을 바꿨다가 미스"
+   ],
+   "hypotheses": [
+    "결정 마무리 습관 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 실제 홀 하나를 떠올린다. ② 목표 · 구질 · 결정 한 단어(예: '간다')를 정한다. ③ 연습 스윙 한 번 뒤 결정 단어를 말하고 셋업까지만 한다. ④ 10번 반복하며 매번 같은 순서였는지 체크한다.",
+   "dose": "10회 × 1세트 · 매일",
+   "success": "같은 순서 10회 중 9회",
+   "metrics": "루틴 순서 일치 수|한 회 걸린 시간(초)",
+   "equipment": [
+    "클럽 1개(없어도 됨)"
+   ],
+   "difficulty": 1,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-007",
+   "nameKo": "무작위 클럽 순환 18구",
+   "nameEn": "Random Club Rotation 18",
+   "axis": "SWING",
+   "nodes": [
+    "N8"
+   ],
+   "nodeStatus": "tentative",
+   "nodeCrossRef": [],
+   "r8sub": [
+    "Situation-specific Control",
+    "Shot Selection Range"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "EXPERIENCE",
+   "places": [
+    "range"
+   ],
+   "ability": "경험",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "연습장 결과가 코스로 이어지지 않음"
+   ],
+   "hypotheses": [
+    "같은 샷만 반복하는 연습",
+    "조건 변화 경험 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 클럽 4개와 목표 3곳을 카드로 만든다. ② 매 공마다 카드를 뽑아 그 클럽·목표로 친다(같은 조합 연속 금지). ③ 목표 반경 안이면 ○. ④ 같은 날 같은 클럽을 한 클럽씩 묶어 친 결과(기준선)와 비교한다.",
+   "dose": "18구 · 주 2회",
+   "success": "목표 반경 안 18구 중 9구 이상",
+   "metrics": "무작위 성공률(%)|묶음 연습 대비 차이",
+   "equipment": [
+    "클럽 4개",
+    "카드",
+    "목표 깃발"
+   ],
+   "difficulty": 3,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-008",
+   "nameKo": "라이 카드 업다운",
+   "nameEn": "Lie-Card Up and Down",
+   "axis": "SHORT_GAME",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Situation-specific Control"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "EXPERIENCE",
+   "places": [
+    "short",
+    "field"
+   ],
+   "ability": "경험",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "좋은 라이에서만 연습함"
+   ],
+   "hypotheses": [
+    "라이 다양성 경험 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 라이 카드(짧은 러프 · 긴 러프 · 맨땅 · 오르막 · 내리막 · 벙커)를 섞는다. ② 카드를 뽑아 그 자리에 공을 놓고 핀까지 2타 안에 끝내기(업다운)를 한다. ③ 라이별 성공을 적는다.",
+   "dose": "카드 9장 · 주 2회",
+   "success": "업다운 9번 중 4번 이상",
+   "metrics": "업다운 성공률(%)|라이별 성공",
+   "equipment": [
+    "라이 카드",
+    "공 9개"
+   ],
+   "difficulty": 3,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-009",
+   "nameKo": "거리 사다리 무작위 퍼트",
+   "nameEn": "Random Distance Ladder",
+   "axis": "PUTTING",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Situation-specific Control"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "EXPERIENCE",
+   "places": [
+    "green",
+    "home"
+   ],
+   "ability": "경험",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "롱퍼트 거리감이 들쭉날쭉"
+   ],
+   "hypotheses": [
+    "같은 거리만 반복",
+    "거리 전환 경험 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 3m · 6m · 9m · 12m 자리를 만든다(집에서는 1·2·3·4m). ② 정해 둔 무작위 순서표대로 자리를 바꿔 가며 친다. ③ 홀(목표) 주변 60cm 안에 서면 ○.",
+   "dose": "12개 × 2세트",
+   "success": "60cm 안 12개 중 8개 이상",
+   "metrics": "60cm 안 비율(%)|거리별 평균 오차(cm)",
+   "equipment": [
+    "티 또는 마커 4개",
+    "순서표"
+   ],
+   "difficulty": 2,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-010",
+   "nameKo": "조건 바꿔 같은 목표",
+   "nameEn": "Same Target, Changing Conditions",
+   "axis": "SWING",
+   "nodes": [
+    "N8"
+   ],
+   "nodeStatus": "tentative",
+   "nodeCrossRef": [],
+   "r8sub": [
+    "Situation-specific Control",
+    "Adaptive Decision"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "EXPERIENCE",
+   "places": [
+    "screen"
+   ],
+   "ability": "경험",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "바람 부는 날 거리 실수"
+   ],
+   "hypotheses": [
+    "조건 보정 경험 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 스크린에서 같은 거리 목표(예: 120m)를 정한다. ② 바람(맞바람·뒷바람·옆바람)과 고저(오르막·내리막) 조건을 매 샷 바꾼다. ③ 클럽과 탄도를 골라 친다. ④ 조건별 캐리 오차를 적는다.",
+   "dose": "조건 6가지 × 2구",
+   "success": "목표 ±8m 안 12구 중 6구 이상",
+   "metrics": "조건별 캐리 오차(m)|목표 안 비율(%)",
+   "equipment": [
+    "스크린 골프"
+   ],
+   "difficulty": 3,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-011",
+   "nameKo": "경사 라이 경험 기록",
+   "nameEn": "Uneven Lie Log",
+   "axis": "COURSE",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Situation-specific Control"
+   ],
+   "evalType": "other",
+   "drillType": "TEST",
+   "stage": "EXPERIENCE",
+   "places": [
+    "field"
+   ],
+   "ability": "경험",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "경사에서 미스가 반복됨"
+   ],
+   "hypotheses": [
+    "경사 라이 경험 정리 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 라운드 중 평평하지 않은 라이마다 종류(왼발 오르막·내리막, 공이 발보다 높음·낮음)를 적는다. ② 고른 클럽과 겨냥, 결과(목표 안·왼쪽·오른쪽·짧음·김)를 적는다. ③ 라운드 뒤 같은 라이끼리 묶어 본다.",
+   "dose": "라운드마다 10개 이상 기록",
+   "success": "기록 10개 이상 · 라이별 결과 정리",
+   "metrics": "기록 수|라이별 목표 안 비율(%)",
+   "equipment": [
+    "스코어카드 또는 휴대폰 메모"
+   ],
+   "difficulty": 2,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-012",
+   "nameKo": "가상 홀 15초 판단",
+   "nameEn": "15-Second Virtual Hole",
+   "axis": "COURSE",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Adaptive Decision",
+    "Shot Selection Range"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "JUDGMENT",
+   "places": [
+    "range"
+   ],
+   "ability": "판단",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "코스에서 클럽 선택 실수"
+   ],
+   "hypotheses": [
+    "판단과 실행을 구분하지 않음"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 코치나 동료가 홀 상황을 부른다(거리 · 바람 · 해저드 위치 · 핀). ② 15초 안에 클럽 · 목표 · 구질을 말한다. ③ 친다. ④ 판단이 상황에 맞았는지(코치 확인)와 실행 결과를 따로 ○/× 한다.",
+   "dose": "9상황 · 주 1~2회",
+   "success": "판단 적합 9개 중 7개 이상",
+   "metrics": "판단 적합률(%)|실행 성공률(%)",
+   "equipment": [
+    "목표 깃발",
+    "상황 카드 또는 부르는 사람"
+   ],
+   "difficulty": 3,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-013",
+   "nameKo": "휘는 양 예측 후 검증",
+   "nameEn": "Predict the Break",
+   "axis": "PUTTING",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Adaptive Decision"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "JUDGMENT",
+   "places": [
+    "green"
+   ],
+   "ability": "판단",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "라인을 자주 잘못 읽음"
+   ],
+   "hypotheses": [
+    "라인 판단과 결과 비교 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 3~6m 퍼트마다 홀 기준으로 몇 컵 휘는지 먼저 말한다. ② 그 겨냥으로 친다. ③ 실제로 지나간 쪽을 보고 예측과 몇 컵 차이였는지 적는다.",
+   "dose": "8개 × 2세트",
+   "success": "예측 오차 평균 1컵 이하",
+   "metrics": "예측 오차(컵)|홀인 수",
+   "equipment": [
+    "기록지"
+   ],
+   "difficulty": 3,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-014",
+   "nameKo": "캐리·굴림 비율 예측",
+   "nameEn": "Carry-to-Roll Prediction",
+   "axis": "SHORT_GAME",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Adaptive Decision"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "JUDGMENT",
+   "places": [
+    "short"
+   ],
+   "ability": "판단",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "칩이 생각보다 많이·적게 굴러감"
+   ],
+   "hypotheses": [
+    "클럽별 굴림 판단 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 칩·피치마다 '날아가는 거리 : 굴러가는 거리'를 먼저 말한다(예: 1:2). ② 친다. ③ 실제 비율을 눈으로 재서 예측과 비교한다. ④ 클럽별로 맞았던 비율을 적어 둔다.",
+   "dose": "클럽 2개 × 6구",
+   "success": "예측과 실제 비율 차이가 1단계 이내 12구 중 8구",
+   "metrics": "비율 예측 일치율(%)|클럽별 실제 비율",
+   "equipment": [
+    "웨지 2개",
+    "마커"
+   ],
+   "difficulty": 2,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-015",
+   "nameKo": "숫자 보고 클럽 판단",
+   "nameEn": "Read the Numbers, Pick the Club",
+   "axis": "COURSE",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Adaptive Decision"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "JUDGMENT",
+   "places": [
+    "screen"
+   ],
+   "ability": "판단",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "거리 계산 실수"
+   ],
+   "hypotheses": [
+    "보정 판단 기준 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 스크린에 거리 · 바람 · 고저가 나오면 필요한 캐리를 먼저 계산해 말한다. ② 클럽을 고른다. ③ 친 뒤 실제 캐리와 필요한 캐리의 차이를 적는다.",
+   "dose": "9샷",
+   "success": "필요 캐리 ±7m 안 9샷 중 6샷",
+   "metrics": "필요 캐리 대비 오차(m)|계산 오차(m)",
+   "equipment": [
+    "스크린 골프"
+   ],
+   "difficulty": 3,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-016",
+   "nameKo": "그린 공략 판단 9홀",
+   "nameEn": "Green Target Judgment 9",
+   "axis": "COURSE",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Adaptive Decision",
+    "Strategic Reproduction"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "JUDGMENT",
+   "places": [
+    "field"
+   ],
+   "ability": "판단",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "핀만 보다가 큰 실수"
+   ],
+   "hypotheses": [
+    "공략 판단 기준 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 어프로치 샷마다 핀을 볼지 그린 가운데를 볼지 고르고 이유를 한 단어로 적는다(예: 바람·벙커·자신감). ② 친다. ③ 홀이 끝나면 그 판단이 타수에 도움이 됐는지 ○/×.",
+   "dose": "9홀",
+   "success": "도움 된 판단 9홀 중 6홀 이상",
+   "metrics": "판단 도움 비율(%)|판단별 평균 타수",
+   "equipment": [
+    "스코어카드"
+   ],
+   "difficulty": 3,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-025",
+   "nameKo": "집에서 코스 공략 짜기",
+   "nameEn": "Plan the Course at Home",
+   "axis": "COURSE",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Strategic Reproduction",
+    "Adaptive Decision"
+   ],
+   "evalType": "adapt",
+   "drillType": "TEST",
+   "stage": "JUDGMENT",
+   "places": [
+    "home"
+   ],
+   "ability": "판단",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "코스에 가서야 공략을 생각함"
+   ],
+   "hypotheses": [
+    "사전 계획 습관 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 다음에 칠 코스의 홀 지도(스코어카드·앱)를 본다. ② 홀마다 티샷 목표 · 클럽 · 피할 곳을 한 줄씩 적는다. ③ 라운드 뒤 계획대로 친 홀과 바꾼 홀, 그 결과를 표시한다.",
+   "dose": "라운드 전 1회 · 18홀",
+   "success": "계획 지킨 홀 18홀 중 12홀 이상",
+   "metrics": "계획 준수율(%)|계획 홀과 바꾼 홀의 평균 타수",
+   "equipment": [
+    "코스 지도 또는 스코어카드"
+   ],
+   "difficulty": 2,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-017",
+   "nameKo": "미스 패턴 지도",
+   "nameEn": "My Miss Map",
+   "axis": "SWING",
+   "nodes": [
+    "N8"
+   ],
+   "nodeStatus": "tentative",
+   "nodeCrossRef": [],
+   "r8sub": [
+    "Strategic Reproduction",
+    "Intentional Curve Creation"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "INSIGHT",
+   "places": [
+    "range",
+    "screen"
+   ],
+   "ability": "인사이트",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "같은 미스를 매번 놀라워함"
+   ],
+   "hypotheses": [
+    "결과 패턴 정리 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 한 클럽으로 20구를 치며 떨어진 자리를 지도(종이 과녁)에 점으로 찍는다. ② 가장 많이 모인 미스 방향을 찾는다. ③ '내 미스는 ○○, 그래서 겨냥은 ○○' 처럼 내 원칙 한 줄을 쓴다. ④ 그 원칙대로 10구를 더 쳐서 목표 안 비율을 처음 20구와 비교한다.",
+   "dose": "20구 + 10구 · 주 1회",
+   "success": "원칙 적용 10구의 목표 안 비율이 처음보다 높음",
+   "metrics": "원칙 전·후 목표 안 비율(%)|주 미스 방향",
+   "equipment": [
+    "기록지(과녁 그림)"
+   ],
+   "difficulty": 3,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-018",
+   "nameKo": "라운드 복기 3문장",
+   "nameEn": "Three-Sentence Round Review",
+   "axis": "MENTAL",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Strategic Reproduction"
+   ],
+   "evalType": "other",
+   "drillType": "ROUTINE",
+   "stage": "INSIGHT",
+   "places": [
+    "field",
+    "home"
+   ],
+   "ability": "인사이트",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "같은 실수가 라운드마다 반복"
+   ],
+   "hypotheses": [
+    "복기 습관 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 라운드가 끝나면 세 문장을 쓴다: 가장 잘한 판단 하나 · 바꾸고 싶은 판단 하나 · 다음 라운드 원칙 하나. ② 다음 라운드 첫 티에서 그 원칙을 읽는다. ③ 끝나고 원칙을 지킨 홀 수를 센다.",
+   "dose": "라운드마다",
+   "success": "다음 라운드에서 원칙 지킨 홀 12홀 이상",
+   "metrics": "원칙 지킨 홀 수|라운드 간 같은 실수 반복 수",
+   "equipment": [
+    "메모(앱 '내 얘기'에 남겨도 됨)"
+   ],
+   "difficulty": 1,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-019",
+   "nameKo": "내 속도 원칙 찾기",
+   "nameEn": "Find My Speed Rule",
+   "axis": "PUTTING",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Strategic Reproduction"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "INSIGHT",
+   "places": [
+    "green"
+   ],
+   "ability": "인사이트",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "거리별로 늘 짧거나 긺"
+   ],
+   "hypotheses": [
+    "거리별 속도 패턴 미정리"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 2 · 4 · 6 · 8m에서 5개씩 치고 짧음·김을 거리별로 적는다. ② 어느 거리에서 짧은지·긴지 패턴을 찾는다. ③ '6m 넘으면 컵 하나 더 지나가게' 처럼 내 속도 원칙을 쓴다. ④ 원칙대로 다시 20개를 쳐서 비교한다.",
+   "dose": "20개 + 20개",
+   "success": "원칙 적용 뒤 60cm 안 비율 상승",
+   "metrics": "거리별 짧음·김 비율|원칙 전·후 60cm 안 비율(%)",
+   "equipment": [
+    "마커 4개",
+    "기록지"
+   ],
+   "difficulty": 3,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-020",
+   "nameKo": "주간 인사이트 노트",
+   "nameEn": "Weekly Insight Note",
+   "axis": "MENTAL",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Strategic Reproduction"
+   ],
+   "evalType": "other",
+   "drillType": "ROUTINE",
+   "stage": "INSIGHT",
+   "places": [
+    "home"
+   ],
+   "ability": "인사이트",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "연습은 많은데 남는 게 없음"
+   ],
+   "hypotheses": [
+    "경험을 원칙으로 바꾸는 정리 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 일주일 동안의 앱 기록(오늘의 훈련 '했어요', 레슨, 내 얘기)을 본다. ② 반복된 패턴 세 개를 적는다. ③ 그중 하나로 다음 주 원칙 한 줄을 만든다. ④ 다음 주 '했어요'에 원칙을 지켰는지 한마디로 남긴다.",
+   "dose": "주 1회 · 10분",
+   "success": "4주 연속 작성",
+   "metrics": "작성 주 수|원칙 지킨 날 수",
+   "equipment": [
+    "앱 기록"
+   ],
+   "difficulty": 1,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-021",
+   "nameKo": "원칙 지키기 연속 9구",
+   "nameEn": "Keep the Rule 9 in a Row",
+   "axis": "MENTAL",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Pressure Execution"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "PATIENCE_MEMORY",
+   "places": [
+    "range"
+   ],
+   "ability": "인내",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "미스 뒤 루틴이 무너짐",
+    "결과에 따라 서두름"
+   ],
+   "hypotheses": [
+    "결과에 반응해 원칙을 버림"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 오늘 지킬 원칙 하나와 루틴을 정한다. ② 결과와 상관없이 루틴과 원칙을 지키면 1점, 건너뛰거나 서두르면 0으로 돌아간다. ③ 연속 9점이 될 때까지 한다. ④ 결과(목표 안)는 따로 적는다.",
+   "dose": "연속 9점까지(최대 40구)",
+   "success": "연속 9점 달성",
+   "metrics": "최대 연속 수|달성까지 공 수|목표 안 비율(%)",
+   "equipment": [
+    "기록지"
+   ],
+   "difficulty": 3,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-022",
+   "nameKo": "다음 날 기억 퍼트",
+   "nameEn": "Next-Day Memory Putts",
+   "axis": "PUTTING",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N6",
+    "N8"
+   ],
+   "r8sub": [
+    "Strategic Reproduction"
+   ],
+   "evalType": "repeat",
+   "drillType": "TEST",
+   "stage": "PATIENCE_MEMORY",
+   "places": [
+    "green",
+    "home"
+   ],
+   "ability": "기억",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "연습 때 된 감이 다음 날 사라짐"
+   ],
+   "hypotheses": [
+    "기억(유지) 확인 없음"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 오늘 연습한 거리 세 곳을 적어 둔다. ② 다음 날 연습을 시작하자마자(몸풀기 퍼트 없이) 그 거리에서 한 번씩만 친다. ③ 60cm 안에 섰는지 적고 전날 마지막 결과와 비교한다.",
+   "dose": "다음 날 첫 3개 · 매번",
+   "success": "다음 날 첫 3개 중 2개 이상 60cm 안",
+   "metrics": "지연 재검 성공률(%)|전날 대비 차이",
+   "equipment": [
+    "마커"
+   ],
+   "difficulty": 2,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-023",
+   "nameKo": "미스 뒤 원칙 복귀",
+   "nameEn": "Back to the Rule After a Miss",
+   "axis": "MENTAL",
+   "nodes": [],
+   "nodeStatus": "",
+   "nodeCrossRef": [
+    "N8"
+   ],
+   "r8sub": [
+    "Pressure Execution"
+   ],
+   "evalType": "adapt",
+   "drillType": "GAME",
+   "stage": "PATIENCE_MEMORY",
+   "places": [
+    "field",
+    "screen"
+   ],
+   "ability": "인내",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "미스 하나가 연속 실수로 이어짐"
+   ],
+   "hypotheses": [
+    "미스 뒤 원칙 복귀 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 큰 미스가 나면 다음 샷 전에 원칙 한 줄을 속으로 읽는다. ② 루틴을 처음부터 끝까지 한다. ③ 그 홀을 보기 이하로 막았는지와 루틴을 다 했는지 따로 적는다.",
+   "dose": "라운드 전 홀",
+   "success": "미스 다음 샷 루틴 완수율 80% 이상",
+   "metrics": "미스 뒤 루틴 완수율(%)|미스 뒤 보기 이하 비율(%)",
+   "equipment": [
+    "스코어카드"
+   ],
+   "difficulty": 2,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  },
+  {
+   "id": "RP-024",
+   "nameKo": "첫 샷 기억 재현",
+   "nameEn": "First-Shot Memory",
+   "axis": "SWING",
+   "nodes": [
+    "N8"
+   ],
+   "nodeStatus": "tentative",
+   "nodeCrossRef": [],
+   "r8sub": [
+    "Strategic Reproduction"
+   ],
+   "evalType": "repeat",
+   "drillType": "TEST",
+   "stage": "PATIENCE_MEMORY",
+   "places": [
+    "screen",
+    "range"
+   ],
+   "ability": "기억",
+   "origin": "AP",
+   "sources": [
+    "SRC-AP"
+   ],
+   "symptoms": [
+    "몸이 풀려야만 잘 맞음"
+   ],
+   "hypotheses": [
+    "좋은 샷 기억·재현 연습 부족"
+   ],
+   "conditions": "기본 동작(기술 교정)이 어느 정도 안정된 뒤. 통증이 있으면 하지 않는다.",
+   "how": "① 지난 연습의 가장 좋았던 샷 하나(클럽 · 목표 · 느낌 한 단어)를 기록해 둔다. ② 다음 연습 첫 공에서 몸풀기 없이 그 샷을 다시 한다. ③ 목표 안이었는지와 느낌이 같았는지 적는다.",
+   "dose": "연습마다 첫 1구",
+   "success": "5번 중 3번 목표 안",
+   "metrics": "첫 샷 목표 안 비율(%)|느낌 일치 비율(%)",
+   "equipment": [
+    "기록지"
+   ],
+   "difficulty": 2,
+   "guardrail": "AP 초안(AI 작성·코치 검토 전). 기술 교정(Matrix·6-Axis 베이직)을 대신하지 않는다 — 기본기 확인 뒤에 쓴다. 결과로 원인을 단정하지 않고, 기준선(이전 평소 결과) 없이 좋아졌다고 판단하지 않는다.",
+   "evidenceGrade": "AP_DRAFT",
+   "coachApproval": "PENDING",
+   "draft": true,
+   "evidence": "standardized",
+   "versionNote": "AP 실전 인지 드릴 v0.1 초안 (2026-11-18)"
+  }
+ ],
+ "migrations": []
+}

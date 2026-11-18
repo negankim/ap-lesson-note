@@ -25,6 +25,10 @@ const EVIDENCE = ["source", "standardized", "reviewed", "field", "verified"];
 const APPROVAL = ["PENDING", "APPROVED", "REVISE", "REJECTED"];
 const EVAL_TYPES = ["repeat", "adapt", "other"];
 const DRILL_TYPES = ["", "TECHNICAL", "GAME", "TEST", "ROUTINE", "EXERCISE"];
+/* AP 훈련 사다리(대표 정의 2026-11-18): 기술 교정(베이직, Matrix·6-Axis가 받침) 위에
+ * 선택 → 경험 → 판단 → 인사이트 → 인내·기억으로 가는 실전 인지 능력 훈련. stage 없는 드릴은 기술 교정(TECH). */
+const STAGES = ["TECH", "CHOICE", "EXPERIENCE", "JUDGMENT", "INSIGHT", "PATIENCE_MEMORY"];
+const PLACES = ["range", "short", "green", "screen", "field", "home"];
 
 const S = (v, n = 400) => (v == null ? "" : String(v).replace(/\s+/g, " ").trim().slice(0, n));
 const LIST = (v, n = 20, m = 160) => (Array.isArray(v) ? v : String(v || "").split(/[;\n|]/)).map((x) => S(x, m)).filter(Boolean).slice(0, n);
@@ -36,7 +40,7 @@ function cleanDrill(d) {
   const axis = AXES.includes(S(d.axis, 20)) ? S(d.axis, 20) : "";
   let nodes = NODES(d.nodes), cross = NODES(d.nodeCrossRef);
   if (axis && axis !== "SWING" && nodes.length) { cross = [...new Set([...cross, ...nodes])]; nodes = []; } // R09
-  const r8sub = nodes.includes("N8") ? LIST(d.r8sub, 6, 60).filter((x) => R8_SUB.includes(x)) : [];
+  const r8sub = nodes.includes("N8") || cross.includes("N8") ? LIST(d.r8sub, 6, 60).filter((x) => R8_SUB.includes(x)) : [];
   let evalType = S(d.evalType, 10); if (!EVAL_TYPES.includes(evalType)) evalType = nodes.includes("N8") ? "adapt" : nodes.includes("N6") ? "repeat" : "other";
   const dt = S(d.drillType, 12).toUpperCase();
   const cr = d.coachReview || {};
@@ -48,6 +52,8 @@ function cleanDrill(d) {
     dose: S(d.dose, 160), success: S(d.success, 300), metrics: LIST(d.metrics, 10), guardrail: S(d.guardrail, 400),
     sourceExample: S(d.sourceExample, 400), evidenceGrade: S(d.evidenceGrade, 40) || "HYPOTHESIS_ONLY", versionNote: S(d.versionNote, 200),
     draft: d.draft !== false, aliases: LIST(d.aliases, 20, 120),
+    stage: STAGES.includes(S(d.stage, 20)) ? S(d.stage, 20) : "TECH", places: LIST(d.places, 6, 10).filter((x) => PLACES.includes(x)),
+    ability: S(d.ability, 30), origin: S(d.origin, 20), sources: LIST(d.sources, 6, 20).filter((x) => ID(x)),
     coachReview: { status: S(cr.status, 20), reviewer: S(cr.reviewer, 60), date: S(cr.date, 20), mechanics: S(cr.mechanics, 200), indications: S(cr.indications, 300), contraindications: S(cr.contraindications, 300), measureAgreed: S(cr.measureAgreed, 200), fieldPilot: S(cr.fieldPilot, 30), remarks: S(cr.remarks, 300) },
   };
 }
@@ -109,7 +115,7 @@ async function importBundle(db, b, by) {
     await upsert("tl_drills", id, c, rep.drills);
     const s = await db.doc(`tl_drills/${id}`).get();
     const cur = s.data(); const fix = {};
-    if (!cur.evidence) fix.evidence = "source";
+    if (!cur.evidence) fix.evidence = d.origin === "AP" && d.evidence === "standardized" ? "standardized" : "source"; // AP 자체 초안은 'AP 표준화'로 시작(승인은 따로)
     if (!cur.coachApproval) fix.coachApproval = APPROVAL.includes(d.coachApproval) ? d.coachApproval : "PENDING";
     if (Object.keys(fix).length) await db.doc(`tl_drills/${id}`).update(fix);
   }

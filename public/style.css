@@ -736,3 +736,10 @@ label.d-it{cursor:pointer}
 .d-done{display:grid;gap:10px;border-top:1px dashed var(--line);padding-top:12px}
 .d-fin{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .tq .fld{display:grid;gap:6px}
+/* AP 훈련 사다리 */
+.tl-phil{gap:8px}
+.tl-ladder{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;font-size:13px}
+.tl-ladder span{padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--raise);color:var(--muted)}
+.tl-ladder span:first-child{border-style:dashed}
+.tl-ladder span.on{color:var(--fg);border-color:var(--gold-line);background:var(--gold-soft);font-weight:700}
+.tl-ladder i{font-style:normal;color:var(--muted)}

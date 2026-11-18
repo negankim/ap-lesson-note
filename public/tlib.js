@@ -5,7 +5,7 @@
    - 관찰(현상)과 원인 가설을 따로 적고, 가설은 '추가 확인 필요'로 남긴다. */
 let C = null;               // app.js 가 넘겨주는 도구들
 let drills = [], variants = [], sources = {}, rxRules = [], observed = [], taxo = null, loaded = false, loading = null;
-let F = { q: "", axis: "", node: "", r8: "", diff: "", equip: "", ev: "" }, sel = null, mode = "browse";
+let F = { q: "", axis: "", node: "", r8: "", diff: "", equip: "", ev: "", stage: "" }, sel = null, mode = "browse";
 let RX = { pid: "", pname: "", lesson: null, obs: "", tags: [], hyp: "", node: "", axis: "", picks: [], doc: null, docId: "" };
 const PILLAR_AXIS = { drive: "SWING", iron: "SWING", short: "SHORT_GAME", putt: "PUTTING", course: "COURSE", mind: "MENTAL", body: "PHYSICAL", life: "MENTAL" };
 
@@ -20,6 +20,11 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const T = (s) => (window.APT ? window.APT(s) : s);
 const words = (s) => String(s || "").toLowerCase().normalize("NFKC").split(/[^\p{L}\p{N}]+/u).filter((w) => w.length >= 2);
+/* AP 훈련 사다리(대표 정의): 기술 교정(베이직 · Matrix·6-Axis가 받침) → 선택 → 경험 → 판단 → 인사이트 → 인내·기억 */
+export const STAGE_KO = { TECH: "기술 교정 · 베이직", CHOICE: "선택", EXPERIENCE: "경험", JUDGMENT: "판단", INSIGHT: "인사이트", PATIENCE_MEMORY: "인내·기억" };
+export const PLACE_KO = { range: "연습장", short: "숏게임장", green: "퍼팅그린", screen: "스크린", field: "필드", home: "집" };
+const stageOf = (d) => d.stage || "TECH";
+const ladder = (cur) => `<div class="tl-ladder">${Object.keys(STAGE_KO).map((k, i) => `${i ? `<i aria-hidden="true">→</i>` : ""}<span class="${k === cur ? "on" : ""}">${esc(STAGE_KO[k])}</span>`).join("")}</div>`;
 const AXIS_KO = { SWING: "스윙", PUTTING: "퍼팅", SHORT_GAME: "숏게임", COURSE: "코스운영", MENTAL: "멘탈", PHYSICAL: "피지컬" };
 const axisL = (a) => a ? `${AXIS_KO[a] || a}` : "";
 const APPR_KO = { PENDING: "코치 승인 대기", APPROVED: "코치 승인", REVISE: "수정 요청", REJECTED: "반려" };
@@ -93,7 +98,7 @@ function opts(list, cur, all) { return `<option value="">${esc(all)}</option>` +
 function filtered() {
   const qw = words(F.q);
   return drills.filter((d) => (!F.axis || d.axis === F.axis) && (!F.node || (d.nodes || []).includes(F.node) || (d.nodeCrossRef || []).includes(F.node)) && (!F.r8 || (d.r8sub || []).includes(F.r8))
-    && (!F.diff || String(d.difficulty || "") === F.diff) && (!F.equip || (d.equipment || []).includes(F.equip)) && (!F.ev || d.evidence === F.ev)
+    && (!F.stage || stageOf(d) === F.stage) && (!F.diff || String(d.difficulty || "") === F.diff) && (!F.equip || (d.equipment || []).includes(F.equip)) && (!F.ev || d.evidence === F.ev)
     && (!qw.length || qw.every((w) => words([d.nameKo, d.nameEn, d.purpose, (d.symptoms || []).join(" "), (d.hypotheses || []).join(" "), (d.aliases || []).join(" ")].join(" ")).some((x) => x.includes(w)))));
 }
 function renderBrowse() {
@@ -101,8 +106,10 @@ function renderBrowse() {
   if (!drills.length) { body.innerHTML = `<div class="notice">아직 Training Library에 드릴이 없어요. 관리자가 '데이터 관리'에서 엑셀 자료를 가져오면 여기에 보여요.</div>`; return; }
   const axes = ["SWING", "PUTTING", "SHORT_GAME", "COURSE", "MENTAL", "PHYSICAL"].filter((a) => drills.some((d) => d.axis === a)), equips = [...new Set(drills.flatMap((d) => d.equipment || []))].sort();
   const list = filtered();
-  body.innerHTML = `<div class="tl-filters">
+  body.innerHTML = `<div class="panel tl-phil"><b>AP 훈련 사다리</b>${ladder(F.stage)}<p class="hint" style="margin:0">Matrix와 6-Axis로 하는 기술 교정이 베이직이에요. 그 위에서 선택이 경험이 되고, 판단 능력을 키워 인사이트에 이르고, 인내와 기억으로 가는 실전 인지 능력 훈련이 한 단계 위예요. Matrix·Axis는 이를 받쳐 줍니다.</p></div>
+    <div class="tl-filters">
       <label class="fld tl-q">문제 증상·이름 검색<input id="tl-q" value="${esc(F.q)}" placeholder="예: 출발선 우측, 짧은 퍼팅, gate"></label>
+      <label class="fld">훈련 단계<select data-f="stage">${opts(Object.entries(STAGE_KO), F.stage, "전체")}</select></label>
       <label class="fld">Axis<select data-f="axis">${opts(axes.map((a) => [a, axisL(a)]), F.axis, "전체")}</select></label>
       <label class="fld">Matrix 노드<select data-f="node">${opts(Object.entries(NODE_KO).map(([k, v]) => [k, k + " " + v]), F.node, "전체")}</select></label>
       ${F.node === "N8" ? `<label class="fld">R8 세부<select data-f="r8">${opts(R8_SUB.map((x) => [x, x]), F.r8, "전체")}</select></label>` : ""}
@@ -117,7 +124,7 @@ function renderBrowse() {
 function card(d) {
   return `<button type="button" class="tl-card" data-tlsel="${esc(d.id)}" aria-pressed="${sel === d.id}">
     <b>${esc(dname(d))}</b><small>${esc((d.symptoms || [])[0] || d.purpose || "")}</small>
-    <span class="tl-tags"><span class="pill">${esc(d.id)}</span>${d.axis ? `<span class="pill">${esc(axisL(d.axis))}</span>` : ""}${nodePills(d)}${d.difficulty ? `<span class="pill">난이도 ${d.difficulty}</span>` : ""}${evPill(d.evidence)}<span class="pill">${esc(APPR_KO[d.coachApproval] || APPR_KO.PENDING)}</span>${d.draft ? `<span class="pill">표준 초안</span>` : ""}${(d.dupCandidates || []).length ? `<span class="pill warn">중복 확인 필요</span>` : ""}</span></button>`;
+    <span class="tl-tags"><span class="pill">${esc(d.id)}</span><span class="pill ${stageOf(d) === "TECH" ? "" : "gold"}">${esc(STAGE_KO[stageOf(d)])}</span>${(d.places || []).map((p) => `<span class="pill">${esc(PLACE_KO[p] || p)}</span>`).join("")}${d.axis ? `<span class="pill">${esc(axisL(d.axis))}</span>` : ""}${nodePills(d)}${d.difficulty ? `<span class="pill">난이도 ${d.difficulty}</span>` : ""}${evPill(d.evidence)}<span class="pill">${esc(APPR_KO[d.coachApproval] || APPR_KO.PENDING)}</span>${d.draft ? `<span class="pill">표준 초안</span>` : ""}${(d.dupCandidates || []).length ? `<span class="pill warn">중복 확인 필요</span>` : ""}</span></button>`;
 }
 async function showDetail(id) {
   const d = drills.find((x) => x.id === id), box = $("tl-detail"); if (!d || !box) return;
@@ -128,7 +135,8 @@ async function showDetail(id) {
     <div class="t-head"><h2 style="margin:0">${esc(dname(d))}</h2><button class="btn sm" type="button" data-tlclose>닫기</button></div>
     <div class="tl-tags"><span class="pill">${esc(d.id)}</span>${d.axis ? `<span class="pill">${esc(axisL(d.axis))}${(d.axisSecondary || []).length ? " + " + d.axisSecondary.map(axisL).join(", ") : ""}</span>` : ""}<span class="pill">${esc(APPR_KO[d.coachApproval] || APPR_KO.PENDING)}</span>${nodePills(d)}${(d.r8sub || []).map((x) => `<span class="pill">R8 · ${esc(x)}</span>`).join("")}${evPill(d.evidence)}<span class="pill">${esc(EVAL_KO[d.evalType] || EVAL_KO.other)}</span><span class="pill">v${d.rev || 1}</span></div>
     ${d.evidence === "source" || d.evidence === "standardized" ? `<p class="notice" style="margin:0">효과 검증 전 · 코치 승인 필요</p>` : ""}
-    ${row("관찰 가능한 증상", ul(d.symptoms))}${row("대립 가능한 원인 가설 (단정 금지)", ul(d.hypotheses))}${row("적용 조건", esc(d.conditions))}
+    ${row("훈련 단계", ladder(stageOf(d)) + (d.ability ? `<span class="hint">키우는 능력 · ${esc(d.ability)}</span>` : ""))}${row("하는 곳", esc((d.places || []).map((p) => PLACE_KO[p] || p).join(", ")))}
+    ${row("이럴 때 써요", ul(d.symptoms))}${row("대립 가능한 원인 가설 (단정 금지)", ul(d.hypotheses))}${row("적용 조건", esc(d.conditions))}
     ${row("수행 방법 (AP 요약)", esc(d.how))}${row("필요한 도구", esc((d.equipment || []).join(", ")))}${row("난이도 · 권장 수행량", esc([d.difficulty ? "난이도 " + d.difficulty : "", d.dose].filter(Boolean).join(" · ")))}
     ${row("성공 기준", esc(d.success))}${row("측정 지표", ul(d.metrics))}${row("해석 주의", esc(d.guardrail))}${row("근거 등급(엑셀)", esc(d.evidenceGrade))}
     ${vs.length ? row("변형", `<ul>${vs.map((v) => `<li><b>${esc(v.label)}</b>${v.difficulty ? " · 난이도 " + v.difficulty : ""}${v.conditions ? " · " + esc(v.conditions) : ""}${v.dose ? " · " + esc(v.dose) : ""}</li>`).join("")}</ul>`) : ""}
@@ -410,4 +418,13 @@ export async function myRxItems(uid) {
     const d = drills.find((x) => x.id === p.drillId) || { id: p.drillId };
     return { key: `rx:${r.id}:${p.drillId}`, src: "코치 처방", name: dname(d), dose: (p.mods && p.mods.dose) || d.dose || "", how: d.how || "", axis: d.axis || "" };
   });
+}
+
+/* 오늘의 훈련(app.js)에 넣는 AP 실전 인지 드릴: 코치가 승인한 것만(초안은 넣지 않음) */
+const AP_REAL = "AP 실전";
+export async function apPracticeItems() {
+  try { await loadTL(); } catch (_) { return []; }
+  const AXP = { PUTTING: "putt", SHORT_GAME: "short", SWING: "drive", COURSE: "course", MENTAL: "mind", PHYSICAL: "body" };
+  return drills.filter((d) => stageOf(d) !== "TECH" && d.coachApproval === "APPROVED" && d.status !== "retired").map((d) => ({
+    key: `ap:${d.id}`, src: AP_REAL + " · " + STAGE_KO[stageOf(d)], name: dname(d), dose: d.dose || "", how: d.how || "", pillar: AXP[d.axis] || "", places: d.places || [], stage: stageOf(d), kind: "ap" }));
 }

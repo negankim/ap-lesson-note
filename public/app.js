@@ -1,4 +1,4 @@
-import { initTL, renderTL, bindTL, renderMyRx, myRxItems } from "./tlib.js";
+import { initTL, renderTL, bindTL, renderMyRx, myRxItems, apPracticeItems } from "./tlib.js";
 /* AP 레슨 노트 · 화면 로직. 데이터·AI·음성은 services.js가 넣어 준다. */
 /* ===== AP Swing Learning Matrix (진단 맵 기준) ===== */
 const NODES={
@@ -57,7 +57,7 @@ function show(tab){
   if(tab==="home"){openPlaza();setTimeout(crewWalk,300);setTimeout(miloEnter,500)}
   plazaTree&&plazaTree.pause(tab!=="home");
   if(tab==="lesson"){setRec(recMode);renderList();renderLegacy();$("coach-zone").hidden=!isEditor;if(isEditor)renderDx()}
-  if(tab==="train"){renderMandala();renderActive();renderTrain();renderMandalaAP();renderPlan();renderFeelHist();chartSay();renderDay();if(uid)myRxItems(uid).then(x=>{rxPool=x}).catch(()=>{})}
+  if(tab==="train"){renderMandala();renderActive();renderTrain();renderMandalaAP();renderPlan();renderFeelHist();chartSay();renderDay();if(uid){myRxItems(uid).then(x=>{rxPool=x}).catch(()=>{});apPracticeItems().then(x=>{apPool=x}).catch(()=>{})}}
   if(tab==="ask"){renderSug();renderTalk();renderTalkQ()}
   if(tab==="link"){renderLink();loadViewers().then(renderLink)}
   if(tab==="plan")renderPlanPage();
@@ -699,6 +699,7 @@ async function boot(){
   await loadMandala();
   await loadDay();
   myRxItems(uid).then(x=>{rxPool=x}).catch(()=>{});
+  apPracticeItems().then(x=>{apPool=x}).catch(()=>{});
   let gotLib=false;const lt=setTimeout(()=>{if(!gotLib)$("lib-list").innerHTML='<div class="empty">라이브러리를 아직 불러오지 못했습니다. 연결이 느릴 수 있습니다.</div>'},10000);
   db.collection("library").onSnapshot(snap=>{gotLib=true;clearTimeout(lt);lib=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$("v-lib").hidden)renderLib();if(!$("v-train").hidden){renderMandalaAP();renderPlan()}if(!$("v-ask").hidden)renderTalkQ()},()=>{clearTimeout(lt)});
   renderChart();
@@ -1213,12 +1214,14 @@ $("bplan").addEventListener("change",async e=>{const c=e.target.closest("input[d
    고르는 건 규칙이다(AI 아님): 시간 → 개수, 장소 → 할 수 있는 영역, 컨디션 → 개수 줄임, 챙길 것 → 순서. 선수가 빼거나 더한 뒤 확정한다.
    저장 players/{uid}/days/{날짜}. 체크하면 배틀플랜 회차·레슨 6일 플랜에도 같이 체크된다.
    '했어요'는 그 레슨의 피드백으로도 남아 '여전하다' 3회 → 코치 확인 규칙이 그대로 돈다. */
-let day=null,dayDraft=null,dayAsk=null,dayBusy=false,rxPool=[];
+let day=null,dayDraft=null,dayAsk=null,dayBusy=false,rxPool=[],apPool=[];
 const D_TIME=[["30","30분"],["60","1시간"],["120","2시간 이상"]];
-const D_PLACE=[["range","연습장"],["green","퍼팅그린·숏게임장"],["course","코스"],["home","집·실내"]];
-const D_PLACE_OK={range:["drive","iron","short","putt","body","mind","life"],green:["putt","short","mind","life"],course:null,home:["putt","body","mind","life"]};
+const D_PLACE=[["range","연습장"],["green","퍼팅그린·숏게임장"],["screen","스크린"],["field","필드"],["home","집·실내"]];
+const D_PLACE_OK={range:["drive","iron","short","putt","body","mind","life"],green:["putt","short","mind","life"],screen:["drive","iron","short","putt","course","mind","life"],field:null,home:["putt","body","mind","life"]};
+/* Training Library 의 하는 곳(6곳) → 오늘의 훈련 장소(5곳) */
+const TL_PLACE={range:"range",short:"green",green:"green",screen:"screen",field:"field",home:"home"};
 const D_COND=[["good","좋아요"],["ok","보통"],["tired","피곤해요"]];
-const D_FOCUS=[["recent","최근 레슨·고민"],["weak","약한 영역"],["drive","드라이버"],["iron","아이언"],["short","숏게임"],["putt","퍼팅"],["mind","멘탈"]];
+const D_FOCUS=[["recent","최근 레슨·고민"],["weak","약한 영역"],["real","실전 판단력"],["drive","드라이버"],["iron","아이언"],["short","숏게임"],["putt","퍼팅"],["mind","멘탈"]];
 const D_Q=[["time","오늘 연습 시간은 얼마나 돼요?",D_TIME],["place","어디서 해요?",D_PLACE],["cond","몸 상태는 어때요?",D_COND],["focus","오늘 특히 챙기고 싶은 게 있어요?",D_FOCUS]];
 const D_MAND="만다라트";
 const D_VERD=[["잘 맞았다","맞았어요"],["여전하다","그대로예요"],["느낌을 모르겠다","잘 모르겠어요"]];
@@ -1234,6 +1237,7 @@ function dayPool(){
   const t=trainings[0];if(t&&t.status==="applied"){const cur=t.current||t.proposal;out.push({key:"tc:"+t.id,src:"AI 훈련 카드",name:cur.card.drill,dose:"",how:cur.card.goal,pillar:{Putt:"putt",Approach:"short",Shot:"drive"}[cur.setup.task]||"",kind:"tc"})}
   const ss=(mandala&&mandala.sessions)||[],nx=ss.find(s=>s.done.length<s.items.length);
   if(nx)nx.items.filter(id=>!nx.done.includes(id)).forEach(id=>{const x=libDay(id,`배틀플랜 ${nx.n}회차`,`bp:${nx.n}:${id}`);if(x)out.push({...x,kind:"bp"})});
+  apPool.forEach(x=>out.push(x)); /* AP 실전 인지 드릴: 코치 승인된 것만 */
   return out;
 }
 /* 모자라면 만다라트 칸(없으면 라이브러리)에서 영역을 돌아가며 하나씩 더한다 */
@@ -1243,12 +1247,13 @@ function dayExtra(pillars,haveKeys,fits,n){
   return out;
 }
 function dayCount(ask){const b=(stmt.bio&&stmt.bio.num)||{};const min=ask&&ask.time?Number(ask.time):Math.round((b.phours||1)*60);let n=Math.max(2,Math.min(5,Math.round(min/25)));if(ask&&ask.cond==="tired")n=Math.max(1,n-1);return n}
-function dayFits(ask){const ok=ask&&D_PLACE_OK[ask.place];return x=>(!ok||!x.pillar||ok.includes(x.pillar))&&(!x.round||(ask&&ask.place==="course"))}
+function dayFits(ask){const ok=ask&&D_PLACE_OK[ask.place];
+  return x=>x.kind==="ap"?(!ask||!ask.place||(x.places||[]).some(p=>TL_PLACE[p]===ask.place)):(!ok||!x.pillar||ok.includes(x.pillar))&&(!x.round||(ask&&ask.place==="field"))}
 function buildDay(ask){
   const n=dayCount(ask),fits=dayFits(ask),ok=ask&&D_PLACE_OK[ask.place];
-  const focus=!ask||ask.focus==="recent"?[]:ask.focus==="weak"?focusPillars():[ask.focus];
+  const focus=!ask||ask.focus==="recent"||ask.focus==="real"?[]:ask.focus==="weak"?focusPillars():[ask.focus];
   let pool=dayPool().filter(fits);
-  const rank=x=>(focus.length?(focus.includes(x.pillar)?4:0):0)+({lesson:3,rx:3,tc:2,bp:1}[x.kind]||0);
+  const rank=x=>(focus.length?(focus.includes(x.pillar)?4:0):0)+(ask&&ask.focus==="real"&&x.kind==="ap"?5:0)+({lesson:3,rx:3,tc:2,bp:1,ap:1}[x.kind]||0);
   pool=pool.map((x,i)=>({x,i})).sort((a,b)=>rank(b.x)-rank(a.x)||a.i-b.i).map(o=>o.x);
   let items=pool.slice(0,n);
   if(items.length<n){const want=[...focus,...focusPillars(),...PILLARS.map(p=>p[0])].filter((p,i,a)=>a.indexOf(p)===i&&(!ok||ok.includes(p)));
